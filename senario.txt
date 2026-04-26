@@ -1,0 +1,24 @@
+1 ) i need the when the doctor registory the helth_department create a witness for each doctor and give hime or send to him and the health department can be revoke a doctor using this witness . and for a witness the patient use a witness to like check if this personne is steel a doctor or note .
+ 2 ) and for a doctor after sigin up he need to send a requet to patient using did of this patient to ask hem to share with hem a record  and the doctor should be sent a did and witness to patient .
+
+3) after that the patient use the witness to check if this presdonne is steel a doctor or not after that the patient share with the doctor a record 
+to share a record the patient need : 
+3.1 ) chose a record ( we need to use EHR file with extension .json with out lime of size 
+3.2 ) the patient upload the record to ipfs and get the cid 1 .
+3.3 ) to share a record the patient need to give server of time based proxt-rencryption with attribute a : cid1  , time_of expiration like 1 day or 1 month or 1 year and attribute like 'doctor ',' cardilog ,' l'ophtalmologie  , ' la radiologie '
+
+and generate a keys for etch attribute and send hem to a doctor using a did 
+and the doctor use this attribute to decrypt the CID 2 and get the CID1 and fetch cid 1 from ipfs and read or right the part of EHR ( the patient who dicided with part can the doctor access using attribute like cardilog orcardilog and l'ophtalmologie  togther  and if the doctor have anther spiciatite so he can 't access ).
+
+remodfiy all files ( html , css , files.js , files.sol and make server of AT-BT-proxy re- encryption ( attribute based time proxy re-encryption using official librory in java script )).
+so give a full code for etch part without any errors please  
+
+
+
+//------------------------------ sinario 2 -----------------------
+
+know we need to move for the second part 
+
+so i need the doctor send a request of access to the patient and patient share the EHR with this doctor using a did but he need to upload EHR and crypted with local with AES-256 and share a key with a server Proxy to generate a key using attribut like " doctor " , " cardiolog " of cors we dont forget the time to expire the access like 1 day or 1 month or 1 year 
+
+so take the data and adaptive my sinario 

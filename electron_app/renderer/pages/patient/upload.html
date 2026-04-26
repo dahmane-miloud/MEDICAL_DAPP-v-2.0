@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Medical Record - MediChain</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/patient-upload.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Patient Portal</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a href="upload.html" class="nav-item active"><i class="fas fa-upload"></i><span>Upload
+                        Records</span></a>
+                <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>Access History</span></a>
+                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Upload Medical Record</h1>
+            </header>
+
+            <div class="upload-card">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Drag & Drop or Click to Browse</h3>
+                    <button class="btn-primary" id="browseBtn">Browse Files</button>
+                    <input type="file" id="fileInput" multiple style="display:none">
+                    <p class="upload-hint">Max 10MB per file</p>
+                </div>
+
+                <div id="fileList" style="display:none">
+                    <h3>Selected Files</h3>
+                    <div id="selectedFiles"></div>
+                </div>
+
+                <div id="recordInfoSection" style="display:none">
+                    <h3>Record Information</h3>
+                    <div class="form-group">
+                        <label for="recordType">Record Type</label>
+                        <select id="recordType">
+                            <option value="lab">Laboratory Results</option>
+                            <option value="imaging">Imaging / X-Ray</option>
+                            <option value="prescription">Prescription</option>
+                            <option value="consultation">Consultation Note</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recordDate">Record Date</label>
+                        <input type="date" id="recordDate">
+                    </div>
+                </div>
+
+                <div id="uploadProgress" style="display:none">
+                    <div class="progress-bar">
+                        <div id="progressFill" style="width:0%"></div>
+                    </div>
+                    <p id="progressStatus"></p>
+                </div>
+
+                <div class="upload-actions">
+                    <button class="btn-primary" id="uploadBtn" disabled>Upload & Encrypt</button>
+                    <button class="btn-secondary" id="cancelBtn" style="display:none">Cancel</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal to display AES key after upload -->
+    <div id="keyModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> AES-256 Key Generated</h2>
+                <button class="close-btn" onclick="closeKeyModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Copy this key – you will need it to share the record with a doctor.</p>
+                <code id="aesKeyDisplay" class="key-display"></code>
+                <button class="btn-primary" onclick="copyAESKey()"><i class="fas fa-copy"></i> Copy Key</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeKeyModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../assets/js/utils/patient-upload.js"></script>
+</body>
+
+</html>

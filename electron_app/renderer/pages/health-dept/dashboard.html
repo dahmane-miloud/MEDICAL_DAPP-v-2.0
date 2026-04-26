@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Department - Dashboard</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/health-dept.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Health Department</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a href="doctors.html" class="nav-item"><i class="fas fa-user-md"></i><span>Manage Doctors</span></a>
+                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-hospital"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Health Department Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+            </header>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-user-md"></i>
+                    <div>
+                        <h3>Total Doctors</h3>
+                        <p id="totalDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <h3>Active Doctors</h3>
+                        <p id="activeDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-ban"></i>
+                    <div>
+                        <h3>Revoked Doctors</h3>
+                        <p id="revokedDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-file-contract"></i>
+                    <div>
+                        <h3>Witnesses Issued</h3>
+                        <p id="witnessCount">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issue Witness for Existing Doctor -->
+            <section class="issue-witness-section">
+                <h2><i class="fas fa-certificate"></i> Issue Witness for Doctor</h2>
+                <div class="flex-form">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Doctor DID</label>
+                        <input type="text" id="doctorDid" placeholder="did:key:..." required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Validity (days)</label>
+                        <input type="number" id="witnessDays" value="365" min="1">
+                    </div>
+                    <button class="btn-primary" id="issueWitnessBtn"><i class="fas fa-certificate"></i> Issue
+                        Witness</button>
+                </div>
+                <div id="doctorPreview"
+                    style="display:none; margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                </div>
+            </section>
+
+            <!-- Doctors List -->
+            <section class="doctors-section">
+                <h2><i class="fas fa-list"></i> Registered Doctors</h2>
+                <div class="table-container">
+                    <table class="doctors-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>DID</th>
+                                <th>Specialization</th>
+                                <th>Status</th>
+                                <th>Witness Hash</th>
+                                <th>Expires</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doctorsTableBody">
+                            <tr>
+                                <td colspan="7" class="no-data">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- CORRECTED SCRIPT PATH - no utils folder -->
+    <script src="../../assets/js/utils/health-dept.js"></script>
+</body>
+
+</html>

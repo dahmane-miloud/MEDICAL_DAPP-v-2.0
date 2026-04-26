@@ -1,0 +1,83 @@
+# 1. Go to your project root (not scripts folder)
+cd C:\Users\SCORPION\Desktop\medical-dapp-pfe
+
+# 2. Check if you're in the right place
+dir
+
+# You should see: package.json, hardhat.config.js, contracts folder, etc.
+
+# 3. Install dependencies
+npm install
+
+# 4. Compile contracts
+npm run compile
+
+# 5. (Optional) Start local Hardhat node
+npm run node
+
+# 6. (In another terminal) Deploy contracts
+npm run deploy
+
+# 7. Start the Electron app
+npm start
+
+
+-----------------------------------------
+
+const users = await window.electronAPI.storeGet('users');
+const doctor = Object.values(users).find(u => u.did === 'did:key:zQtZ9Dm5VK9N/rNjHZ60U//n+oLN8isRdoi9iivi9Ya8=');
+if (doctor) {
+  const reg = await window.electronAPI.registerDoctor({
+    did: doctor.did,
+    publicKey: doctor.publicKey,
+    name: doctor.name,
+    license: doctor.license,
+    specialization: doctor.specialization
+  });
+  console.log('Résultat enregistrement manuel :', reg);
+}
+
+------------------- for view a doctor status ---------------------
+const users = await window.electronAPI.storeGet('users');
+const doctors = Object.values(users).filter(u => u.type === 'doctor');
+const last = doctors[doctors.length - 1];
+console.log('DID du dernier médecin :', last.did);
+const status = await window.electronAPI.verifyDoctor(last.did);
+console.log('Actif ?', status.isActive);
+
+----------------------
+------------------ cid of file jason -----------------------
+cid : QmPKqd4wqCkFJcBbaQJ2pHBH2HZ5XGZksfkN7adoP9QLYy
+cid_link: ipfs://QmPKqd4wqCkFJcBbaQJ2pHBH2HZ5XGZksfkN7adoP9QLYy
+
+abdalas  patient -------------------
+did : did:key:zNs557YPdyfmd2W9R7py6Hrpkc3ufz5LgRp7kwn7wsEc=
+private_key : n90sHK8y1UdClF+mXC7PHoNvBLr07qtL4ADsJCtg2vE2znntg93J+Z3Zb1HunLoeumRze5/PkuBGnuTCfvCwRw==
+public_Key : Ns557YPdyfmd2W9R7py6Hrpkc3ufz5LgRp7kwn7wsEc=
+
+----------------- doctor ----------------------
+dr.ramdan
+cid : did:key:zbQBVLF2r84owN3FmXR8CV1BxPiKsEimnSmfIWtCK3ss=
+private_key : +UAp6RnkOeJFJYRIKa/czAjIqI0krLEfmiVoaPjMwDptAFUsXavzijA3cWZdHwJXUHE+IqwSKadKZ8ha0Ireyw==
+public_Key : bQBVLF2r84owN3FmXR8CV1BxPiKsEimnSmfIWtCK3ss=
+
+--------------------------------- health department ------------------------
+did : did:key:zR7ocnMHee8fLimzLzAEMbhJtYqzvPPP78gX70wMxdww=
+private_key : nevAI0FDn8q13zXu+6jULhlacn/vyIYq5u+oVaOLR81Huhycwd57x8uKbMvMAQxuEm1irO888/vyBfvTAzF3DA==
+public_Key : R7ocnMHee8fLimzLzAEMbhJtYqzvPPP78gX70wMxdww=
+
+-------------------------------
+
+1 ) i need the when the doctor registory the helth_department create a witness for each doctor and give hime or send to him and the health department can be revoke a doctor using this witness . and for a witness the patient use a witness to like check if this personne is steel a doctor or note .
+ 2 ) and for a doctor after sigin up he need to send a requet to patient using did of this patient to ask hem to share with hem a record  and the doctor should be sent a did and witness to patient .
+
+3) after that the patient use the witness to check if this presdonne is steel a doctor or not after that the patient share with the doctor a record 
+to share a record the patient need : 
+3.1 ) chose a record ( we need to use EHR file with extension .json with out lime of size 
+3.2 ) the patient upload the record to ipfs and get the cid 1 .
+3.3 ) to share a record the patient need 
+
+//--------------------------------------
+did : did:key:znK1TsoSdkyYDQV0oYXG3dVIo8jIV0P7ItMRuVjLu1LA=
+privat_key : tGpCqR113EFq5dPETxCV250aOaWNddgGNobDx7mB1YecrVOyhJ2TJgNBXShhcbd1UijyMhXQ/si0xG5WMu7UsA==
+public_Key : nK1TsoSdkyYDQV0oYXG3dVIo8jIV0P7ItMRuVjLu1LA=

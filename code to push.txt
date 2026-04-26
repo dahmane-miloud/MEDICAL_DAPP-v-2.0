@@ -1,0 +1,18 @@
+# 1. Go into your project folder
+cd /path/to/your/project
+
+# 2. Initialize Git (skip if already a Git repo)
+git init
+
+# 3. Add your GitHub repository as the remote
+# Replace USERNAME with your GitHub username and REPOSITORY with your repo name
+git remote add origin https://github.com/USERNAME/REPOSITORY.git
+
+# 4. Stage all files
+git add .
+
+# 5. Commit with a message
+git commit -m "First push of my project"
+
+# 6. Push to your repository's main branch
+git push -u origin main

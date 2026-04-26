@@ -1,0 +1,274 @@
+.search-section {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.search-box {
+    flex: 2;
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.filter-group {
+    flex: 1;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-group select {
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+}
+
+.doctors-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.doctors-table th {
+    text-align: left;
+    padding: 1rem;
+    background: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.doctors-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    color: #666;
+}
+
+.doctors-table tr:hover {
+    background: #f8f9fa;
+}
+
+.doctor-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.doctor-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.doctor-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.doctor-email {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-revoked {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.action-btn.view:hover {
+    background: #17a2b8;
+}
+
+.action-btn.edit:hover {
+    background: #ffc107;
+    color: #333;
+}
+
+.action-btn.revoke:hover {
+    background: #dc3545;
+}
+
+
+/* Details Modal */
+
+.doctor-profile {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.profile-info h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.profile-info p {
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.detail-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.detail-item label {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.detail-item p {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.audit-log {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.audit-log h4 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.audit-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.audit-item i {
+    color: #667eea;
+}
+
+.audit-details {
+    flex: 1;
+}
+
+.audit-details p {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.audit-details small {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+@media (max-width: 1024px) {
+    .search-section {
+        flex-direction: column;
+    }
+    .filter-group {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .doctors-table {
+        font-size: 0.85rem;
+    }
+    .action-buttons {
+        flex-direction: column;
+    }
+    .doctor-profile {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}

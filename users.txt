@@ -1,0 +1,170 @@
+
+----------------------------- les patient ------------------------------------------------
+for patient user -----------------------------------------------------------------------------------------------
+did : did:key:zzQ6HItKwM4euBPgXRVogRdVl/RvZggGmWbbU34meOH8=
+private_key : QiyRccKPitR4uWLE5eUcTP3v8re7SAg+Hs0NiVjEPAnNDoci0rAzh64E+BdFWiBF1WX9G9mCAaZZttTfiZ44fw==
+public key : zQ6HItKwM4euBPgXRVogRdVl/RvZggGmWbbU34meOH8=
+-------------------------------------------------------------------------------------
+New user created: {
+  did: 'did:key:zVbIw2AkDVb7Bx5BV4QjZVsDkfi6FdleAVfKlhPQdkIw=',
+  type: 'patient',
+  name: 'amal',
+  ethAddress: '0xD87CA50e0c3993C88b6FB017de42F3231F2Ae8B4'
+}
+
+did: did:key:zVbIw2AkDVb7Bx5BV4QjZVsDkfi6FdleAVfKlhPQdkIw=
+privat_key : RzA9/Jv9nPzoZ8rF33sAXqG2rqHwTq6i+fe9V7EOqYpVsjDYCQNVvsHHkFXhCNlWwOR+LoV2V4BV8qWE9B2QjA==
+puplic_key : VbIw2AkDVb7Bx5BV4QjZVsDkfi6FdleAVfKlhPQdkIw=
+
+
+---------------------------------------------------------------------------------------------------------------
+---------------------- for doctors --------------------------------------------------------------------------------
+
+for doctor users imane ---------------------------------------------------------------------------------------------
+did : did:key:z6BNyq/EhWcNIHgMR+sFT+yc0U4lH0nqTHFCM+w7cXu8=
+
+puplic_key : 6BNyq/EhWcNIHgMR+sFT+yc0U4lH0nqTHFCM+w7cXu8=
+
+private_key : 8oxfql3XeCEzJ9lO0YkRX+ETCPA4X7A6sBa97ljdJxzoE3Kr8SFZw0geAxH6wVP7JzRTiUfSepMcUIz7Dtxe7w==
+---------------------------- scound doctor amine ----------------------------------------------------------
+did : did:key:zbLofNInuFdJpHHpfxLi0Au2Rsvow0dx+1jFMPydX/nQ=
+public_key : bLofNInuFdJpHHpfxLi0Au2Rsvow0dx+1jFMPydX/nQ=
+privat_key : wwp7oY8SfuLq0j6gFMXv/JSBdiil2+EeEuxfuVv5rQZsuh80ie4V0mkcel/EuLQC7ZGy+jDR3H7WMUw/J1f+dA==
+
+---------------------------------------------------------
+----------------------- dr mostapha -----------------------------------------
+did : did:key:z7pv7zrZvGyJy/hd/I5hFnqRIkfakQv+MqoVLZAAC8AA=
+puplic_key : 7pv7zrZvGyJy/hd/I5hFnqRIkfakQv+MqoVLZAAC8AA=
+privat_key : V4wsE3syBZMzizHl4w+LVJdheUwseKKdLvx70kVD6jLum/vOtm8bInL+F38jmEWepEiR9qRC/4yqhUtkAALwAA==
+
+New user created: {
+  did: 'did:key:z7pv7zrZvGyJy/hd/I5hFnqRIkfakQv+MqoVLZAAC8AA=',
+  type: 'doctor',
+  name: 'mostapha',
+  ethAddress: '0x009B7EE44F7E8c540b92C3EbDA18112F564F29c7'
+}
+
+---------------------------------------------------------------------------------------
+
+for health_department--------------------------------------------
+did : did:key:zsws78UQAew+Sp38rdTLdKQQGPSBKwuTVR28jShcabH4=
+public_key : sws78UQAew+Sp38rdTLdKQQGPSBKwuTVR28jShcabH4=
+private_key : B9TWR2hsxBeQL7XddPznA8V/aATEly2TYTAc8Bt54DKzCzvxRAB7D5Knfyt1Mt0pBAY9IErC5NVHbyNKFxpsfg==
+
+
+----------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+test cid 1 ----------------------------------------------------------------------
+cid : Qmfcc6cd851a5b8e46e4b42e868e83cc35459afe98
+ipfs_link : ipfs://Qmfcc6cd851a5b8e46e4b42e868e83cc35459afe98
+
+cid : Qm7c2bb510bf1e30063160df0ab605148c0898b3f8
+ipfs link : ipfs://Qm7c2bb510bf1e30063160df0ab605148c0898b3f8
+
+cid : Qm099765300c36b35cb7f504f303291a5d1f0b5e2f
+ipfs_linlk : ipfs://Qm099765300c36b35cb7f504f303291a5d1f0b5e2f
+
+--------------------------------------------------------------------------------
+
+
+-----------------------------------------
+
+New user created: {
+  did: 'did:key:zzQ6HItKwM4euBPgXRVogRdVl/RvZggGmWbbU34meOH8=',  
+  type: 'patient',
+  name: 'miloud',
+  ethAddress: '0x80d0C4faE62b135ee466B9937F7bB22c3e672354'       
+}
+
+id: 'did:key:z6BNyq/EhWcNIHgMR+sFT+yc0U4lH0nqTHFCM+w7cXu8=',
+  type: 'doctor',
+  name: 'imane',
+  ethAddress: '0xE2F91eFfE793a697c5e03C7AC871455E000feAAa'
+}
+
+-------------------------------------
+
+
+ipfs test les fichier -------------------------------------------
+cid : QmXnnqvnodGG2E8mwsYWBxdYoiNJ62yha7CMPXGcq1tecs
+ipfs_link : ipfs://QmXnnqvnodGG2E8mwsYWBxdYoiNJ62yha7CMPXGcq1tecs
+
+-----------------------------------------------------------------
+
+------------------------------------------ new for test -------------------------------------
+health department : mosta-centre 
+did : did:key:zcD1v5lXwm39F8nIbh4kronRAVRTsmYjkk0i33hgphiY=
+privat_key : ygRN/JNalM4RUwunBpbUcRwPFjUrWop7bOx1R0VaaSdwPW/mVfCbf0XychuHiSuidEBVFOyZiOSTSLfeGCmGJg==
+public_key : cD1v5lXwm39F8nIbh4kronRAVRTsmYjkk0i33hgphiY=
+
+doctor : 
+did : did:key:zh1F+hv0sL7AieBMbtL7zlrLDC8DeMnnxP+fPmzVFlnk=
+privat_key : tOoDC3kAoavH2by00SnY9MX6Cek8Wpfz/JvjFg7CrbGHUX6G/SwvsCJ4Exu0vvOWssMLwN4yefE/58+bNUWWeQ==
+public_key : h1F+hv0sL7AieBMbtL7zlrLDC8DeMnnxP+fPmzVFlnk=
+
+
+patient : 
+did : did:key:zq+k4tulXSyBTUBXuSdfMviDyPOga0xVBOms/w9BhXQ0=
+privat_key : s50nRnZf1XsY2uZq2kIPGaOGpnp9zjMNA+DJ3Nbrrcyr6Ti26VdLIFNQFe5J18y+IPI86BrTFUE6az/D0GFdDQ==
+public_key : q+k4tulXSyBTUBXuSdfMviDyPOga0xVBOms/w9BhXQ0=
+
+
+
+file of ipfs : 
+cid : QmVkvoPGi9jvvuxsHDVJDgzPEzagBaWSZRYoRDzU244HjZ
+ipfs_link : ipfs://QmVkvoPGi9jvvuxsHDVJDgzPEzagBaWSZRYoRDzU244HjZ
+
+
+----------------------------------- after fix sava doctor in block-chain ---------------------------------
+ikram : 
+did : did:key:zmPygXgRU6PrSIVew+C5JUZRRWlycpEpA0U0tFne3c+k=
+private_key : YOM7lSQzsKurpu+8I0u3jtv2uMDTYj9vkeBZjCoZngOY/KBeBFTo+tIhV7D4LklRlFFaXJykSkDRTS0Wd7dz6Q==
+public_key : mPygXgRU6PrSIVew+C5JUZRRWlycpEpA0U0tFne3c+k=
+
+jalal 
+did : did:key:zXE+LV64UEx+zlfN9U+aw2o1bKd5YjgnDqThzP0XMUGo=
+public_key : XE+LV64UEx+zlfN9U+aw2o1bKd5YjgnDqThzP0XMUGo=
+private_key : 2y4GtxuOmfG1kdsIuSLBnIohWJefIOdIlgFrWsr4t6lcT4tXrhQTH7OV831T5rDajVsp3liOCcOpOHM/RcxQag==
+
+test : 
+did : did:key:zkNQHf7Z7VxYsIFHyhDQ8Uy0c+Kjj/LmAxUbU6VRgadI=
+privat_key : Gsy8JILCdJ0SYfAnuQocmFw3JHO1hIxPY8U9zAcSCCuQ1Ad/tntXFiwgUfKENDxTLRz4qOP8uYDFRtTpVGBp0g== 
+public_key : kNQHf7Z7VxYsIFHyhDQ8Uy0c+Kjj/LmAxUbU6VRgadI=
+
+
+
+
+------------------------ health_department --------------
+did : did:key:zuIwNKzLFjlXD2tp8+ULXMbMo4xcK/OJvOKzn3K52lH0=
+public-key : uIwNKzLFjlXD2tp8+ULXMbMo4xcK/OJvOKzn3K52lH0=
+private_key : z+aYBwT+WjrOVFAQMHQ7RnJhfXt4fec1faV5vV/s0Di4jA0rMsWOVcPa2nz5QtcxsyjjFwr84m84rOfcrnaUfQ==
+
+
+les paient 
+did : did:key:zQJAHm74FHJrc4CR/aNfGG/wlyc4qzcPPwloRTCqY6vs=
+public_key : QJAHm74FHJrc4CR/aNfGG/wlyc4qzcPPwloRTCqY6vs=
+privat_key : Pv+mvGDAE57xVN4Wn3sIQejv+nA/OXPPcEwjdI2ORZhAkAebvgUcmtzgJH9o18Yb/CXJzirNw8/CWhFMKpjq+w==
+
+
+ipfs----------------------
+cid : QmVkvoPGi9jvvuxsHDVJDgzPEzagBaWSZRYoRDzU244HjZ
+ipfs_link : ipfs://QmVkvoPGi9jvvuxsHDVJDgzPEzagBaWSZRYoRDzU244HjZ
+
+
+---------------------------------------------
+patient r 
+did : did:key:zpT4DXKE69D1g//pknxcYV2PrHYZto/HNboTAHbTjZHA=
+public_Key : pT4DXKE69D1g//pknxcYV2PrHYZto/HNboTAHbTjZHA=
+privat_key : t3R3Wzuapde0Uo5Rz+d6eONNflnuwLUpoJG4AJdPiq+lPgNcoTr0PWD/+mSfFxhXY+sdhm2j8c1uhMAdtONkcA==
+t3R3Wzuapde0Uo5Rz+d6eONNflnuwLUpoJG4AJdPiq+lPgNcoTr0PWD/+mSfFxhXY+sdhm2j8c1uhMAdtONkcA==
+---------------------------------------------------
+doctor ---------------------------------------
+did : did:key:zuMPSXtKSZ99R9wsnkeE85ESSQNC7Js1MK4Rxzbu4qH0=
+public_Key : uMPSXtKSZ99R9wsnkeE85ESSQNC7Js1MK4Rxzbu4qH0=
+privat_key : 6pXJJ+JP/U64lWPcQW+r07MS1qejiNV7mpA8QvY65yO4w9Je0pJn31H3CyeR4TzkRJJA0LsmzUwrhHHNu7iofQ==
+
+------------------------ health_department --------------
+did : did:key:zuIwNKzLFjlXD2tp8+ULXMbMo4xcK/OJvOKzn3K52lH0=
+public-key : uIwNKzLFjlXD2tp8+ULXMbMo4xcK/OJvOKzn3K52lH0=
+private_key : z+aYBwT+WjrOVFAQMHQ7RnJhfXt4fec1faV5vV/s0Di4jA0rMsWOVcPa2nz5QtcxsyjjFwr84m84rOfcrnaUfQ==

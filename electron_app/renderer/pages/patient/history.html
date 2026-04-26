@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access History - MediChain</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/patient-history.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Patient Portal</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="upload.html" class="nav-item">
+                    <i class="fas fa-upload"></i>
+                    <span>Upload Records</span>
+                </a>
+                <a href="history.html" class="nav-item active">
+                    <i class="fas fa-history"></i>
+                    <span>Access History</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Access History & Audit Log</h1>
+                <div class="header-actions">
+                    <button class="btn-secondary" onclick="exportHistory()">
+                        <i class="fas fa-download"></i> Export Log
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label>Date Range</label>
+                    <select id="dateRange">
+                        <option value="7">Last 7 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                        <option value="all">All time</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Record Type</label>
+                    <select id="recordType">
+                        <option value="all">All Records</option>
+                        <option value="lab">Laboratory</option>
+                        <option value="imaging">Imaging</option>
+                        <option value="prescription">Prescription</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Access Type</label>
+                    <select id="accessType">
+                        <option value="all">All Access</option>
+                        <option value="granted">Access Granted</option>
+                        <option value="viewed">Records Viewed</option>
+                        <option value="revoked">Access Revoked</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="history-stats">
+                <div class="stat-card">
+                    <i class="fas fa-eye"></i>
+                    <div>
+                        <h3>Total Views</h3>
+                        <p id="totalViews">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-user-md"></i>
+                    <div>
+                        <h3>Unique Doctors</h3>
+                        <p id="uniqueDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h3>Last Access</h3>
+                        <p id="lastAccess">Never</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-share-alt"></i>
+                    <div>
+                        <h3>Active Shares</h3>
+                        <p id="activeShares">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline View -->
+            <div class="timeline-section">
+                <div class="section-header">
+                    <h2>Access Timeline</h2>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" onclick="setView('timeline')">
+                            <i class="fas fa-stream"></i>
+                        </button>
+                        <button class="toggle-btn" onclick="setView('grid')">
+                            <i class="fas fa-th"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="timeline-container" id="timelineContainer">
+                    <!-- Timeline items will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Access Log Table -->
+            <div class="log-section">
+                <h2>Detailed Access Log</h2>
+                <div class="table-container">
+                    <table class="access-table" id="accessTable">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Doctor</th>
+                                <th>Record</th>
+                                <th>Action</th>
+                                <th>Duration</th>
+                                <th>IPFS CID</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Table rows will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button class="page-btn" disabled>&laquo; Previous</button>
+                    <span class="page-info">Page 1 of 5</span>
+                    <button class="page-btn">Next &raquo;</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Access Details Modal -->
+    <div class="modal" id="accessDetailsModal" style="display: none;">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Access Details</h2>
+                <button class="close-btn" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="accessDetails">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../assets//js//utils//patient-history.js"></script>
+    <script src="../../assets/js/utils/ipfs-manager.js"></script>
+    <script src="../../assets/js/utils/proxy-manager.js"></script>
+    <script src="../../assets/js/utils/contract-manager.js"></script>
+</body>
+
+</html>

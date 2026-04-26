@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Records - Doctor Dashboard</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/doctor-documents.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="accessModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Document Preview</h2>
+            <button class="close-btn" onclick="closeAccessModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="documentPreview">Loading...</div>
+        </div>
+    </div>
+</div>
+
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Doctor Portal</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="documents.html" class="nav-item active">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Patient Records</span>
+                </a>
+                <a href="access.html" class="nav-item">
+                    <i class="fas fa-key"></i>
+                    <span>Access Requests</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-md"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Patient Medical Records</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="scanQR()">
+                        <i class="fas fa-qrcode"></i> Scan QR
+                    </button>
+                </div>
+            </header>
+
+            <!-- Search and Filters -->
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search by patient name, DID, or record type..." id="searchInput">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="active">Active</button>
+                    <button class="filter-btn" data-filter="expiring">Expiring Soon</button>
+                    <button class="filter-btn" data-filter="expired">Expired</button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div>
+                        <h3>Total Patients</h3>
+                        <p id="totalPatients">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-file-medical"></i>
+                    <div>
+                        <h3>Available Records</h3>
+                        <p id="availableRecords">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-hourglass-half"></i>
+                    <div>
+                        <h3>Expiring Soon</h3>
+                        <p id="expiringSoon">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h3>Last Accessed</h3>
+                        <p id="lastAccessed">Today</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Records Grid -->
+            <div class="records-grid" id="recordsGrid">
+                <!-- Records will be loaded here -->
+            </div>
+
+            <!-- Access Modal -->
+            <div class="modal" id="accessModal" style="display: none;">
+                <div class="modal-content large">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-lock"></i> Access Medical Record</h2>
+                        <button class="close-btn" onclick="closeAccessModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="record-preview" id="recordPreview">
+                            <!-- Record content will be loaded here -->
+                        </div>
+                        <div class="access-verification" id="accessVerification">
+                            <div class="verification-steps">
+                                <div class="step completed">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Checking authorization...</span>
+                                </div>
+                                <div class="step">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Decrypting with proxy...</span>
+                                </div>
+                                <div class="step">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Verifying time constraint...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" onclick="requestAccess()" id="requestAccessBtn">
+                            <i class="fas fa-key"></i> Request Access
+                        </button>
+                        <button class="btn-secondary" onclick="closeAccessModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Charger les utilitaires UNE SEULE FOIS, dans le bon ordre -->
+<script src="../../assets/js/utils/ipfs-manager.js"></script>
+<script src="../../assets/js/utils/proxy-manager.js"></script>
+<script src="../../assets/js/utils/contract-manager.js"></script>
+<!-- Ensuite le script principal -->
+<script src="../../assets/js/utils/doctor-documents.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,3 @@
+
+for test if doctors has sigin up or not 
+(await window.electronAPI.storeGet('users')).then(u => Object.keys(u))

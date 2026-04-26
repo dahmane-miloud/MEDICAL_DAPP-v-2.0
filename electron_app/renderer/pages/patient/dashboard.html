@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - MediChain</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/patient.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Patient Portal</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a href="upload.html" class="nav-item"><i class="fas fa-upload"></i><span>Upload Records</span></a>
+                <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>Access History</span></a>
+                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Patient Dashboard</h1>
+                <div>
+                    <button class="btn-secondary" onclick="checkDoctorStatus()" style="margin-right: 10px;">
+                        <i class="fas fa-stethoscope"></i> Check Doctor Status
+                    </button>
+                    <button class="btn-primary" onclick="location.href='upload.html'">
+                        <i class="fas fa-plus"></i> New Record
+                    </button>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-file-medical"></i>
+                    <div>
+                        <h3>Records</h3>
+                        <p id="totalRecords">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-user-md"></i>
+                    <div>
+                        <h3>Authorized Doctors</h3>
+                        <p id="authorizedDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h3>Active Shares</h3>
+                        <p id="activeShares">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <section class="notifications-section">
+                <h2>Access Requests</h2>
+                <div id="notificationsList" class="notifications-list">Loading...</div>
+            </section>
+
+            <section class="recent-records">
+                <div class="section-header">
+                    <h2>Recent Records</h2>
+                    <a href="history.html">View All</a>
+                </div>
+                <div id="recentRecords" class="records-list"></div>
+            </section>
+
+            <section class="active-auth">
+                <div class="section-header">
+                    <h2>Active Authorizations</h2>
+                </div>
+                <div id="activeAuth" class="auth-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals (share, view, verify) -->
+    <div id="shareModal" class="modal" style="display:none;">...</div>
+    <div id="viewModal" class="modal" style="display:none;">...</div>
+    <div id="verifyDoctorModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-stethoscope"></i> Doctor Verification</h2>
+                <button class="close-btn" onclick="closeVerifyModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="verifyDoctorContent">
+                <p>Loading...</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeVerifyModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal for entering Doctor DID -->
+    <div id="doctorDidModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Enter Doctor DID</h2>
+                <button class="close-btn" onclick="closeDoctorDidModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="doctorDidInput" placeholder="did:key:..."
+                    style="width:100%; padding: 10px; margin: 10px 0;">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="submitDoctorDid()">Check Status</button>
+                <button class="btn-secondary" onclick="closeDoctorDidModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Only patient.js – no other utils scripts -->
+    <script src="../../assets/js/utils/patient.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain - Sign Up</title>
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <link rel="stylesheet" href="../assets/css/signup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="signup-container">
+        <div class="signup-left">
+            <div class="brand-section">
+                <h1 class="brand-title">MediChain</h1>
+                <p class="brand-subtitle">Create Your SSI Identity</p>
+                <div class="info-box">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Self-Sovereign Identity</h3>
+                    <p>Your identity is fully under your control. We generate unique cryptographic keys that only you possess.</p>
+                </div>
+                <div class="info-box">
+                    <i class="fas fa-key"></i>
+                    <h3>Secure Key Generation</h3>
+                    <p>Your private keys are generated locally and never leave your device.</p>
+                </div>
+            </div>
+        </div>
+        <div class="signup-right">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Create Account</h2>
+                    <p>Choose your role and generate SSI credentials</p>
+                </div>
+
+                <div class="user-type-cards">
+                    <div class="type-card" data-type="patient">
+                        <i class="fas fa-user"></i>
+                        <h3>Patient</h3>
+                        <p>Access and manage your medical records</p>
+                    </div>
+                    <div class="type-card" data-type="doctor">
+                        <i class="fas fa-user-md"></i>
+                        <h3>Doctor</h3>
+                        <p>View patient records and provide care</p>
+                    </div>
+                    <div class="type-card" data-type="health">
+                        <i class="fas fa-hospital"></i>
+                        <h3>Health Dept</h3>
+                        <p>Manage doctor registrations</p>
+                    </div>
+                </div>
+
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" placeholder="Enter your full name">
+                    </div>
+                    <!--
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="Enter your email" required>
+                    </div>
+
+                    -->
+
+                    <div class="form-group doctor-fields" style="display: none;">
+                        <label for="license">Medical License Number</label>
+                        <input type="text" id="license" placeholder="Enter your license number">
+                    </div>
+
+                    <div class="form-group doctor-fields" style="display: none;">
+                        <label for="specialization">Specialization</label>
+                        <select id="specialization">
+                            <option value="">Select specialization</option>
+                            <option value="cardiology">Cardiology</option>
+                            <option value="neurology">Neurology</option>
+                            <option value="pediatrics">Pediatrics</option>
+                            <option value="orthopedics">Orthopedics</option>
+                            <option value="dermatology">Dermatology</option>
+                            <option value="general">General Practice</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group health-fields" style="display: none;">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" placeholder="Enter your department">
+                    </div>
+
+                    <div class="form-group terms">
+                        <input type="checkbox" id="terms" required>
+                        <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                    </div>
+
+                    <button type="submit" class="signup-btn">
+                        <i class="fas fa-user-plus"></i> Generate SSI Keys
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Already have an account? <a href="login.html">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credentials Modal -->
+    <div class="modal" id="credentialsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Your SSI Credentials</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>IMPORTANT:</strong> Save these credentials immediately. They cannot be recovered!
+                </div>
+
+                <div class="credential-item">
+                    <label>DID (Decentralized Identifier):</label>
+                    <div class="credential-value">
+                        <code id="displayDid"></code>
+                        <button class="copy-btn" onclick="copyToClipboard('displayDid')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="credential-item">
+                    <label>Public Key:</label>
+                    <div class="credential-value">
+                        <code id="displayPublicKey"></code>
+                        <button class="copy-btn" onclick="copyToClipboard('displayPublicKey')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="credential-item">
+                    <label>Private Key:</label>
+                    <div class="credential-value">
+                        <code id="displayPrivateKey"></code>
+                        <button class="copy-btn" onclick="copyToClipboard('displayPrivateKey')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="download-section">
+                    <button class="btn-secondary" onclick="downloadCredentials()">
+                        <i class="fas fa-download"></i> Download as JSON
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="proceedToLogin()">I've Saved Credentials</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/utils/signup.js"></script>
+</body>
+
+</html>

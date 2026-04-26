@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Doctors - Health Department</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/health-doctors.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Health Department</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="doctors.html" class="nav-item active">
+                    <i class="fas fa-user-md"></i>
+                    <span>Manage Doctors</span>
+                </a>
+                <a href="revoke.html" class="nav-item">
+                    <i class="fas fa-ban"></i>
+                    <span>Revoke License</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-hospital"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Doctor Registry Management</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" id="openRegisterModalBtn">
+                        <i class="fas fa-plus"></i> Register New Doctor
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-user-md"></i>
+                    <div>
+                        <h3>Total Doctors</h3>
+                        <p id="totalDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <h3>Active</h3>
+                        <p id="activeDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-ban"></i>
+                    <div>
+                        <h3>Revoked</h3>
+                        <p id="revokedDoctors">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h3>Pending Verification</h3>
+                        <p id="pendingDoctors">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search by name, DID, or license number..." id="searchInput">
+                </div>
+                <div class="filter-group">
+                    <select id="statusFilter">
+                        <option value="all">All Doctors</option>
+                        <option value="active">Active Only</option>
+                        <option value="revoked">Revoked Only</option>
+                    </select>
+                    <select id="specialtyFilter">
+                        <option value="all">All Specialties</option>
+                        <option value="cardiology">Cardiology</option>
+                        <option value="neurology">Neurology</option>
+                        <option value="pediatrics">Pediatrics</option>
+                        <option value="orthopedics">Orthopedics</option>
+                        <option value="general">General Practice</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Doctors Table -->
+            <div class="table-container">
+                <table class="doctors-table">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>DID</th>
+                            <th>License</th>
+                            <th>Specialty</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctorsTableBody">
+                        <!-- Doctors will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn" id="prevPage" disabled>&laquo; Previous</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button class="page-btn" id="nextPage">Next &raquo;</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Register Doctor Modal -->
+    <div id="registerModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Register New Doctor</h2>
+                <button class="close-btn" onclick="closeRegisterModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="doctorName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>License Number</label>
+                        <input type="text" id="licenseNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Specialization</label>
+                        <select id="specialization" required>
+                            <option value="">Select specialization</option>
+                            <option value="cardiology">Cardiology</option>
+                            <option value="neurology">Neurology</option>
+                            <option value="pediatrics">Pediatrics</option>
+                            <option value="orthopedics">Orthopedics</option>
+                            <option value="dermatology">Dermatology</option>
+                            <option value="general">General Practice</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="registerDoctorBtn">
+                    <i class="fas fa-save"></i> Register Doctor
+                </button>
+                <button class="btn-secondary" onclick="closeRegisterModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../assets/js/utils/contract-manager.js"></script>
+    <script src="../../assets/js/health-doctors.js"></script>
+</body>
+
+</html>

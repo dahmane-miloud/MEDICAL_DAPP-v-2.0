@@ -1,0 +1,64 @@
+(async () => {
+    // 1. Récupérer tous les utilisateurs
+    const users = await window.electronAPI.storeGet('users') || {};
+    const doctors = Object.values(users).filter(u => u.type === 'doctor');
+    
+    if (doctors.length === 0) {
+        console.log('Aucun médecin trouvé dans le stockage local.');
+        return;
+    }
+    
+    console.log(`🔍 ${doctors.length} médecin(s) trouvé(s). Vérification de l’état sur la blockchain...`);
+    
+    let activated = 0;
+    let alreadyActive = 0;
+    let errors = 0;
+    
+    for (let i = 0; i < doctors.length; i++) {
+        const doc = doctors[i];
+        const status = await window.electronAPI.verifyDoctor(doc.did);
+        
+        if (status.isActive) {
+            console.log(`✅ ${doc.name} (${doc.did.substring(0,20)}...) est déjà actif.`);
+            alreadyActive++;
+            continue;
+        }
+        
+        console.log(`⚠️ ${doc.name} (${doc.did.substring(0,20)}...) est inactif. Activation...`);
+        
+        try {
+            const result = await window.electronAPI.registerDoctor({
+                did: doc.did,
+                publicKey: doc.publicKey,
+                name: doc.name,
+                license: doc.license,
+                specialization: doc.specialization
+            });
+            
+            if (result && result.success) {
+                console.log(`✅ Succès : ${doc.name} activé. Transaction : ${result.txHash.substring(0,20)}...`);
+                activated++;
+                // Petit délai pour éviter les problèmes de nonce
+                await new Promise(r => setTimeout(r, 1500));
+            } else {
+                throw new Error(result?.error || 'Échec inconnu');
+            }
+        } catch (err) {
+            console.error(`❌ Échec pour ${doc.name} :`, err.message);
+            errors++;
+        }
+    }
+    
+    console.log(`
+    ═══════════════════════════════════════
+    📊 RÉSULTAT DE L’ACTIVATION
+    ✅ Déjà actifs : ${alreadyActive}
+    🆕 Activés maintenant : ${activated}
+    ❌ Échecs : ${errors}
+    ═══════════════════════════════════════
+    `);
+    
+    if (activated > 0) {
+        console.log('🔄 Rechargez la page pour voir les statuts mis à jour.');
+    }
+})();

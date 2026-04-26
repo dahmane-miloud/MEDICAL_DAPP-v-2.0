@@ -1,0 +1,236 @@
+{
+  "resourceType": "EHR_PatientRecord",
+  "id": "pat-001",
+  "patient": {
+    "name": {
+      "family": "Doe",
+      "given": ["Jane", "Elizabeth"]
+    },
+    "gender": "female",
+    "birthDate": "1985-07-22",
+    "address": {
+      "line": ["123 Main St", "Apt 4B"],
+      "city": "Springfield",
+      "state": "IL",
+      "postalCode": "62701",
+      "country": "USA"
+    },
+    "contact": {
+      "phone": "+1-555-123-4567",
+      "email": "jane.doe@example.com"
+    },
+    "primaryCareProvider": "Dr. Martin Green",
+    "maritalStatus": "married",
+    "occupation": "Teacher"
+  },
+  "encounters": [
+    {
+      "id": "enc-001",
+      "type": "Office Visit",
+      "date": "2024-11-15T10:30:00Z",
+      "reason": "Routine annual physical",
+      "provider": "Dr. Martin Green",
+      "diagnoses": ["Z00.00", "E11.9"],
+      "notes": "Patient reports feeling well. No acute issues."
+    },
+    {
+      "id": "enc-002",
+      "type": "Follow-up",
+      "date": "2025-01-10T14:15:00Z",
+      "reason": "Diabetes management",
+      "provider": "Dr. Susan Lee",
+      "diagnoses": ["E11.9"],
+      "notes": "HbA1c improved. Continue current medications."
+    }
+  ],
+  "conditions": [
+    {
+      "id": "cond-001",
+      "code": "E11.9",
+      "system": "ICD-10",
+      "display": "Type 2 diabetes mellitus without complications",
+      "onsetDate": "2018-03-12",
+      "status": "active"
+    },
+    {
+      "id": "cond-002",
+      "code": "I10",
+      "system": "ICD-10",
+      "display": "Essential (primary) hypertension",
+      "onsetDate": "2019-07-01",
+      "status": "active"
+    },
+    {
+      "id": "cond-003",
+      "code": "J45.909",
+      "system": "ICD-10",
+      "display": "Unspecified asthma, uncomplicated",
+      "onsetDate": "2005-11-20",
+      "status": "resolved",
+      "resolutionDate": "2023-01-05"
+    }
+  ],
+  "medications": [
+    {
+      "id": "med-001",
+      "name": "Metformin",
+      "strength": "500 mg",
+      "form": "Tablet",
+      "route": "Oral",
+      "frequency": "Twice daily",
+      "status": "active",
+      "startDate": "2018-03-15",
+      "prescriber": "Dr. Martin Green",
+      "indication": "Type 2 diabetes"
+    },
+    {
+      "id": "med-002",
+      "name": "Lisinopril",
+      "strength": "10 mg",
+      "form": "Tablet",
+      "route": "Oral",
+      "frequency": "Once daily",
+      "status": "active",
+      "startDate": "2019-07-10",
+      "prescriber": "Dr. Martin Green",
+      "indication": "Hypertension"
+    }
+  ],
+  "allergies": [
+    {
+      "id": "all-001",
+      "substance": "Penicillin",
+      "reaction": "Urticaria, dyspnea",
+      "severity": "severe",
+      "onsetDate": "1998-06-01",
+      "status": "active",
+      "verificationStatus": "confirmed"
+    },
+    {
+      "id": "all-002",
+      "substance": "Peanuts",
+      "reaction": "Anaphylaxis",
+      "severity": "severe",
+      "onsetDate": "1990-08-20",
+      "status": "active",
+      "verificationStatus": "confirmed"
+    }
+  ],
+  "labResults": [
+    {
+      "id": "lab-001",
+      "date": "2024-11-15T09:45:00Z",
+      "panel": "Comprehensive Metabolic Panel",
+      "results": [
+        {
+          "test": "Glucose",
+          "value": 98,
+          "unit": "mg/dL",
+          "referenceRange": "70-99"
+        },
+        {
+          "test": "Creatinine",
+          "value": 0.9,
+          "unit": "mg/dL",
+          "referenceRange": "0.6-1.2"
+        }
+      ]
+    },
+    {
+      "id": "lab-002",
+      "date": "2024-11-15T09:45:00Z",
+      "panel": "Lipid Panel",
+      "results": [
+        {
+          "test": "Total Cholesterol",
+          "value": 180,
+          "unit": "mg/dL",
+          "referenceRange": "<200"
+        },
+        {
+          "test": "HDL",
+          "value": 55,
+          "unit": "mg/dL",
+          "referenceRange": ">40"
+        }
+      ]
+    },
+    {
+      "id": "lab-003",
+      "date": "2025-01-10T08:20:00Z",
+      "panel": "HbA1c",
+      "results": [
+        {
+          "test": "Hemoglobin A1c",
+          "value": 6.8,
+          "unit": "%",
+          "referenceRange": "<5.7"
+        }
+      ]
+    }
+  ],
+  "vitalSigns": [
+    {
+      "date": "2024-11-15T10:30:00Z",
+      "height": {
+        "value": 165,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 72.5,
+        "unit": "kg"
+      },
+      "bmi": 26.6,
+      "bloodPressure": {
+        "systolic": 128,
+        "diastolic": 82
+      },
+      "heartRate": 72,
+      "temperature": {
+        "value": 36.7,
+        "unit": "°C"
+      }
+    },
+    {
+      "date": "2025-01-10T14:15:00Z",
+      "weight": {
+        "value": 71.8,
+        "unit": "kg"
+      },
+      "bmi": 26.3,
+      "bloodPressure": {
+        "systolic": 122,
+        "diastolic": 78
+      },
+      "heartRate": 70
+    }
+  ],
+  "immunizations": [
+    {
+      "id": "imm-001",
+      "vaccine": "Influenza",
+      "date": "2024-10-05",
+      "lotNumber": "FL1234",
+      "administeredBy": "Nurse Amy"
+    },
+    {
+      "id": "imm-002",
+      "vaccine": "COVID-19 (Moderna)",
+      "date": "2023-09-12",
+      "doseSequence": 4,
+      "lotNumber": "M123456",
+      "administeredBy": "Dr. Martin Green"
+    }
+  ],
+  "socialHistory": {
+    "smokingStatus": "never",
+    "alcoholUse": "occasional",
+    "exercise": "3 times per week",
+    "occupation": "Teacher"
+  },
+  "advanceDirectives": {
+    "livingWill": false,
+    "durablePowerOfAttorney": false,
+    "notes": "Patient has discussed preferences with family."
+  }
+}

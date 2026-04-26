@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain - Login</title>
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <link rel="stylesheet" href="../assets/css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-left">
+            <div class="brand-section">
+                <h1 class="brand-title">MediChain</h1>
+                <p class="brand-subtitle">Secure Medical Records System with SSI/uPort</p>
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Self-Sovereign Identity</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-lock"></i>
+                        <span>End-to-End Encryption</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-file-medical"></i>
+                        <span>IPFS Storage</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-link"></i>
+                        <span>Blockchain Verified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="login-right">
+            <div class="form-container" id="loginForm">
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Login with your SSI credentials</p>
+                </div>
+
+                <div class="user-type-selector">
+                    <button class="type-btn active" data-type="patient">
+                        <i class="fas fa-user"></i> Patient
+                    </button>
+                    <button class="type-btn" data-type="doctor">
+                        <i class="fas fa-user-md"></i> Doctor
+                    </button>
+                    <button class="type-btn" data-type="health">
+                        <i class="fas fa-hospital"></i> Health Dept
+                    </button>
+                </div>
+
+                <form id="loginFormElement">
+                    <div class="input-group">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="did" placeholder="Enter your DID" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="privateKey" placeholder="Enter your private key" required>
+                    </div>
+
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="../pages/signup.html" id="showSignup">Sign up here</a></p>
+                </div>
+            </div>
+
+            <div class="form-container" id="signupForm" style="display: none;">
+                <div class="form-header">
+                    <h2>Create Account</h2>
+                    <p>Register with SSI/uPort</p>
+                </div>
+
+                <div class="user-type-selector">
+                    <button class="type-btn active" data-type="patient">
+                        <i class="fas fa-user"></i> Patient
+                    </button>
+                    <button class="type-btn" data-type="doctor">
+                        <i class="fas fa-user-md"></i> Doctor
+                    </button>
+                    <button class="type-btn" data-type="health">
+                        <i class="fas fa-hospital"></i> Health Dept
+                    </button>
+                </div>
+
+                <form id="signupFormElement">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="fullName" placeholder="Full Name">
+                    </div>
+                    <!--
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="Email" required>
+                    </div>
+                    -->
+                    <div class="input-group doctor-field" style="display: none;">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="license" placeholder="Medical License Number">
+                    </div>
+                    <div class="input-group doctor-field" style="display: none;">
+                        <i class="fas fa-stethoscope"></i>
+                        <input type="text" id="specialization" placeholder="Specialization">
+                    </div>
+
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-user-plus"></i> Generate SSI Keys
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Already have an account? <a href="#" id="showLogin">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credentials Modal -->
+    <div class="modal" id="credentialsModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Your SSI Credentials</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>IMPORTANT:</strong> Save these credentials securely. They cannot be recovered!
+                </div>
+
+                <div class="credential-display">
+                    <label>DID (Decentralized Identifier):</label>
+                    <code id="displayDid"></code>
+                    <button onclick="copyToClipboard('displayDid')" class="copy-btn">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+
+                <div class="credential-display">
+                    <label>Public Key:</label>
+                    <code id="displayPublicKey"></code>
+                    <button onclick="copyToClipboard('displayPublicKey')" class="copy-btn">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+
+                <div class="credential-display">
+                    <label>Private Key:</label>
+                    <code id="displayPrivateKey"></code>
+                    <button onclick="copyToClipboard('displayPrivateKey')" class="copy-btn">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeModal()">I've Saved Credentials</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/utils/login.js"></script>
+</body>
+
+</html>

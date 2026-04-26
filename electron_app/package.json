@@ -1,0 +1,22 @@
+{
+    "name": "medical-dapp-electron",
+    "version": "1.0.0",
+    "description": "Medical DApp Electron Frontend",
+    "main": "main/index.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "NODE_ENV=development electron ."
+    },
+    "dependencies": {
+        "electron-store": "^8.2.0",
+        "ethers": "^6.16.0",
+        "ipfs-http-client": "^55.0.0",
+        "mcl-wasm": "^2.0.0",
+        "node-fetch": "^2.7.0",
+        "tweetnacl": "^1.0.3",
+        "tweetnacl-util": "^0.15.1"
+    },
+    "devDependencies": {
+        "electron": "^27.0.0"
+    }
+}
