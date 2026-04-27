@@ -1,0 +1,3 @@
+oky no proble so 
+i need know when the encrypted-record is upload to ipfs we want to send a key of encrypted-key to server AT-BT-PRE to create or generate a keys for etch attrubite like "doctor ","cardilog" or " chirigian " and we dont forget to set a time to expriation of the access like 1 day or i mounth or 1 year .
+so when we click to share we need to a cid of encrypt record and a key for a encrypted record and attribute as  i say we send it to server to create or generate a keys for etch attribute . finally the doctor resoite a encrypted record or encrypted EHR  and a key to decrypte  

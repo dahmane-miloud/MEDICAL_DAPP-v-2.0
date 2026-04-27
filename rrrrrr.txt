@@ -1,0 +1,17 @@
+ghbGORiHJVrhti2mfiUDBKbvmrJIv3M3RSDNGzw1l+A=
+
+//////////////////////////////////
+
+ Upload Successful
+×
+Your file has been encrypted and uploaded to IPFS.
+
+📦 Encrypted CID:
+
+QmeijvFuABfdTnyvMcbUnbSs4Lo3YzW9uYzXfc43F3gPc1  Copy
+🔑 AES-256 Key (Base64):
+
+0BehvfzZpiGvkPYxvja91gdYFCDXjGTWiLuYeHimAmg=  Copy
+⚠️ Save this key securely – you will need it to share the record with a doctor.
+
+Upload Another Go to Dashboard

@@ -1,0 +1,11 @@
+ Upload Successful
+×
+Encrypted CID: QmNzGooeXXLiwMSUcaeAQt5wTtSC6tG7efR7Z7BPQF3DT8
+
+AES-256 Key (Base64): 11GNAhKNBQrQ2DgjT7n+nuE89RJdbVm0+wPKJBuNiV4=
+
+Save this key – you will need it to share the record with a doctor.
+
+Copy CID
+Copy Key
+Upload Another Go to Dashboard

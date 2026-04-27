@@ -326,6 +326,7 @@ body {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -367,6 +368,7 @@ body {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -426,18 +428,22 @@ body {
     .sidebar {
         width: 80px;
     }
+
     .sidebar-header p,
     .nav-item span,
     .user-info div {
         display: none;
     }
+
     .main-content {
         margin-left: 80px;
     }
+
     .nav-item {
         justify-content: center;
         padding: 1rem;
     }
+
     .nav-item i {
         margin: 0;
     }
@@ -449,8 +455,9 @@ body {
     border-radius: 15px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
+
 .notification-item {
     background: #f8f9fa;
     border-left: 4px solid #667eea;
@@ -461,6 +468,7 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+
 .notification-item button {
     background: #667eea;
     color: white;
@@ -469,4 +477,15 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+
 /* other patient styles remain */
+
+.btn-icon.btn-danger {
+    color: #dc3545;
+}
+
+.btn-icon.btn-danger:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}

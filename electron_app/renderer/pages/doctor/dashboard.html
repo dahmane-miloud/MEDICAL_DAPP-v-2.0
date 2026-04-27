@@ -1,3 +1,5 @@
+<!--
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -42,80 +44,237 @@
                 <button id="refreshBtn" class="btn-primary"><i class="fas fa-sync-alt"></i> Refresh</button>
             </header>
 
-            <!-- Stats Cards -->
+            // <!-- Stats Cards 
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <div>
+            <h3>Total Patients</h3>
+            <p id="totalPatients">0</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-file-medical"></i>
+        <div>
+            <h3>Available Records</h3>
+            <p id="availableRecords">0</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-clock"></i>
+        <div>
+            <h3>Active Accesses</h3>
+            <p id="activeAccesses">0</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-hourglass-half"></i>
+        <div>
+            <h3>Expiring Soon</h3>
+            <p id="expiringSoon">0</p>
+        </div>
+    </div>
+</div>
+
+//<! Request Access Form 
+<div class="request-access">
+    <h3>Request Access from Patient</h3>
+    <input type="text" id="patientDid" placeholder="Patient DID">
+    <button onclick="requestAccess()">Send Request</button>
+</div>
+
+// Recent Patient Records (horizontal scroll) 
+<section class="recent-access">
+    <h2>Recent Patient Records</h2>
+    <div id="recentAccess" class="access-cards-wrapper">
+        // Cards will be loaded here 
+    </div>
+</section>
+</main>
+</div>
+
+//EHR View Modal 
+<div id="accessModal" class="modal" style="display:none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h2><i class="fas fa-file-medical"></i> Medical Record</h2>
+            <button class="close-btn" onclick="closeAccessModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <pre id="documentPreview">Loading...</pre>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeAccessModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="../../assets/js/utils/ipfs-manager.js"></script>
+<script src="../../assets/js/utils/proxy-manager.js"></script>
+<script src="../../assets/js/utils/contract-manager.js"></script>
+<script src="../../assets/js/utils/doctor.js"></script>
+
+
+<script src="../../assets/js/utils/crypto-utils.js"></script>
+<script src="../../assets/js/utils/proxy-helper.js"></script>
+
+</body>
+
+</html>
+
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain | Doctor Dashboard</title>
+    <link rel="stylesheet" href="../../assets/css/doctor.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <h2>MediChain</h2>
+                </div>
+                <p>Doctor Portal</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar"><i class="fas fa-user-md"></i></div>
+                    <div class="user-details">
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1>Welcome, <span id="userNameHeader">Doctor</span></h1>
+                    <p class="subtitle">Access and decrypt patient records securely</p>
+                </div>
+                <button id="refreshBtn" class="btn-primary"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </header>
+
+            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <i class="fas fa-users"></i>
-                    <div>
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
                         <h3>Total Patients</h3>
                         <p id="totalPatients">0</p>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-file-medical"></i>
-                    <div>
+                    <div class="stat-icon"><i class="fas fa-file-medical"></i></div>
+                    <div class="stat-info">
                         <h3>Available Records</h3>
                         <p id="availableRecords">0</p>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div>
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
                         <h3>Active Accesses</h3>
                         <p id="activeAccesses">0</p>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-hourglass-half"></i>
-                    <div>
+                    <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="stat-info">
                         <h3>Expiring Soon</h3>
                         <p id="expiringSoon">0</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Request Access Form -->
-            <div class="request-access">
-                <h3>Request Access from Patient</h3>
-                <input type="text" id="patientDid" placeholder="Patient DID">
-                <button onclick="requestAccess()">Send Request</button>
+            <!-- Request Access Card -->
+            <div class="request-card">
+                <h3><i class="fas fa-paper-plane"></i> Request Access from Patient</h3>
+                <div class="request-form">
+                    <div class="input-group">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="patientDid" placeholder="Enter Patient DID" class="request-input">
+                    </div>
+                    <button class="btn-primary" id="requestAccessBtn"><i class="fas fa-send"></i> Send Request</button>
+                </div>
             </div>
 
-            <!-- Recent Patient Records (horizontal scroll) -->
+            <!-- Recent Patient Records (Horizontal Scroll) -->
             <section class="recent-access">
-                <h2>Recent Patient Records</h2>
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Recent Patient Records</h2>
+                    <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                </div>
                 <div id="recentAccess" class="access-cards-wrapper">
-                    <!-- Cards will be loaded here -->
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shared Records Section -->
+            <section class="shared-records">
+                <div class="section-header">
+                    <h2><i class="fas fa-share-alt"></i> Shared Records</h2>
+                    <span class="badge" id="sharedCount">0</span>
+                </div>
+                <div id="sharedRecordsList" class="records-grid">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading...</p>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- EHR View Modal -->
-    <div id="accessModal" class="modal" style="display:none;">
-        <div class="modal-content large">
+    <!-- Decrypt Progress Modal -->
+    <div id="decryptModal" class="modal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-file-medical"></i> Medical Record</h2>
-                <button class="close-btn" onclick="closeAccessModal()">&times;</button>
+                <h2><i class="fas fa-unlock-alt"></i> Decrypting Record</h2>
             </div>
             <div class="modal-body">
-                <pre id="documentPreview">Loading...</pre>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeAccessModal()">Close</button>
+                <div class="decrypt-progress">
+                    <div class="spinner"></div>
+                    <p id="decryptStatus">Contacting proxy server...</p>
+                    <div class="progress-steps">
+                        <span id="step1">📡 Contacting proxy...</span>
+                        <span id="step2">🔐 Re-encrypting...</span>
+                        <span id="step3">🔓 Decrypting key...</span>
+                        <span id="step4">📥 Downloading file...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="../../assets/js/utils/ipfs-manager.js"></script>
-    <script src="../../assets/js/utils/proxy-manager.js"></script>
-    <script src="../../assets/js/utils/contract-manager.js"></script>
-    <script src="../../assets/js/utils/doctor.js"></script>
-
-
     <script src="../../assets/js/utils/crypto-utils.js"></script>
-    <script src="../../assets/js/utils/proxy-helper.js"></script>
-
+    <script src="../../assets/js/utils/doctor.js"></script>
 </body>
 
 </html>

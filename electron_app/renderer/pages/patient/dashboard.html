@@ -4,30 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Dashboard - MediChain</title>
-    <link rel="stylesheet" href="../../assets/css/global.css">
+    <title>MediChain | Patient Dashboard</title>
     <link rel="stylesheet" href="../../assets/css/patient.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
     <div class="app-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>MediChain</h2>
+                <div class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <h2>MediChain</h2>
+                </div>
                 <p>Patient Portal</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
-                <a href="upload.html" class="nav-item"><i class="fas fa-upload"></i><span>Upload Records</span></a>
-                <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>Access History</span></a>
-                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+                <a href="upload.html" class="nav-item">
+                    <i class="fas fa-upload"></i><span>Upload Records</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <i class="fas fa-user-circle"></i>
-                    <div>
+                    <div class="avatar"><i class="fas fa-user-circle"></i></div>
+                    <div class="user-details">
                         <p class="user-name" id="userName">Loading...</p>
                         <p class="user-did" id="userDid"></p>
                     </div>
@@ -35,103 +44,216 @@
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
             <header class="content-header">
-                <h1>Patient Dashboard</h1>
                 <div>
-                    <button class="btn-secondary" onclick="checkDoctorStatus()" style="margin-right: 10px;">
-                        <i class="fas fa-stethoscope"></i> Check Doctor Status
+                    <h1>Welcome, <span id="userNameHeader">Patient</span></h1>
+                    <p class="subtitle">Manage and share your medical records securely</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="checkDoctorBtn">
+                        <i class="fas fa-stethoscope"></i> Verify Doctor
                     </button>
-                    <button class="btn-primary" onclick="location.href='upload.html'">
+                    <button class="btn-primary" id="newRecordBtn">
                         <i class="fas fa-plus"></i> New Record
                     </button>
                 </div>
             </header>
 
+            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <i class="fas fa-file-medical"></i>
-                    <div>
-                        <h3>Records</h3>
+                    <div class="stat-icon"><i class="fas fa-file-medical"></i></div>
+                    <div class="stat-info">
+                        <h3>Total Records</h3>
                         <p id="totalRecords">0</p>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-user-md"></i>
-                    <div>
+                    <div class="stat-icon"><i class="fas fa-user-md"></i></div>
+                    <div class="stat-info">
                         <h3>Authorized Doctors</h3>
                         <p id="authorizedDoctors">0</p>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div>
+                    <div class="stat-icon"><i class="fas fa-share-alt"></i></div>
+                    <div class="stat-info">
                         <h3>Active Shares</h3>
                         <p id="activeShares">0</p>
                     </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-bell"></i></div>
+                    <div class="stat-info">
+                        <h3>Pending Requests</h3>
+                        <p id="pendingRequests">0</p>
+                    </div>
+                </div>
             </div>
 
-            <section class="notifications-section">
-                <h2>Access Requests</h2>
-                <div id="notificationsList" class="notifications-list">Loading...</div>
+            <!-- Access Requests Section -->
+            <section class="requests-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-envelope"></i> Access Requests</h2>
+                    <span class="badge" id="requestBadge">0</span>
+                </div>
+                <div id="requestsList" class="requests-list">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading requests...</p>
+                    </div>
+                </div>
             </section>
 
-            <section class="recent-records">
+            <!-- My Encrypted Records -->
+            <section class="records-section">
                 <div class="section-header">
-                    <h2>Recent Records</h2>
-                    <a href="history.html">View All</a>
+                    <h2><i class="fas fa-lock"></i> My Encrypted Records</h2>
+                    <button class="btn-icon" id="refreshRecordsBtn"><i class="fas fa-sync-alt"></i></button>
                 </div>
-                <div id="recentRecords" class="records-list"></div>
+                <div id="recordsList" class="records-grid">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading records...</p>
+                    </div>
+                </div>
             </section>
 
-            <section class="active-auth">
+            <!-- Active Authorizations -->
+            <section class="auth-section">
                 <div class="section-header">
-                    <h2>Active Authorizations</h2>
+                    <h2><i class="fas fa-key"></i> Active Authorizations</h2>
                 </div>
-                <div id="activeAuth" class="auth-list"></div>
+                <div id="authList" class="auth-grid">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading authorizations...</p>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
 
-    <!-- Modals (share, view, verify) -->
-    <div id="shareModal" class="modal" style="display:none;">...</div>
-    <div id="viewModal" class="modal" style="display:none;">...</div>
-    <div id="verifyDoctorModal" class="modal" style="display:none;">
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Doctor DID Modal -->
+    <div id="doctorDidModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-stethoscope"></i> Doctor Verification</h2>
-                <button class="close-btn" onclick="closeVerifyModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="verifyDoctorContent">
-                <p>Loading...</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeVerifyModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Modal for entering Doctor DID -->
-    <div id="doctorDidModal" class="modal" style="display:none;">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header">
-                <h2>Enter Doctor DID</h2>
+                <h2><i class="fas fa-stethoscope"></i> Enter Doctor DID</h2>
                 <button class="close-btn" onclick="closeDoctorDidModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="text" id="doctorDidInput" placeholder="did:key:..."
-                    style="width:100%; padding: 10px; margin: 10px 0;">
+                <p>Enter the doctor's decentralized identifier to verify or share records.</p>
+                <input type="text" id="doctorDidInput" placeholder="did:key:z..." class="modal-input">
             </div>
             <div class="modal-footer">
-                <button class="btn-primary" onclick="submitDoctorDid()">Check Status</button>
                 <button class="btn-secondary" onclick="closeDoctorDidModal()">Cancel</button>
+                <button class="btn-primary" onclick="submitDoctorDid()">Confirm</button>
             </div>
         </div>
     </div>
 
-    <!-- Only patient.js – no other utils scripts -->
+    <!-- Share Record Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-share-alt"></i> Share Medical Record</h2>
+                <button class="close-btn" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Doctor DID</label>
+                    <input type="text" id="shareDoctorDid" placeholder="did:key:z..." class="modal-input">
+                </div>
+                <div class="form-group">
+                    <label>Attribute (Access Policy)</label>
+                    <select id="shareAttribute" class="modal-select">
+                        <option value="doctor">👨‍⚕️ Doctor (General)</option>
+                        <option value="cardiology">❤️ Cardiology</option>
+                        <option value="pediatrics">👶 Pediatrics</option>
+                        <option value="surgery">🔪 Surgery</option>
+                        <option value="radiology">📷 Radiology</option>
+                        <option value="ophthalmology">👁️ Ophthalmology</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Access Duration</label>
+                    <div class="duration-buttons">
+                        <button class="duration-btn" data-days="1">1 Day</button>
+                        <button class="duration-btn" data-days="7">7 Days</button>
+                        <button class="duration-btn" data-days="30">30 Days</button>
+                        <button class="duration-btn" data-days="90">90 Days</button>
+                        <button class="duration-btn" data-days="365">1 Year</button>
+                    </div>
+                    <input type="hidden" id="shareRecordCid">
+                    <input type="hidden" id="shareRecordId">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeShareModal()">Cancel</button>
+                <button class="btn-primary" id="confirmShareBtn">Confirm Share</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Display Modal -->
+    <div id="keyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> AES-256 Encryption Key</h2>
+                <button class="close-btn" onclick="closeKeyModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Copy this key – you'll need it to share the record.</p>
+                <div class="key-display">
+                    <code id="modalAesKey"></code>
+                </div>
+                <button class="btn-primary" onclick="copyModalKey()">
+                    <i class="fas fa-copy"></i> Copy Key
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Options Modal -->
+    <div id="viewOptionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record Options</h2>
+                <button class="close-btn" onclick="closeViewOptionsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>What would you like to do with <strong id="viewFileName"></strong>?</p>
+                <div class="view-options">
+                    <button class="btn-primary" id="downloadEncryptedBtn">
+                        <i class="fas fa-download"></i> Download Encrypted
+                    </button>
+                    <button class="btn-primary" id="decryptAndOpenBtn">
+                        <i class="fas fa-unlock-alt"></i> Decrypt & Open
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal (Preview) -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Document Preview</h2>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="viewContent">Loading...</div>
+            </div>
+        </div>
+    </div>
+    <button onclick="testIPFS()" style="background: #4CAF50;">Test IPFS Connection</button>
+
+    <script src="../../assets/js/utils/crypto-utils.js"></script>
     <script src="../../assets/js/utils/patient.js"></script>
 </body>
 

@@ -13,7 +13,7 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
+        <!-- Sidebar (same as before) -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>MediChain</h2>
@@ -45,11 +45,11 @@
 
             <div class="upload-card">
                 <div class="upload-area" id="uploadArea">
-                    <i class="fas fa-cloud-upload-alt"></i>
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea;"></i>
                     <h3>Drag & Drop or Click to Browse</h3>
                     <button class="btn-primary" id="browseBtn">Browse Files</button>
                     <input type="file" id="fileInput" multiple style="display:none">
-                    <p class="upload-hint">Max 10MB per file</p>
+                    <p class="upload-hint">No size limit – IPFS handles large files efficiently</p>
                 </div>
 
                 <div id="fileList" style="display:none">
@@ -89,25 +89,34 @@
         </main>
     </div>
 
-    <!-- Modal to display AES key after upload -->
-    <div id="keyModal" class="modal" style="display:none">
+    <div id="successModal" class="modal" style="display:none">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-key"></i> AES-256 Key Generated</h2>
-                <button class="close-btn" onclick="closeKeyModal()">&times;</button>
+                <h2><i class="fas fa-check-circle"></i> Upload Successful</h2>
+                <button class="close-btn" onclick="closeSuccessModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Copy this key – you will need it to share the record with a doctor.</p>
-                <code id="aesKeyDisplay" class="key-display"></code>
-                <button class="btn-primary" onclick="copyAESKey()"><i class="fas fa-copy"></i> Copy Key</button>
+                <p><strong>Encrypted CID:</strong> <code id="uploadedCid"></code></p>
+                <p><strong>AES-256 Key (Base64):</strong> <code id="uploadedKey"></code></p>
+                <p>Save this key – you will need it to share the record with a doctor.</p>
+                <div class="success-actions">
+                    <button class="btn-primary" onclick="copyCID()">Copy CID</button>
+                    <button class="btn-primary" onclick="copyKey()">Copy Key</button>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeKeyModal()">Close</button>
+                <button class="btn-secondary" onclick="uploadAnother()">Upload Another</button>
+                <button class="btn-primary" onclick="goToDashboard()">Go to Dashboard</button>
             </div>
         </div>
     </div>
 
+    <!-- Load IPFS client library from node_modules -->
+
+    <script src="../../assets/js/utils/crypto-utils.js"></script>
     <script src="../../assets/js/utils/patient-upload.js"></script>
+
+
 </body>
 
 </html>

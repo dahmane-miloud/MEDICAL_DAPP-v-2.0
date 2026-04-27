@@ -10,7 +10,8 @@
     "dependencies": {
         "electron-store": "^8.2.0",
         "ethers": "^6.16.0",
-        "ipfs-http-client": "^55.0.0",
+        "form-data": "^4.0.5",
+        "ipfs-http-client": "^50.1.2",
         "mcl-wasm": "^2.0.0",
         "node-fetch": "^2.7.0",
         "tweetnacl": "^1.0.3",

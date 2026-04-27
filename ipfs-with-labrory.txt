@@ -1,0 +1,458 @@
+✅ Step 1: Install the correct library version
+Open terminal in your electron_app folder and run:
+
+npm uninstall ipfs-http-client
+npm install ipfs-http-client@50.1.2
+
+//-------------------------------
+✅ Step 2: Copy the library to your assets folder
+cp node_modules/ipfs-http-client/dist/index.min.js src/renderer/assets/js/ipfs-client.min.js
+
+//---------------------------------------------------------
+
+✅ Step 3: Update upload.html – Load the library
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Medical Record - MediChain</title>
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/patient-upload.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .upload-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+        }
+        .upload-area {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area.dragover {
+            background: #e8f0fe;
+            border-color: #667eea;
+        }
+        .progress-bar {
+            background: #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .modal-content {
+            border-radius: 24px;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 8px;
+            word-break: break-all;
+            display: inline-block;
+        }
+        .info-box {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MediChain</h2>
+                <p>Patient Portal</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                <a href="upload.html" class="nav-item active"><i class="fas fa-upload"></i><span>Upload Records</span></a>
+                <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>Access History</span></a>
+                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Upload Medical Record</h1>
+            </header>
+
+            <div class="upload-card">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea;"></i>
+                    <h3>Drag & Drop or Click to Browse</h3>
+                    <button class="btn-primary" id="browseBtn">Browse Files</button>
+                    <input type="file" id="fileInput" multiple style="display:none">
+                    <p class="upload-hint">No size limit – IPFS handles large files efficiently</p>
+                </div>
+
+                <div id="fileList" style="display:none">
+                    <h3>Selected Files</h3>
+                    <div id="selectedFiles"></div>
+                </div>
+
+                <div id="recordInfoSection" style="display:none">
+                    <h3>Record Information</h3>
+                    <div class="form-group">
+                        <label for="recordType">Record Type</label>
+                        <select id="recordType">
+                            <option value="lab">Laboratory Results</option>
+                            <option value="imaging">Imaging / X-Ray</option>
+                            <option value="prescription">Prescription</option>
+                            <option value="consultation">Consultation Note</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recordDate">Record Date</label>
+                        <input type="date" id="recordDate">
+                    </div>
+                </div>
+
+                <div id="uploadProgress" style="display:none">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill" style="width:0%"></div>
+                    </div>
+                    <p id="progressStatus" class="progress-status"></p>
+                </div>
+
+                <div class="upload-actions">
+                    <button class="btn-primary" id="uploadBtn" disabled>Upload & Encrypt</button>
+                    <button class="btn-secondary" id="cancelBtn" style="display:none">Cancel</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="successModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-check-circle"></i> Upload Successful</h2>
+                <button class="close-btn" onclick="closeSuccessModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-box">
+                    <p><strong>📦 Encrypted CID:</strong></p>
+                    <code id="uploadedCid"></code>
+                    <button class="btn-icon-small" onclick="copyCID()" style="margin-left: 10px;"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <div class="info-box">
+                    <p><strong>🔑 AES-256 Key (Base64):</strong></p>
+                    <code id="uploadedKey"></code>
+                    <button class="btn-icon-small" onclick="copyKey()" style="margin-left: 10px;"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+                <p class="warning-text">⚠️ Save this key securely – you will need it to share the record with a doctor.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="uploadAnother()">Upload Another</button>
+                <button class="btn-primary" onclick="goToDashboard()">Go to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load IPFS client library -->
+    <script src="../../assets/js/ipfs-client.min.js"></script>
+    <script src="../../assets/js/utils/crypto-utils.js"></script>
+    <script src="../../assets/js/patient-upload.js"></script>
+</body>
+
+</html>
+
+//-----------------------------------------------
+ ✅ Step 4: Complete patient-upload.js with ipfs-http-client
+
+ // patient-upload.js
+let currentUser = null;
+let selectedFiles = [];
+let ipfs = null;
+
+// Initialize IPFS client
+async function initIPFS() {
+    try {
+        if (typeof IpfsHttpClient === 'undefined') {
+            console.error('IpfsHttpClient library not loaded');
+            return false;
+        }
+        // Create client with explicit HTTP configuration (no quic-v1)
+        ipfs = IpfsHttpClient.create({
+            host: 'localhost',
+            port: 5001,
+            protocol: 'http'
+        });
+        // Test connection
+        const id = await ipfs.id();
+        console.log('✅ Connected to IPFS Desktop, node ID:', id.id);
+        return true;
+    } catch (error) {
+        console.error('❌ Failed to connect to IPFS Desktop:', error.message);
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkSession();
+    setupEventListeners();
+});
+
+async function checkSession() {
+    const session = await window.electronAPI.getSession();
+    if (!session || session.type !== 'patient') {
+        window.location.href = '../login.html';
+        return;
+    }
+    currentUser = session;
+    document.getElementById('userName').innerText = session.name || 'Patient';
+    document.getElementById('userDid').innerText = shortenDid(session.did);
+}
+
+function setupEventListeners() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const browseBtn = document.getElementById('browseBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    if (uploadArea) {
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => e.preventDefault());
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            addFiles(Array.from(e.dataTransfer.files));
+        });
+    }
+    if (browseBtn) browseBtn.addEventListener('click', () => fileInput.click());
+    if (fileInput) fileInput.addEventListener('change', (e) => addFiles(Array.from(e.target.files)));
+    if (uploadBtn) uploadBtn.addEventListener('click', startUpload);
+    if (cancelBtn) cancelBtn.addEventListener('click', cancelUpload);
+
+    window.removeFile = removeFile;
+    window.copyCID = copyCID;
+    window.copyKey = copyKey;
+    window.closeSuccessModal = () => document.getElementById('successModal').style.display = 'none';
+    window.uploadAnother = uploadAnother;
+    window.goToDashboard = goToDashboard;
+}
+
+function addFiles(files) {
+    for (let f of files) {
+        selectedFiles.push(f);
+    }
+    updateFileList();
+    if (selectedFiles.length) {
+        document.getElementById('fileList').style.display = 'block';
+        document.getElementById('recordInfoSection').style.display = 'block';
+        document.getElementById('uploadBtn').disabled = false;
+    }
+}
+
+function updateFileList() {
+    const container = document.getElementById('selectedFiles');
+    if (!container) return;
+    let html = '';
+    selectedFiles.forEach((f, idx) => {
+        html += `<div class="file-item">
+            <i class="fas ${getFileIcon(f.type)}"></i>
+            <span>${escapeHtml(f.name)} (${formatFileSize(f.size)})</span>
+            <i class="fas fa-times" onclick="removeFile(${idx})"></i>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function getFileIcon(type) {
+    if (type.includes('pdf')) return 'fa-file-pdf';
+    if (type.includes('image')) return 'fa-file-image';
+    return 'fa-file';
+}
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+    if (bytes < 1073741824) return (bytes/1048576).toFixed(1) + ' MB';
+    return (bytes/1073741824).toFixed(1) + ' GB';
+}
+function removeFile(idx) {
+    selectedFiles.splice(idx, 1);
+    updateFileList();
+    if (!selectedFiles.length) {
+        document.getElementById('fileList').style.display = 'none';
+        document.getElementById('recordInfoSection').style.display = 'none';
+        document.getElementById('uploadBtn').disabled = true;
+    }
+}
+
+async function startUpload() {
+    if (!selectedFiles.length) return;
+    const recordType = document.getElementById('recordType').value;
+    const recordDate = document.getElementById('recordDate').value;
+    if (!recordType || !recordDate) {
+        showError('Please fill record type and date');
+        return;
+    }
+
+    // Initialize IPFS
+    showLoading('Connecting to IPFS Desktop...');
+    const ipfsReady = await initIPFS();
+    if (!ipfsReady) {
+        showError('❌ IPFS Desktop is not running. Please start IPFS Desktop and try again.');
+        hideLoading();
+        return;
+    }
+    showSuccess('✅ IPFS Desktop connected');
+    hideLoading();
+
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressStatus = document.getElementById('progressStatus');
+    progressDiv.style.display = 'block';
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('cancelBtn').style.display = 'inline-block';
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        progressFill.style.width = `${(i / selectedFiles.length) * 100}%`;
+        progressStatus.innerText = `Encrypting & uploading ${file.name}...`;
+
+        try {
+            // 1. Generate AES-256 key
+            const aesKey = await CryptoUtils.generateAESKey();
+            const aesKeyBase64 = await CryptoUtils.exportKey(aesKey);
+
+            // 2. Encrypt file
+            const encryptedData = await CryptoUtils.encryptFile(file, aesKey);
+            const encryptedBlob = new Blob([encryptedData], { type: 'application/octet-stream' });
+
+            // 3. Upload to IPFS using ipfs-http-client
+            const result = await ipfs.add(encryptedBlob);
+            const encryptedCID = result.cid.toString();
+            console.log('✅ Uploaded to IPFS, CID:', encryptedCID);
+
+            // 4. Save record in localStorage
+            const sharedRecords = JSON.parse(localStorage.getItem('sharedRecords') || '[]');
+            sharedRecords.push({
+                id: Date.now(),
+                filename: file.name,
+                encryptedCID,
+                aesKeyBase64,
+                recordType,
+                recordDate,
+                uploadedAt: new Date().toISOString()
+            });
+            localStorage.setItem('sharedRecords', JSON.stringify(sharedRecords));
+
+            showSuccessModal(encryptedCID, aesKeyBase64);
+        } catch (err) {
+            console.error(err);
+            showError(`Upload failed for ${file.name}: ${err.message}`);
+        }
+    }
+    progressDiv.style.display = 'none';
+    document.getElementById('uploadBtn').disabled = false;
+    document.getElementById('cancelBtn').style.display = 'none';
+    resetUpload();
+}
+
+function showSuccessModal(cid, key) {
+    document.getElementById('uploadedCid').innerText = cid;
+    document.getElementById('uploadedKey').innerText = key;
+    document.getElementById('successModal').style.display = 'flex';
+}
+function copyCID() {
+    const cid = document.getElementById('uploadedCid').innerText;
+    navigator.clipboard.writeText(cid).then(() => showSuccess('CID copied'));
+}
+function copyKey() {
+    const key = document.getElementById('uploadedKey').innerText;
+    navigator.clipboard.writeText(key).then(() => showSuccess('AES key copied'));
+}
+function resetUpload() {
+    selectedFiles = [];
+    updateFileList();
+    document.getElementById('fileList').style.display = 'none';
+    document.getElementById('recordInfoSection').style.display = 'none';
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('recordType').value = '';
+    document.getElementById('recordDate').value = '';
+}
+function cancelUpload() {
+    if (confirm('Cancel upload? Progress will be lost.')) {
+        resetUpload();
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+}
+function uploadAnother() {
+    closeSuccessModal();
+    resetUpload();
+}
+function goToDashboard() {
+    window.location.href = 'dashboard.html';
+}
+function closeSuccessModal() {
+    document.getElementById('successModal').style.display = 'none';
+}
+function shortenDid(did) {
+    if (!did) return '';
+    return did.length > 20 ? did.slice(0,10)+'...'+did.slice(-10) : did;
+}
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+function showLoading(msg) {
+    hideLoading();
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.id = 'global-loading';
+    overlay.innerHTML = `<div class="spinner"></div><p>${escapeHtml(msg)}</p>`;
+    document.body.appendChild(overlay);
+}
+function hideLoading() {
+    document.getElementById('global-loading')?.remove();
+}
+function showError(msg) { showToast(msg, 'error'); }
+function showSuccess(msg) { showToast(msg, 'success'); }
+function showToast(msg, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${escapeHtml(msg)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+//----------------------------------------------------
+
+✅Step 5: Update preload.js (no changes needed)
+Your preload.js doesn't need any changes because the upload happens directly in the frontend (not through IPC).
+
+🧪 Test the library version
+Run the commands to install version 50.1.2
+
+Make sure IPFS Desktop is running
+
+Restart your Electron app
+
+Upload a file
+
+The library version 50.1.2 uses HTTP protocol correctly and should not give you the quic-v1 error.

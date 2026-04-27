@@ -1,0 +1,48 @@
+
+
+
+cid : QmagBQ4tCv95bPjGXSnny9o3sP8hkXLz3opeDur2nd5tVM
+
+AES-256 Key (Base64): kEdaaBZfubDZ4x9qeXvJx6CA9S4QSHEWY+pRCGSRLH0=
+
+
+// === DELETE ALL UPLOADED RECORDS ===
+// Run this in the browser console (F12) on the patient dashboard.
+
+// 1. Clear localStorage (CIDs, AES keys, metadata)
+localStorage.removeItem('sharedRecords');
+console.log('✅ Cleared sharedRecords from localStorage');
+
+// 2. Optionally clear electron-store entries (if accessible)
+(async () => {
+    try {
+        // Get current patient DID
+        const session = await window.electronAPI.getSession();
+        if (session && session.did) {
+            // Remove patient's access grants (global list)
+            let accesses = await window.electronAPI.storeGet('accessGrants') || [];
+            accesses = accesses.filter(a => a.patientDid !== session.did);
+            await window.electronAPI.storeSet('accessGrants', accesses);
+            // Remove patient's own files list (optional)
+            await window.electronAPI.storeDelete('userFiles:' + session.did);
+            console.log('✅ Cleared electron-store entries for this patient');
+        }
+    } catch (err) {
+        console.warn('Could not clear electron-store (maybe not needed):', err);
+    }
+})();
+
+// 3. Reload the page to refresh the dashboard
+setTimeout(() => {
+    location.reload();
+}, 500);
+
+
+//-------------------------------------- new record upload to test 
+ Upload Successful
+×
+Encrypted CID: QmZye5RgfLY1PPqRcSKWaQmvf6WxWeZis7eshrA473wnwo
+
+AES-256 Key (Base64): 6f/zCHslLWavhTiJMFWgp7i+FP/bJsc0nJvhMEcxKOk=
+
+Save this key – you will need it to share the record with a doctor.
