@@ -457,7 +457,6 @@ app.commandLine.appendSwitch('disable-gpu');
 
 */
 
-
 const { app, BrowserWindow, ipcMain, session, Menu, dialog } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
@@ -468,6 +467,13 @@ const { encodeBase64, decodeBase64 } = require('tweetnacl-util');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const FormData = require('form-data');
+
+// ============ FIX GPU FLASHING ISSUES ============
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-gpu-compositing');
+app.commandLine.appendSwitch('disable-gpu-sandbox');
+app.commandLine.appendSwitch('disable-software-rasterizer');
 
 // ==================== Configuration ====================
 let contractConfig;
@@ -506,7 +512,9 @@ function createWindow() {
             contextIsolation: true,
             preload: path.join(__dirname, 'preload.js')
         },
-        show: false
+        show: false,
+        backgroundColor: '#f0f2f5',
+        webgl: false
     });
 
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -688,7 +696,7 @@ ipcMain.handle('crypto:verify', async (event, { did, message, signature }) => {
     return { success: true, valid: verifySignature(user.publicKey, message, signature) };
 });
 
-// ==================== IPFS Handlers - WORKING VERSION ====================
+// ==================== IPFS Handlers ====================
 const IPFS_API_URL = 'http://127.0.0.1:5001';
 
 ipcMain.handle('ipfs:check', async () => {
@@ -713,15 +721,10 @@ ipcMain.handle('ipfs:upload', async (event, { data, filename, fileType, metadata
 
     try {
         console.log('Uploading to IPFS:', filename);
-
-        // Convert base64 to buffer
         const buffer = Buffer.from(data, 'base64');
-
-        // Create form data for upload
         const formData = new FormData();
         formData.append('file', buffer, { filename: filename, contentType: fileType || 'application/octet-stream' });
 
-        // Upload to IPFS using POST
         const response = await fetch(`${IPFS_API_URL}/api/v0/add`, {
             method: 'POST',
             body: formData,
@@ -741,7 +744,6 @@ ipcMain.handle('ipfs:upload', async (event, { data, filename, fileType, metadata
 
         console.log('✅ File uploaded, CID:', cid);
 
-        // Store metadata in electron-store
         const files = store.get('ipfsFiles') || [];
         const fileRecord = {
             cid, filename, fileType, size: buffer.length,
@@ -765,7 +767,6 @@ ipcMain.handle('ipfs:upload', async (event, { data, filename, fileType, metadata
 ipcMain.handle('ipfs:get', async (event, cid) => {
     try {
         console.log('Downloading from IPFS, CID:', cid);
-
         const response = await fetch(`${IPFS_API_URL}/api/v0/cat?arg=${cid}`, { method: 'POST' });
 
         if (!response.ok) {
@@ -796,7 +797,6 @@ ipcMain.handle('ipfs:getUserFiles', async () => {
 ipcMain.handle('proxy:encryptAES', async (event, { aesKeyB64, policy, timeSlot }) => {
     try {
         console.log('Calling TB-PRE proxy at http://localhost:5000/encrypt_aes');
-
         const response = await fetch('http://localhost:5000/encrypt_aes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -806,13 +806,10 @@ ipcMain.handle('proxy:encryptAES', async (event, { aesKeyB64, policy, timeSlot }
                 time_slot: timeSlot
             })
         });
-
         const result = await response.json();
-
         if (!response.ok || result.error) {
             throw new Error(result.error || `HTTP ${response.status}`);
         }
-
         console.log('✅ Proxy encryption successful');
         return result;
     } catch (error) {
@@ -878,12 +875,20 @@ ipcMain.handle('isDoctorActive', async (event, did) => {
     }
 });
 
-ipcMain.handle('contract:grantAccess', async (event, { patientDid, doctorDid, documentCid, encryptedCid, expiryTime }) => {
+// IMPORTANT: Updated grantAccess to include ciphertextId
+ipcMain.handle('contract:grantAccess', async (event, { patientDid, doctorDid, documentCid, encryptedCid, ciphertextId, filename, expiryTime }) => {
     try {
         const accesses = store.get('accessGrants') || [];
         const grant = {
-            patientDid, doctorDid, documentCid, encryptedCid,
-            expiryTime: Number(expiryTime), isActive: true, grantedAt: Date.now()
+            patientDid,
+            doctorDid,
+            documentCid,
+            encryptedCid,
+            ciphertextId: ciphertextId,  // Store the proxy ciphertext ID
+            filename: filename || 'Medical Record',
+            expiryTime: Number(expiryTime),
+            isActive: true,
+            grantedAt: Date.now()
         };
         accesses.push(grant);
         store.set('accessGrants', accesses);
@@ -893,7 +898,7 @@ ipcMain.handle('contract:grantAccess', async (event, { patientDid, doctorDid, do
         doctorAccesses.push(grant);
         store.set(doctorAccessKey, doctorAccesses);
 
-        console.log('✅ Access granted successfully');
+        console.log('✅ Access granted with ciphertextId:', ciphertextId);
         return { success: true };
     } catch (error) {
         console.error('Grant access error:', error);
@@ -907,6 +912,13 @@ ipcMain.handle('contract:getPatientAccesses', async () => {
     const accesses = store.get('accessGrants') || [];
     const patientAccesses = accesses.filter(a => a.patientDid === session.did);
     return { success: true, accesses: patientAccesses };
+});
+
+ipcMain.handle('contract:getDoctorAccesses', async () => {
+    const session = store.get('currentSession');
+    if (!session) return { success: false, error: 'Not authenticated' };
+    const accesses = store.get(`doctorAccesses:${session.did}`) || [];
+    return { success: true, accesses };
 });
 
 // ==================== Store Handlers ====================

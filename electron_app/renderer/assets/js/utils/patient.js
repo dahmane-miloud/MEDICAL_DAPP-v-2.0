@@ -534,6 +534,12 @@ let currentViewRecord = { cid: null, aesKeyBase64: null };
 let currentShareRecordId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for CryptoUtils to be available
+    if (typeof CryptoUtils === 'undefined') {
+        console.error('CryptoUtils not loaded!');
+        showError('CryptoUtils not available. Please refresh the page.');
+        return;
+    }
     await checkSession();
     await loadDashboardData();
     attachEventListeners();
@@ -621,6 +627,12 @@ async function loadDashboardData() {
         const records = JSON.parse(localStorage.getItem('sharedRecords') || '[]');
         const totalRecordsEl = document.getElementById('totalRecords');
         if (totalRecordsEl) totalRecordsEl.innerText = records.length;
+
+        // Update pending requests count
+        const notifs = await window.electronAPI.getNotifications();
+        const requests = notifs.success ? notifs.notifications.filter(n => n.type === 'access_request') : [];
+        const pendingRequestsEl = document.getElementById('pendingRequests');
+        if (pendingRequestsEl) pendingRequestsEl.innerText = requests.length;
 
     } catch (err) {
         console.error(err);
@@ -841,7 +853,7 @@ async function confirmShare() {
     }
 
     const attributeSelect = document.getElementById('shareAttribute');
-    const attribute = attributeSelect ? attributeSelect.value : 'cardiologist';
+    const attribute = attributeSelect ? attributeSelect.value : 'doctor';
 
     const activeDuration = document.querySelector('.duration-btn.active');
     const durationDays = activeDuration ? parseInt(activeDuration.dataset.days) : 7;
@@ -865,6 +877,10 @@ async function confirmShare() {
         // 2. Encrypt AES key with proxy
         const proxyResult = await encryptKeyWithProxy(record.aesKeyBase64, attribute);
 
+        // Get the ciphertext_id from the proxy result
+        const ciphertextId = proxyResult.ciphertext_id;
+        console.log('✅ Ciphertext ID from proxy:', ciphertextId);
+
         // 3. Upload ciphertext to IPFS
         const ciphertextJson = JSON.stringify(proxyResult.ciphertext);
         const ciphertextBlob = new Blob([ciphertextJson], { type: 'application/json' });
@@ -874,7 +890,6 @@ async function confirmShare() {
             reader.readAsDataURL(ciphertextBlob);
         });
 
-        // Check IPFS
         const ipfsCheck = await window.electronAPI.checkIPFS();
         if (!ipfsCheck.success) {
             throw new Error('IPFS Desktop is not running. Please start IPFS Desktop on port 5001.');
@@ -884,7 +899,7 @@ async function confirmShare() {
             data: ciphertextBase64,
             filename: `cipher_${Date.now()}.json`,
             fileType: 'application/json',
-            metadata: { recordCID: record.encryptedCID, attribute }
+            metadata: { recordCID: record.encryptedCID, attribute, ciphertextId: ciphertextId }
         });
 
         if (!uploadResult.success) {
@@ -894,12 +909,14 @@ async function confirmShare() {
         const ciphertextCID = uploadResult.cid;
         console.log('✅ Ciphertext uploaded to IPFS, CID:', ciphertextCID);
 
-        // 4. Grant access
+        // 4. Grant access - Include the ciphertextId
         const grantResult = await window.electronAPI.grantAccess({
             patientDid: window.currentUser.did,
             doctorDid: doctorDid,
             documentCid: record.encryptedCID,
             encryptedCid: ciphertextCID,
+            ciphertextId: proxyResult.ciphertext_id,   // 🔥 THIS LINE IS CRITICAL
+            filename: record.filename,
             expiryTime: expiryTime
         });
 
@@ -919,7 +936,7 @@ async function confirmShare() {
         console.error('Share error:', err);
         let errorMsg = err.message;
         if (errorMsg.includes('IPFS')) {
-            errorMsg = 'Cannot connect to IPFS. Please:\n1. Open IPFS Desktop\n2. Check it\'s running on port 5001\n3. Restart IPFS Desktop\n\nThen try again.';
+            errorMsg = 'Cannot connect to IPFS. Please make sure IPFS Desktop is running on port 5001.';
         }
         showError(errorMsg);
     } finally {
@@ -944,9 +961,9 @@ async function encryptKeyWithProxy(aesKeyBase64, attribute) {
     const timeSlot = Math.floor(Date.now() / 1000 / 3600);
 
     try {
-        console.log('Calling TB-PRE proxy server at http://localhost:5000/encrypt_aes');
+        console.log('Calling TB-PRE proxy server at http://127.0.0.1:5000/encrypt_aes');
 
-        const response = await fetch('http://localhost:5000/encrypt_aes', {
+        const response = await fetch('http://127.0.0.1:5000/encrypt_aes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -957,6 +974,8 @@ async function encryptKeyWithProxy(aesKeyBase64, attribute) {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
@@ -974,7 +993,7 @@ async function encryptKeyWithProxy(aesKeyBase64, attribute) {
         };
     } catch (error) {
         console.error('Proxy encryption error:', error);
-        throw new Error(`TB-PRE proxy server is not running. Please start AT-BT-PRE.py with: python AT-BT-PRE.py`);
+        throw new Error(`TB-PRE proxy server error: ${error.message}. Make sure server is running on port 5000`);
     }
 }
 
@@ -1052,17 +1071,26 @@ async function decryptAndDownload(cid, aesKeyBase64, filename) {
     try {
         const result = await window.electronAPI.getFromIPFS(cid);
         if (!result.success) throw new Error('File not found');
+
+        // Check if MediChainCrypto is available
+        if (typeof window.MediChainCrypto === 'undefined') {
+            throw new Error('Crypto library not available. Please refresh the page.');
+        }
+
         const encryptedArray = Uint8Array.from(atob(result.data.data), c => c.charCodeAt(0));
-        const aesKey = await CryptoUtils.importKey(aesKeyBase64);
-        const decrypted = await CryptoUtils.decryptFile(encryptedArray, aesKey);
+        const aesKey = await window.MediChainCrypto.importKey(aesKeyBase64);
+        const decrypted = await window.MediChainCrypto.decryptFile(encryptedArray, aesKey);
+
         const blob = new Blob([decrypted]);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
+        a.href = url;
         a.download = filename.replace('.enc', '') || 'decrypted_file';
         a.click();
         URL.revokeObjectURL(url);
         showSuccess('Decrypted and downloaded');
     } catch (err) {
+        console.error('Decryption error:', err);
         showError('Decryption failed: ' + err.message);
     } finally {
         hideLoading();

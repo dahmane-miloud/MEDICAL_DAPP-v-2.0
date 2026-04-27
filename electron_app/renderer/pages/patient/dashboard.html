@@ -172,11 +172,11 @@
                     <label>Attribute (Access Policy)</label>
                     <select id="shareAttribute" class="modal-select">
                         <option value="doctor">👨‍⚕️ Doctor (General)</option>
-                        <option value="cardiology">❤️ Cardiology</option>
-                        <option value="pediatrics">👶 Pediatrics</option>
-                        <option value="surgery">🔪 Surgery</option>
-                        <option value="radiology">📷 Radiology</option>
-                        <option value="ophthalmology">👁️ Ophthalmology</option>
+                        <option value="cardiologist">❤️ Cardiologist</option>
+                        <option value="pediatrician">👶 Pediatrician</option>
+                        <option value="surgeon">🔪 Surgeon</option>
+                        <option value="radiologist">📷 Radiologist</option>
+                        <option value="ophthalmologist">👁️ Ophthalmologist</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -251,9 +251,9 @@
             </div>
         </div>
     </div>
-    <button onclick="testIPFS()" style="background: #4CAF50;">Test IPFS Connection</button>
 
-    <script src="../../assets/js/utils/crypto-utils.js"></script>
+    <!-- Scripts - ORDER MATTERS: crypto-utils.js FIRST, then patient.js -->
+    <script src="../../assets/js/utils/MediChainCrypto.js"></script>
     <script src="../../assets/js/utils/patient.js"></script>
 </body>
 

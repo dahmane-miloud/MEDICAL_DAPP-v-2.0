@@ -1,595 +1,806 @@
-/*
+// doctor.js - Complete Doctor Dashboard (FIXED)
 
-// doctor.js
-let currentUser = null;
-let ipfsManager = null;
-let proxyManager = null;
-let contractManager = null;
+console.log('Doctor dashboard initializing...');
 
-document.addEventListener('DOMContentLoaded', async function () {
+window.currentUser = null;
+let currentDecryptRecord = { cid: null, encryptedCid: null };
+
+document.addEventListener('DOMContentLoaded', async () => {
+    let attempts = 0;
+    while (typeof window.MediChainCrypto === 'undefined' && attempts < 20) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+
+    if (typeof window.MediChainCrypto === 'undefined') {
+        console.error('MediChainCrypto not loaded!');
+        showError('Crypto library not available. Please refresh the page.');
+        return;
+    }
+
     await checkSession();
-    ipfsManager = new IPFSManager();
-    proxyManager = new ProxyManager();
-    contractManager = new ContractManager();
-
     await loadDashboardData();
-
-    const requestForm = document.getElementById('requestForm');
-    if (requestForm) requestForm.addEventListener('submit', handleRequest);
-    document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
-    document.getElementById('refreshBtn')?.addEventListener('click', loadDashboardData);
+    attachEventListeners();
+    setupNavigation();
 });
 
 async function checkSession() {
-    const session = await window.electronAPI.getSession();
-    if (!session || session.type !== 'doctor') {
+    try {
+        const session = await window.electronAPI.getSession();
+        if (!session || session.type !== 'doctor') {
+            window.location.href = '../login.html';
+            return false;
+        }
+        window.currentUser = session;
+
+        const sidebarUserName = document.getElementById('sidebarUserName');
+        const sidebarUserDid = document.getElementById('sidebarUserDid');
+
+        if (sidebarUserName) sidebarUserName.innerText = session.name || 'Doctor';
+        if (sidebarUserDid) sidebarUserDid.innerText = shortenDid(session.did);
+
+        // Register doctor with ALL possible attributes
+        try {
+            await fetch('http://127.0.0.1:5000/register_doctor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    doctor_did: session.did,
+                    attributes: ["doctor", "cardiologist", "neurologist", "pediatrician", "surgeon", "dermatologist", "ophthalmologist", "psychiatrist"]
+                })
+            });
+            console.log("✅ Doctor registered with Proxy memory");
+        } catch (e) {
+            console.error("❌ Failed to connect to Python Proxy:", e);
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Session check error:', error);
         window.location.href = '../login.html';
         return false;
     }
-    currentUser = session;
-    document.getElementById('userName').textContent = session.name || 'Doctor';
-    document.getElementById('userDid').textContent = shortenDid(session.did);
-    return true;
 }
 
-// Send access request to patient
-async function handleRequest(e) {
-    e.preventDefault();
-    const patientDid = document.getElementById('patientDid').value.trim();
-    const attribute = document.getElementById('requestAttribute').value;
-    if (!patientDid) {
-        showError('Patient DID is required');
-        return;
-    }
-    await window.electronAPI.sendNotification({
-        toDid: patientDid,
-        message: `Doctor ${currentUser.name} requests access to your records`,
-        type: 'access_request',
-        doctorDid: currentUser.did,
-        doctorName: currentUser.name,
-        attribute: attribute
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageName = item.dataset.page;
+
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            const pageTitle = document.getElementById('pageTitle');
+
+            if (pageName === 'dashboard') {
+                document.getElementById('dashboardPage').classList.add('active');
+                if (pageTitle) pageTitle.innerText = 'Dashboard';
+                loadDashboardStats();
+            } else if (pageName === 'shared') {
+                document.getElementById('sharedPage').classList.add('active');
+                if (pageTitle) pageTitle.innerText = 'Shared Records';
+                loadSharedRecords();
+            } else if (pageName === 'requests') {
+                document.getElementById('requestsPage').classList.add('active');
+                if (pageTitle) pageTitle.innerText = 'Access Requests';
+                loadAccessRequests();
+            } else if (pageName === 'authorizations') {
+                document.getElementById('authorizationsPage').classList.add('active');
+                if (pageTitle) pageTitle.innerText = 'Authorizations';
+                loadAuthorizations();
+            }
+        });
     });
-    showSuccess('Request sent.');
-    document.getElementById('patientDid').value = '';
 }
 
-async function loadDashboardData() {
-    showLoading();
-    try {
-        const stats = await loadStats();
-        updateStats(stats);
-        await loadRecentAccess();
-    } catch (err) {
-        console.error('Dashboard load error:', err);
-        showError('Failed to load dashboard data');
-    } finally {
-        hideLoading();
-    }
-}
+function attachEventListeners() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const sendAccessRequestBtn = document.getElementById('sendAccessRequestBtn');
+    const decryptRecordBtn = document.getElementById('decryptRecordBtn');
+    const cancelDecryptBtn = document.getElementById('cancelDecryptBtn');
+    const closeDecryptModalBtn = document.getElementById('closeDecryptModalBtn');
 
-async function loadStats() {
-    const accesses = await window.electronAPI.storeGet('doctorAccesses:' + currentUser.did) || [];
-    const now = Date.now() / 1000;
-    let totalPatients = new Set();
-    let activeAccesses = 0, expiringSoon = 0;
-    for (let a of accesses) {
-        if (a.patientDid) totalPatients.add(a.patientDid);
-        if (a.expiryTime && a.expiryTime > now) {
-            activeAccesses++;
-            if (a.expiryTime - now < 7 * 24 * 60 * 60) expiringSoon++;
-        }
-    }
-    return {
-        totalPatients: totalPatients.size,
-        availableRecords: accesses.length,
-        activeAccesses,
-        expiringSoon
-    };
-}
-
-function updateStats(stats) {
-    const setText = (id, v) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = v;
-    };
-    setText('totalPatients', stats.totalPatients);
-    setText('availableRecords', stats.availableRecords);
-    setText('activeAccesses', stats.activeAccesses);
-    setText('expiringSoon', stats.expiringSoon);
-}
-
-async function loadRecentAccess() {
-    const container = document.getElementById('recentAccess');
-    if (!container) return;
-    const accesses = await window.electronAPI.storeGet('doctorAccesses:' + currentUser.did) || [];
-    const now = Date.now() / 1000;
-    const active = accesses.filter(a => a && a.expiryTime && a.expiryTime > now);
-    active.sort((a, b) => (a.expiryTime || 0) - (b.expiryTime || 0));
-    if (active.length === 0) {
-        container.innerHTML = '<p class="no-data">No active accesses</p>';
-        return;
-    }
-    const users = await window.electronAPI.storeGet('users') || {};
-    let html = '';
-    for (let a of active.slice(0, 10)) {
-        const patient = users[a.patientDid] || { name: 'Unknown' };
-        const expiryDate = new Date(a.expiryTime * 1000).toLocaleDateString();
-        html += `
-            <div class="access-card">
-                <h4>${escapeHtml(a.documentName || 'Medical Record')}</h4>
-                <p><strong>Patient:</strong> ${escapeHtml(patient.name)}</p>
-                <p><strong>Expires:</strong> ${expiryDate}</p>
-                <button onclick="accessDocument('${a.encryptedCid}')">View</button>
-            </div>
-        `;
-    }
-    container.innerHTML = html;
-}
-
-// This is the main function to access a shared record using the proxy manager
-window.accessDocument = async function (encryptedCID, ciphertextCID, ciphertext_id) {
-    showLoading('Retrieving record...');
-    try {
-        // 1. Fetch ciphertext from IPFS
-        const ctResult = await window.electronAPI.getFromIPFS(ciphertextCID);
-        if (!ctResult.success) throw new Error('Ciphertext not found');
-        const ciphertext = JSON.parse(atob(ctResult.data.data));
-
-        // 2. Re‑encrypt for current date
-        const now = new Date();
-        const currentDate = {
-            year: now.getFullYear().toString(),
-            month: (now.getMonth() + 1).toString(),
-            day: now.getDate().toString()
-        };
-        const reencRes = await fetch('http://localhost:5000/reencrypt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ciphertext, current_date: currentDate })
-        });
-        const reencData = await reencRes.json();
-        if (!reencData.success) throw new Error('Re‑encryption failed');
-
-        // 3. Decrypt to get original AES key
-        const decryptRes = await fetch('http://localhost:5000/decrypt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                reencrypted_ciphertext: reencData.reencrypted_ciphertext,
-                doctor_did: currentUser.did,
-                ciphertext_id: ciphertext_id
-            })
-        });
-        const decryptData = await decryptRes.json();
-        if (!decryptData.success) throw new Error('Decryption failed');
-        const aesKeyBase64 = decryptData.original_key_base64;
-
-        // 4. Import AES key and decrypt file
-        const rawKey = Uint8Array.from(atob(aesKeyBase64), c => c.charCodeAt(0));
-        const aesKey = await crypto.subtle.importKey('raw', rawKey, 'AES-GCM', true, ['decrypt']);
-
-        const fileRes = await window.electronAPI.getFromIPFS(encryptedCID);
-        if (!fileRes.success) throw new Error('Encrypted file not found');
-        const encryptedData = Uint8Array.from(atob(fileRes.data.data), c => c.charCodeAt(0));
-        const iv = encryptedData.slice(0, 12);
-        const ciphertextData = encryptedData.slice(12);
-        const decrypted = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv: iv },
-            aesKey,
-            ciphertextData
-        );
-        const blob = new Blob([decrypted]);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileRes.data.filename?.replace('.enc', '') || 'document';
-        a.click();
-        URL.revokeObjectURL(url);
-        showSuccess('Record decrypted and downloaded');
-    } catch (err) {
-        console.error(err);
-        showError(err.message);
-    } finally {
-        hideLoading();
-    }
-};
-
-
-//---------------- access requestr -------------------
-
-// doctor.js
-// Inside doctor.js, add this function
-async function requestAccess() {
-    const patientDid = document.getElementById('patientDid')?.value.trim();
-    if (!patientDid) { showError('Enter patient DID'); return; }
-    try {
-        await window.electronAPI.sendNotification({
-            toDid: patientDid,
-            message: `Doctor ${currentUser.name} (${shortenDid(currentUser.did)}) requests access to your medical records. Please share via your dashboard.`,
-            type: 'access_request'
-        });
-        showSuccess('Request sent to patient');
-        document.getElementById('patientDid').value = '';
-    } catch (err) {
-        showError('Failed to send request');
-    }
-}
-//--------------------------------------------------------
-
-async function importAESKey(base64Key) {
-    const raw = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
-    return crypto.subtle.importKey('raw', raw, 'AES-GCM', true, ['decrypt']);
-}
-
-window.closeAccessModal = function () {
-    const modal = document.getElementById('accessModal');
-    if (modal) modal.style.display = 'none';
-    const preview = document.getElementById('documentPreview');
-    if (preview) preview.innerHTML = 'Loading...';
-};
-
-async function handleLogout(e) {
-    e.preventDefault();
-    await window.electronAPI.logout();
-    window.location.href = '../login.html';
-}
-
-// ========== Utilities ==========
-function shortenDid(did) {
-    if (!did || typeof did !== 'string') return '';
-    if (did.length <= 20) return did;
-    return did.substring(0, 10) + '...' + did.substring(did.length - 10);
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function showLoading(message) {
-    hideLoading();
-    var overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.id = 'doctor-loading';
-    overlay.innerHTML = `<div class="spinner"></div><p>${message || 'Loading...'}</p>`;
-    document.body.appendChild(overlay);
-}
-
-function hideLoading() {
-    var overlay = document.getElementById('doctor-loading');
-    if (overlay) overlay.remove();
-}
-
-function showError(message) { showToast(message, 'error'); }
-function showSuccess(message) { showToast(message, 'success'); }
-
-function showToast(message, type) {
-    var existing = document.querySelectorAll('.toast');
-    if (existing.length > 3) existing[0].remove();
-    var toast = document.createElement('div');
-    toast.className = 'toast ' + (type || 'info');
-    var icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
-    toast.innerHTML = '<i class="fas fa-' + icon + '"></i><span>' + message + '</span>';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-*/
-
-
-// doctor.js - COMPLETE REWRITE
-console.log('=== DOCTOR DASHBOARD STARTING ===');
-
-window.currentUser = null;
-
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('1. DOM ready, loading session...');
-
-    try {
-        const session = await window.electronAPI.getSession();
-        console.log('2. Session received:', session);
-
-        if (!session || session.type !== 'doctor') {
-            console.log('3. Invalid session, redirecting to login');
-            window.location.href = '../login.html';
-            return;
-        }
-
-        window.currentUser = session;
-        console.log('4. Doctor logged in:', window.currentUser.name);
-
-        // Update UI
-        document.getElementById('userName').innerText = window.currentUser.name;
-        document.getElementById('userDid').innerText = shortenDid(window.currentUser.did);
-        document.getElementById('userNameHeader').innerText = window.currentUser.name;
-
-        console.log('5. UI updated, loading dashboard data...');
-        await loadDashboardData();
-
-        // Set up event listeners
-        document.getElementById('logoutBtn').onclick = () => {
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
             window.electronAPI.logout();
             window.location.href = '../login.html';
-        };
-        document.getElementById('refreshBtn').onclick = () => loadDashboardData();
-        document.getElementById('requestAccessBtn').onclick = () => sendAccessRequest();
-
-        console.log('6. Dashboard ready');
-    } catch (error) {
-        console.error('Fatal error:', error);
-        showError('Failed to initialize dashboard');
+        });
     }
-});
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            loadDashboardData();
+            showSuccess('Dashboard refreshed');
+        });
+    }
+
+    if (sendAccessRequestBtn) {
+        sendAccessRequestBtn.addEventListener('click', () => {
+            sendAccessRequest();
+        });
+    }
+
+    if (decryptRecordBtn) {
+        decryptRecordBtn.addEventListener('click', () => {
+            decryptAndOpenRecord();
+        });
+    }
+
+    if (cancelDecryptBtn) {
+        cancelDecryptBtn.addEventListener('click', () => {
+            closeDecryptModal();
+        });
+    }
+
+    if (closeDecryptModalBtn) {
+        closeDecryptModalBtn.addEventListener('click', () => {
+            closeDecryptModal();
+        });
+    }
+
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('decryptModal');
+        if (e.target === modal) closeDecryptModal();
+    });
+}
 
 async function loadDashboardData() {
-    console.log('loadDashboardData called, window.currentUser =', window.currentUser);
-
-    if (!window.currentUser) {
-        console.error('No currentUser in loadDashboardData');
-        return;
-    }
-
     showLoading('Loading dashboard...');
-
     try {
-        await loadStatistics();
-        await loadRecentAccesses();
         await loadSharedRecords();
-        console.log('Dashboard data loaded successfully');
-    } catch (error) {
-        console.error('Dashboard load error:', error);
-        showError('Failed to load dashboard data');
+        await loadDashboardStats();
+        await loadAccessRequests();
+    } catch (err) {
+        console.error('Load dashboard error:', err);
+        showError('Failed to load dashboard');
     } finally {
         hideLoading();
     }
 }
 
-async function loadStatistics() {
-    // ✅ Important: always check window.currentUser
-    if (!window.currentUser) {
-        console.error('loadStatistics: window.currentUser is null');
+async function loadDashboardStats() {
+    try {
+        const records = JSON.parse(localStorage.getItem('sharedWithMe') || '[]');
+        const now = Date.now() / 1000;
+        const activeAccesses = records.filter(r => r.isActive && Number(r.expiryTime) > now).length;
+        const uniquePatients = new Set(records.map(r => r.patientDid)).size;
+        const expiringSoon = records.filter(r => {
+            const exp = Number(r.expiryTime);
+            return exp > now && (exp - now) < 7 * 24 * 3600;
+        }).length;
+
+        const totalRecordsEl = document.getElementById('totalRecords');
+        const activeAccessesEl = document.getElementById('activeAccesses');
+        const totalPatientsEl = document.getElementById('totalPatients');
+        const expiringSoonEl = document.getElementById('expiringSoon');
+        const sharedBadge = document.getElementById('sharedBadge');
+
+        if (totalRecordsEl) totalRecordsEl.innerText = records.length;
+        if (activeAccessesEl) activeAccessesEl.innerText = activeAccesses;
+        if (totalPatientsEl) totalPatientsEl.innerText = uniquePatients;
+        if (expiringSoonEl) expiringSoonEl.innerText = expiringSoon;
+        if (sharedBadge) sharedBadge.innerText = records.length;
+    } catch (err) {
+        console.error('Stats error:', err);
+    }
+}
+
+async function sendAccessRequest() {
+    const patientDid = document.getElementById('requestPatientDid')?.value.trim();
+    const message = document.getElementById('requestMessageText')?.value.trim();
+
+    if (!patientDid) {
+        showError('Please enter Patient DID');
         return;
     }
 
+    showLoading('Sending access request...');
     try {
-        const result = await window.electronAPI.getDoctorAccesses();
-        const accesses = result.success ? (result.accesses || []) : [];
-        const now = Date.now() / 1000;
+        const result = await window.electronAPI.sendNotification({
+            toDid: patientDid,
+            message: message || `Dr. ${window.currentUser.name} requests access to your medical records`,
+            doctorName: window.currentUser.name,
+            doctorDid: window.currentUser.did,
+            type: 'access_request',
+            timestamp: new Date().toISOString()
+        });
 
-        let totalPatients = new Set();
-        let activeAccesses = 0;
-        let expiringSoon = 0;
-
-        for (const access of accesses) {
-            if (access && access.patientDid) totalPatients.add(access.patientDid);
-
-            let expiry = access ? access.expiryTime : null;
-            if (access && access.extra) {
-                try {
-                    const extra = JSON.parse(access.extra);
-                    if (extra.expiryTime) expiry = extra.expiryTime;
-                } catch (e) { }
-            }
-
-            if (expiry && expiry > now) {
-                activeAccesses++;
-                if (expiry - now < 7 * 86400) expiringSoon++;
-            }
+        if (result.success) {
+            showSuccess('Access request sent successfully!');
+            const patientDidInput = document.getElementById('requestPatientDid');
+            const messageText = document.getElementById('requestMessageText');
+            if (patientDidInput) patientDidInput.value = '';
+            if (messageText) messageText.value = '';
+        } else {
+            throw new Error(result.error || 'Failed to send request');
         }
-
-        document.getElementById('totalPatients').innerText = totalPatients.size;
-        document.getElementById('availableRecords').innerText = accesses.length;
-        document.getElementById('activeAccesses').innerText = activeAccesses;
-        document.getElementById('expiringSoon').innerText = expiringSoon;
-        document.getElementById('sharedCount').innerText = accesses.length;
-
-        console.log('Statistics loaded successfully');
     } catch (err) {
-        console.error('loadStatistics error:', err);
+        console.error('Send request error:', err);
+        showError('Failed to send request: ' + err.message);
+    } finally {
+        hideLoading();
     }
 }
 
-async function loadRecentAccesses() {
-    if (!window.currentUser) return;
-
-    const container = document.getElementById('recentAccess');
-    if (!container) return;
-
-    try {
-        const result = await window.electronAPI.getDoctorAccesses();
-        const accesses = result.success ? (result.accesses || []) : [];
-        const now = Date.now() / 1000;
-
-        const active = accesses.filter(a => a && a.expiryTime && a.expiryTime > now);
-        active.sort((a, b) => (a.expiryTime || 0) - (b.expiryTime || 0));
-
-        if (active.length === 0) {
-            container.innerHTML = '<div class="no-data">No recent accesses</div>';
-            return;
-        }
-
-        const users = await window.electronAPI.storeGet('users') || {};
-        let html = '';
-
-        for (let i = 0; i < Math.min(active.length, 10); i++) {
-            const a = active[i];
-            const patient = users[a.patientDid] || { name: 'Unknown' };
-            const expiryDate = new Date(a.expiryTime * 1000).toLocaleDateString();
-
-            html += `
-                <div class="access-card">
-                    <div class="record-icon"><i class="fas fa-user-circle"></i></div>
-                    <h4>${escapeHtml(a.documentName || 'Medical Record')}</h4>
-                    <p><strong>Patient:</strong> ${escapeHtml(patient.name)}</p>
-                    <p><strong>Expires:</strong> ${expiryDate}</p>
-                    <button onclick="viewEncryptedFile('${a.documentCid}')">
-                        <i class="fas fa-eye"></i> View Record
-                    </button>
-                </div>
-            `;
-        }
-
-        container.innerHTML = html;
-    } catch (err) {
-        console.error('loadRecentAccesses error:', err);
-        container.innerHTML = '<div class="no-data">Error loading recent accesses</div>';
-    }
-}
-
+// ========== LOAD SHARED RECORDS ==========
 async function loadSharedRecords() {
-    if (!window.currentUser) return;
-
     const container = document.getElementById('sharedRecordsList');
     if (!container) return;
 
     try {
         const result = await window.electronAPI.getDoctorAccesses();
+        console.log('Doctor accesses:', result);
+
         const accesses = result.success ? (result.accesses || []) : [];
 
+        localStorage.setItem('sharedWithMe', JSON.stringify(accesses));
+
         if (accesses.length === 0) {
-            container.innerHTML = '<div class="no-data">No shared records</div>';
+            container.innerHTML = '<div class="no-data">No records shared with you yet.</div>';
             return;
         }
 
         let html = '';
-
-        for (let i = 0; i < accesses.length; i++) {
-            const a = accesses[i];
-            let extra = {};
-            try {
-                extra = a.extra ? JSON.parse(a.extra) : {};
-            } catch (e) { }
-
-            const expiry = extra.expiryTime || a.expiryTime;
-            const expiryDate = new Date(expiry * 1000);
+        for (const access of accesses) {
+            const expiryTimeSec = Number(access.expiryTime);
+            const expiryDate = new Date(expiryTimeSec * 1000);
             const isExpired = expiryDate < new Date();
+            const daysLeft = Math.ceil((expiryTimeSec * 1000 - Date.now()) / (1000 * 3600 * 24));
 
             html += `
                 <div class="record-card">
                     <div class="record-header">
-                        <div class="record-icon">
-                            <i class="fas fa-file-medical-alt"></i>
-                        </div>
+                        <div class="record-icon"><i class="fas fa-file-medical-alt"></i></div>
                         <span class="record-status ${isExpired ? 'status-expired' : 'status-active'}">
                             ${isExpired ? 'Expired' : 'Active'}
                         </span>
                     </div>
                     <div class="record-info">
-                        <h4>Medical Record</h4>
-                        <p><i class="fas fa-tag"></i> Attribute: ${escapeHtml(extra.attribute || 'doctor')}</p>
+                        <h4>${escapeHtml(access.filename || 'Medical Record')}</h4>
+                        <p><i class="fas fa-user"></i> Patient: ${shortenDid(access.patientDid)}</p>
                         <p><i class="fas fa-calendar"></i> Expires: ${expiryDate.toLocaleString()}</p>
-                        <p><i class="fas fa-fingerprint"></i> CID: ${shortenDid(a.documentCid || '')}</p>
+                        ${!isExpired ? `<p><i class="fas fa-clock"></i> ${daysLeft} days left</p>` : ''}
                     </div>
-                    <div class="record-actions">
-                        ${!isExpired ? `
-                            <button class="btn-primary" onclick="accessDecryptedRecord('${a.documentCid}', '${extra.ciphertext_id || ''}')">
-                                <i class="fas fa-unlock-alt"></i> Access & Decrypt
-            </button>
-                        ` : `
-                            <button class="btn-secondary" disabled>
-                                <i class="fas fa-lock"></i> Access Expired
-                            </button>
-                        `}
+                    <div class="record-actions" style="display: flex; gap: 0.5rem;">
+                        <button class="btn-primary" onclick="window.previewRecord('${access.documentCid}', '${access.encryptedCid}')" style="flex: 1;">
+                            <i class="fas fa-eye"></i> Preview
+                        </button>
+                        <button class="btn-primary" onclick="window.openDecryptModal('${access.documentCid}', '${access.encryptedCid}')" style="flex: 1;">
+                            <i class="fas fa-download"></i> Download
+                        </button>
                     </div>
                 </div>
             `;
         }
+        container.innerHTML = html;
 
+        const sharedBadge = document.getElementById('sharedBadge');
+        if (sharedBadge) sharedBadge.innerText = accesses.length;
+        await loadDashboardStats();
+    } catch (err) {
+        console.error('Error loading shared records:', err);
+        container.innerHTML = '<div class="no-data">Error loading records: ' + err.message + '</div>';
+    }
+}
+
+// ========== LOAD ACCESS REQUESTS ==========
+async function loadAccessRequests() {
+    const container = document.getElementById('requestsList');
+    if (!container) return;
+
+    try {
+        const notifs = await window.electronAPI.getNotifications();
+        const requests = notifs.success ? (notifs.notifications || []).filter(n => n.type === 'access_request') : [];
+
+        const requestBadge = document.getElementById('requestBadge');
+        if (requestBadge) requestBadge.innerText = requests.length;
+
+        if (requests.length === 0) {
+            container.innerHTML = '<div class="no-data">No pending access requests</div>';
+            return;
+        }
+
+        let html = '';
+        for (let i = 0; i < requests.length; i++) {
+            const req = requests[i];
+            html += `
+                <div class="request-card">
+                    <div class="request-info">
+                        <h4><i class="fas fa-user"></i> From: ${escapeHtml(req.doctorName || 'Patient')}</h4>
+                        <p><i class="fas fa-id-card"></i> DID: ${shortenDid(req.doctorDid || '')}</p>
+                        <p><i class="fas fa-envelope"></i> ${escapeHtml(req.message)}</p>
+                        <small><i class="fas fa-clock"></i> ${new Date(req.timestamp).toLocaleString()}</small>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn-success" onclick="window.acceptRequest(${i})">
+                            <i class="fas fa-check"></i> Accept
+                        </button>
+                        <button class="btn-danger" onclick="window.declineRequest(${i})">
+                            <i class="fas fa-times"></i> Decline
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
         container.innerHTML = html;
     } catch (err) {
-        console.error('loadSharedRecords error:', err);
-        container.innerHTML = '<div class="no-data">Error loading shared records</div>';
+        console.error('Load requests error:', err);
+        container.innerHTML = '<div class="no-data">Error loading requests: ' + err.message + '</div>';
     }
 }
 
-// Make functions global for onclick attributes
-window.viewEncryptedFile = async (encryptedCID) => {
-    if (!encryptedCID) {
-        showError('No record identifier');
-        return;
-    }
+// ========== LOAD AUTHORIZATIONS ==========
+async function loadAuthorizations() {
+    const container = document.getElementById('authorizationsList');
+    if (!container) return;
 
-    showLoading('Downloading file...');
     try {
-        const result = await window.electronAPI.getFromIPFS(encryptedCID);
-        if (!result.success) throw new Error(result.error || 'File not found');
+        const result = await window.electronAPI.getDoctorAccesses();
+        const accesses = result.success ? (result.accesses || []) : [];
+        const now = Date.now() / 1000;
+        const activeAccesses = accesses.filter(a => a.isActive && Number(a.expiryTime) > now);
 
-        const blob = base64ToBlob(result.data.data, result.data.fileType || 'application/octet-stream');
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = result.data.filename || 'encrypted_file.enc';
-        a.click();
-        URL.revokeObjectURL(url);
-        showSuccess('File downloaded');
+        if (activeAccesses.length === 0) {
+            container.innerHTML = '<div class="no-data">No active authorizations</div>';
+            return;
+        }
+
+        let html = '';
+        for (const auth of activeAccesses) {
+            const expiryDate = new Date(Number(auth.expiryTime) * 1000);
+            html += `
+                <div class="auth-card">
+                    <div class="record-header">
+                        <div class="record-icon"><i class="fas fa-key"></i></div>
+                        <span class="record-status status-active">Active</span>
+                    </div>
+                    <div class="record-info">
+                        <h4>Patient: ${shortenDid(auth.patientDid)}</h4>
+                        <p><i class="fas fa-calendar"></i> Expires: ${expiryDate.toLocaleString()}</p>
+                        <p><i class="fas fa-file"></i> Record CID: ${shortenDid(auth.documentCid)}</p>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
     } catch (err) {
-        showError(err.message);
+        console.error('Load authorizations error:', err);
+        container.innerHTML = '<div class="no-data">Error loading authorizations</div>';
+    }
+}
+
+// ========== RESPOND TO REQUESTS ==========
+window.acceptRequest = async function (requestId) {
+    showLoading('Accepting request...');
+    try {
+        showSuccess('Request accepted!');
+        await loadAccessRequests();
+    } catch (err) {
+        showError('Failed to accept request');
     } finally {
         hideLoading();
     }
 };
 
-window.accessDecryptedRecord = async (encryptedCID, ciphertextId) => {
-    if (!encryptedCID) {
-        showError('No record identifier');
-        return;
-    }
-
-    showLoading('Accessing record...');
+window.declineRequest = async function (requestId) {
+    showLoading('Declining request...');
     try {
-        // For now, download the encrypted file (full decryption will be added)
-        const result = await window.electronAPI.getFromIPFS(encryptedCID);
-        if (!result.success) throw new Error(result.error || 'File not found');
-
-        const blob = base64ToBlob(result.data.data, result.data.fileType || 'application/octet-stream');
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = result.data.filename || 'encrypted_file.enc';
-        a.click();
-        URL.revokeObjectURL(url);
-        showSuccess('File downloaded');
+        showSuccess('Request declined');
+        await loadAccessRequests();
     } catch (err) {
-        showError(err.message);
+        showError('Failed to decline request');
     } finally {
         hideLoading();
     }
 };
 
-async function sendAccessRequest() {
-    if (!window.currentUser) {
-        showError('Session not ready');
+// ========== DECRYPT MODAL ==========
+window.openDecryptModal = function (documentCid, encryptedCid) {
+    currentDecryptRecord = {
+        cid: documentCid,
+        encryptedCid: encryptedCid
+    };
+    const modal = document.getElementById('decryptModal');
+    const decryptCid = document.getElementById('decryptCid');
+
+    if (decryptCid) decryptCid.innerText = shortenDid(documentCid);
+    if (modal) modal.style.display = 'flex';
+};
+
+function closeDecryptModal() {
+    const modal = document.getElementById('decryptModal');
+    if (modal) modal.style.display = 'none';
+    currentDecryptRecord = { cid: null, encryptedCid: null };
+}
+
+window.closeDecryptModal = closeDecryptModal;
+
+// ========== PREVIEW RECORD ==========
+window.previewRecord = async function (documentCid, encryptedCid) {
+    if (!documentCid || !encryptedCid) {
+        showError('No record selected');
         return;
     }
 
-    const patientDid = document.getElementById('patientDid').value.trim();
-    if (!patientDid) {
-        showError('Please enter a patient DID');
-        return;
-    }
+    showLoading('Preparing preview...');
 
-    showLoading('Sending request...');
     try {
-        await window.electronAPI.sendNotification({
-            toDid: patientDid,
-            message: `Doctor ${window.currentUser.name} (${shortenDid(window.currentUser.did)}) requests access to your medical records.`
+        const result = await window.electronAPI.getDoctorAccesses();
+        const accesses = result.success ? result.accesses : [];
+        const accessRecord = accesses.find(a => a.documentCid === documentCid);
+
+        if (!accessRecord) {
+            throw new Error('Access record not found');
+        }
+
+        if (!accessRecord.ciphertextId) {
+            throw new Error('Ciphertext ID not found. Please re-share the record.');
+        }
+
+        const ciphertextId = accessRecord.ciphertextId;
+        console.log('✅ Using ciphertext ID:', ciphertextId);
+
+        // Generate rekey
+        const rekeyResponse = await fetch('http://127.0.0.1:5000/generate_rekey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ct_id: ciphertextId,
+                delegatee_did: window.currentUser.did,
+                delegatee_attrs: ["doctor"]
+            })
         });
-        showSuccess('Access request sent');
-        document.getElementById('patientDid').value = '';
+
+        if (!rekeyResponse.ok) throw new Error('Failed to generate rekey');
+        const rekeyResult = await rekeyResponse.json();
+        const rekeyId = rekeyResult.rekey_id;
+
+        // Proxy re-encrypt
+        const reencryptResponse = await fetch('http://127.0.0.1:5000/proxy_reencrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rekey_id: rekeyId })
+        });
+
+        if (!reencryptResponse.ok) throw new Error('Failed to proxy re-encrypt');
+        const reencryptResult = await reencryptResponse.json();
+        const transformedId = reencryptResult.transformed_ct_id;
+
+        // Decrypt
+        const decryptResponse = await fetch('http://127.0.0.1:5000/decrypt_aes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transformed_ct_id: transformedId,
+                doctor_did: window.currentUser.did
+            })
+        });
+
+        if (!decryptResponse.ok) throw new Error('Decryption failed');
+        const decryptResult = await decryptResponse.json();
+        const aesKeyBase64 = decryptResult.aes_key_b64;
+
+        // Get encrypted file from IPFS
+        const encryptedResult = await window.electronAPI.getFromIPFS(documentCid);
+        if (!encryptedResult.success) throw new Error('Failed to download encrypted record');
+
+        // Decrypt the file
+        const encryptedData = Uint8Array.from(atob(encryptedResult.data.data), c => c.charCodeAt(0));
+        const aesKey = await window.MediChainCrypto.importKey(aesKeyBase64);
+        const decryptedData = await window.MediChainCrypto.decryptFile(encryptedData, aesKey);
+
+        // Display preview
+        const blob = new Blob([decryptedData]);
+        const fileType = encryptedResult.data.fileType || 'application/octet-stream';
+        const fileName = encryptedResult.data.filename?.replace('.enc', '') || 'medical_record';
+
+        showPreview(blob, fileType, fileName, documentCid, encryptedCid);
+
     } catch (err) {
-        console.error('Request error:', err);
-        showError('Failed to send request');
+        console.error('Preview error:', err);
+        showError('Failed to preview record: ' + err.message);
+    } finally {
+        hideLoading();
+    }
+};
+
+// Show preview modal
+function showPreview(blob, fileType, fileName, documentCid, encryptedCid) {
+    const url = URL.createObjectURL(blob);
+    const previewModal = document.getElementById('previewModal');
+    const previewContent = document.getElementById('previewContent');
+    const previewTitle = document.getElementById('previewTitle');
+
+    const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
+    const closePreviewFooterBtn = document.getElementById('closePreviewFooterBtn');
+    const downloadFromPreviewBtn = document.getElementById('downloadFromPreviewBtn');
+
+    if (closePreviewModalBtn) {
+        closePreviewModalBtn.addEventListener('click', closePreviewModal);
+    }
+    if (closePreviewFooterBtn) {
+        closePreviewFooterBtn.addEventListener('click', closePreviewModal);
+    }
+    if (downloadFromPreviewBtn) {
+        downloadFromPreviewBtn.addEventListener('click', () => {
+            const previewModal = document.getElementById('previewModal');
+            if (previewModal && previewModal.dataset.documentCid) {
+                downloadDecryptedRecord(previewModal.dataset.documentCid, previewModal.dataset.encryptedCid);
+            }
+        });
+    }
+
+    if (!previewModal) {
+        console.error('Preview modal not found in HTML');
+        return;
+    }
+
+    previewTitle.innerText = `Preview: ${fileName}`;
+    previewContent.innerHTML = '';
+
+    if (fileType.includes('image') || fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '70vh';
+        img.style.objectFit = 'contain';
+        previewContent.appendChild(img);
+    }
+    else if (fileType.includes('pdf') || fileName.match(/\.pdf$/i)) {
+        const iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.style.width = '100%';
+        iframe.style.height = '70vh';
+        iframe.style.border = 'none';
+        previewContent.appendChild(iframe);
+    }
+    else if (fileType.includes('text') || fileName.match(/\.(txt|json|xml|html|css|js)$/i)) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const pre = document.createElement('pre');
+            pre.textContent = e.target.result;
+            pre.style.maxHeight = '60vh';
+            pre.style.overflow = 'auto';
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.style.wordWrap = 'break-word';
+            pre.style.background = '#f5f5f5';
+            pre.style.padding = '1rem';
+            pre.style.borderRadius = '8px';
+            previewContent.appendChild(pre);
+        };
+        reader.readAsText(blob);
+    }
+    else {
+        previewContent.innerHTML = `
+            <div class="preview-info">
+                <i class="fas fa-file" style="font-size: 4rem; color: #1a5276;"></i>
+                <h3>${escapeHtml(fileName)}</h3>
+                <p>File Type: ${fileType}</p>
+                <p>File Size: ${formatFileSize(blob.size)}</p>
+                <p>This file type cannot be previewed directly.</p>
+                <button class="btn-primary" onclick="downloadDecryptedRecord('${documentCid}', '${encryptedCid}')">
+                    <i class="fas fa-download"></i> Download File
+                </button>
+            </div>
+        `;
+    }
+
+    previewModal.dataset.blobUrl = url;
+    previewModal.dataset.documentCid = documentCid;
+    previewModal.dataset.encryptedCid = encryptedCid;
+    previewModal.style.display = 'flex';
+}
+
+// Close preview modal
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    if (modal) {
+        if (modal.dataset.blobUrl) {
+            URL.revokeObjectURL(modal.dataset.blobUrl);
+        }
+        modal.style.display = 'none';
+        const previewContent = document.getElementById('previewContent');
+        if (previewContent) previewContent.innerHTML = '';
+    }
+}
+
+// Download decrypted file from preview
+async function downloadDecryptedRecord(documentCid, encryptedCid) {
+    showLoading('Preparing download...');
+
+    try {
+        const result = await window.electronAPI.getDoctorAccesses();
+        const accesses = result.success ? result.accesses : [];
+        const accessRecord = accesses.find(a => a.documentCid === documentCid);
+
+        if (!accessRecord) throw new Error('Access record not found');
+        if (!accessRecord.ciphertextId) throw new Error('Ciphertext ID not found');
+
+        const ciphertextId = accessRecord.ciphertextId;
+
+        const rekeyResponse = await fetch('http://127.0.0.1:5000/generate_rekey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ct_id: ciphertextId,
+                delegatee_did: window.currentUser.did,
+                delegatee_attrs: ["doctor"]
+            })
+        });
+        if (!rekeyResponse.ok) throw new Error('Failed to generate rekey');
+        const rekeyResult = await rekeyResponse.json();
+        const rekeyId = rekeyResult.rekey_id;
+
+        const reencryptResponse = await fetch('http://127.0.0.1:5000/proxy_reencrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rekey_id: rekeyId })
+        });
+        if (!reencryptResponse.ok) throw new Error('Failed to proxy re-encrypt');
+        const reencryptResult = await reencryptResponse.json();
+        const transformedId = reencryptResult.transformed_ct_id;
+
+        const decryptResponse = await fetch('http://127.0.0.1:5000/decrypt_aes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transformed_ct_id: transformedId,
+                doctor_did: window.currentUser.did
+            })
+        });
+        if (!decryptResponse.ok) throw new Error('Decryption failed');
+        const decryptResult = await decryptResponse.json();
+        const aesKeyBase64 = decryptResult.aes_key_b64;
+
+        const encryptedResult = await window.electronAPI.getFromIPFS(documentCid);
+        if (!encryptedResult.success) throw new Error('Failed to download encrypted record');
+
+        const encryptedData = Uint8Array.from(atob(encryptedResult.data.data), c => c.charCodeAt(0));
+        const aesKey = await window.MediChainCrypto.importKey(aesKeyBase64);
+        const decryptedData = await window.MediChainCrypto.decryptFile(encryptedData, aesKey);
+
+        const blob = new Blob([decryptedData]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = encryptedResult.data.filename?.replace('.enc', '') || 'decrypted_record';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showSuccess('File downloaded successfully!');
+        closePreviewModal();
+
+    } catch (err) {
+        console.error('Download error:', err);
+        showError('Failed to download: ' + err.message);
     } finally {
         hideLoading();
     }
 }
 
-// ========== Utility Functions ==========
+// ========== DECRYPT AND OPEN RECORD ==========
+async function decryptAndOpenRecord() {
+    if (!currentDecryptRecord.cid || !currentDecryptRecord.encryptedCid) {
+        showError('No record selected');
+        return;
+    }
+
+    showLoading('Preparing decryption...');
+
+    try {
+        const result = await window.electronAPI.getDoctorAccesses();
+        const accesses = result.success ? result.accesses : [];
+        const accessRecord = accesses.find(a => a.documentCid === currentDecryptRecord.cid);
+
+        if (!accessRecord) {
+            throw new Error('Access record not found for CID: ' + currentDecryptRecord.cid);
+        }
+
+        if (!accessRecord.ciphertextId) {
+            throw new Error('Ciphertext ID not found. Please re-share the record.');
+        }
+
+        const ciphertextId = accessRecord.ciphertextId;
+        console.log('✅ Using ciphertext ID:', ciphertextId);
+
+        const rekeyResponse = await fetch('http://127.0.0.1:5000/generate_rekey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ct_id: ciphertextId,
+                delegatee_did: window.currentUser.did,
+                delegatee_attrs: ["doctor"]
+            })
+        });
+
+        if (!rekeyResponse.ok) {
+            throw new Error('Failed to generate rekey');
+        }
+
+        const rekeyResult = await rekeyResponse.json();
+        const rekeyId = rekeyResult.rekey_id;
+        console.log('✅ Rekey generated:', rekeyId);
+
+        const reencryptResponse = await fetch('http://127.0.0.1:5000/proxy_reencrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rekey_id: rekeyId })
+        });
+
+        if (!reencryptResponse.ok) {
+            throw new Error('Failed to proxy re-encrypt');
+        }
+
+        const reencryptResult = await reencryptResponse.json();
+        const transformedId = reencryptResult.transformed_ct_id;
+        console.log('✅ Proxy re-encrypted:', transformedId);
+
+        const decryptResponse = await fetch('http://127.0.0.1:5000/decrypt_aes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transformed_ct_id: transformedId,
+                doctor_did: window.currentUser.did
+            })
+        });
+
+        if (!decryptResponse.ok) {
+            const errorData = await decryptResponse.text();
+            console.error('Server side error details:', errorData);
+            throw new Error(`Decryption failed with status ${decryptResponse.status}`);
+        }
+
+        const decryptResult = await decryptResponse.json();
+        const aesKeyBase64 = decryptResult.aes_key_b64;
+        console.log('✅ Decryption successful');
+
+        const encryptedResult = await window.electronAPI.getFromIPFS(currentDecryptRecord.cid);
+        if (!encryptedResult.success) {
+            throw new Error('Failed to download encrypted record');
+        }
+
+        const encryptedData = Uint8Array.from(atob(encryptedResult.data.data), c => c.charCodeAt(0));
+        const aesKey = await window.MediChainCrypto.importKey(aesKeyBase64);
+        const decryptedData = await window.MediChainCrypto.decryptFile(encryptedData, aesKey);
+
+        const blob = new Blob([decryptedData]);
+        const url = URL.createObjectURL(blob);
+        const fileType = encryptedResult.data.fileType || 'application/octet-stream';
+
+        if (fileType.includes('text') || fileType.includes('json') || fileType.includes('pdf')) {
+            window.open(url, '_blank');
+            showSuccess('Record decrypted and opened');
+        } else {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = encryptedResult.data.filename?.replace('.enc', '') || 'decrypted_record';
+            a.click();
+            URL.revokeObjectURL(url);
+            showSuccess('Record decrypted and downloaded');
+        }
+
+        closeDecryptModal();
+
+    } catch (err) {
+        console.error('Decryption error:', err);
+        showError('Failed to decrypt record: ' + err.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+// ========== UTILITIES ==========
 function shortenDid(did) {
     if (!did || typeof did !== 'string') return '';
-    return did.length <= 20 ? did : did.substring(0, 12) + '...' + did.substring(did.length - 10);
+    return did.length <= 20 ? did : did.substring(0, 12) + '...' + did.substring(did.length - 8);
 }
 
 function escapeHtml(text) {
@@ -599,45 +810,46 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function base64ToBlob(base64, mimeType) {
-    const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function showLoading(message) {
+function showLoading(msg) {
     hideLoading();
     const overlay = document.createElement('div');
     overlay.className = 'loading-overlay';
     overlay.id = 'global-loading';
-    overlay.innerHTML = `<div class="spinner"></div><p>${escapeHtml(message)}</p>`;
+    overlay.innerHTML = `<div class="spinner"></div><p>${escapeHtml(msg)}</p>`;
     document.body.appendChild(overlay);
 }
 
 function hideLoading() {
-    const overlay = document.getElementById('global-loading');
-    if (overlay) overlay.remove();
+    const el = document.getElementById('global-loading');
+    if (el) el.remove();
 }
 
-function showError(message) {
-    showToast(message, 'error');
+function showError(msg) {
+    showToast(msg, 'error');
 }
 
-function showSuccess(message) {
-    showToast(message, 'success');
+function showSuccess(msg) {
+    showToast(msg, 'success');
 }
 
-function showToast(message, type) {
-    const existing = document.querySelectorAll('.toast');
-    if (existing.length > 3) existing[0]?.remove();
-
+function showToast(msg, type) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${escapeHtml(message)}</span>`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${escapeHtml(msg)}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }
+
+// Make functions global for HTML
+window.closePreviewModal = closePreviewModal;
+window.downloadDecryptedRecord = downloadDecryptedRecord;
+
+console.log('✅ Doctor dashboard initialized successfully');

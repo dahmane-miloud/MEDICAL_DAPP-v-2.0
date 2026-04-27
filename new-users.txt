@@ -1,6 +1,6 @@
 patient tt-----------------------
 did  : did:key:zwP49OaEO6dCGaLHoGUj9U6jiYPjjppGF4QecRVp6P8Y=
-privat_key :V30bkIEUu5ICmAKtQdXKQYoDlgn2horwZK8YHaCpPN/A/j05oQ7p0IZosegZSP1TqOJg+OOmkYXhB5xFWno/xg==
+privat_key : V30bkIEUu5ICmAKtQdXKQYoDlgn2horwZK8YHaCpPN/A/j05oQ7p0IZosegZSP1TqOJg+OOmkYXhB5xFWno/xg==
 
 doctors-------------------------------------
 did : did:key:zsX93nI/4NaUg8kKbst5v0ua9OkPJqz7Ybvu6GngmSGg=

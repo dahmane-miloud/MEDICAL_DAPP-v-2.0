@@ -142,6 +142,12 @@ contextBridge.exposeInMainWorld('CryptoUtils', {
     generateKey: () => ipcRenderer.invoke('crypto:generateKey'),
     encryptFile: (data) => ipcRenderer.invoke('crypto:encryptFile', data),
     decryptFile: (data) => ipcRenderer.invoke('crypto:decryptFile', data),
+    // Add these to your preload.js if not already present
+    getDoctorAccesses: () => ipcRenderer.invoke('contract:getDoctorAccesses'),
+    decryptAES: (data) => ipcRenderer.invoke('proxy:decryptAES', data),
+    navigateToPatientDashboard: () => ipcRenderer.send('nav:toPatientDashboard'),
+    grantAccess: (data) => ipcRenderer.invoke('contract:grantAccess', data),
+
 });
 
 console.log('✅ Preload script loaded successfully');

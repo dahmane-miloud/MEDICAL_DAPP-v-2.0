@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# tpre-server.py – Full TB-PRE Proxy Server using charm-crypto
+# tpre-server.py – Full TB-PRE Proxy Server with charm-crypto
 
 import os
 import json
@@ -22,7 +22,6 @@ try:
 except ImportError:
     CHARM_AVAILABLE = False
     print("⚠️ charm-crypto not available – falling back to simple storage")
-    # dummy classes to avoid crashes
     class PairingGroup: pass
     ZR = G1 = GT = None
     def pair(a,b): return None
@@ -33,17 +32,20 @@ CORS(app)
 # ------------------------------------------------------------
 # 2. Global storage
 # ------------------------------------------------------------
-ciphertext_store = {}      # ciphertext_id -> ciphertext (serialised)
-doctor_keys = {}           # doctor DID -> user object (with TB-PRE keys)
-rekey_store = {}           # rekey_id -> info
-transformed_store = {}     # transformed_id -> transformed ciphertext
-aes_key_mapping = {}       # ciphertext_id -> original AES key (base64)
+ciphertext_store = {}
+doctor_keys = {}
+rekey_store = {}
+transformed_store = {}
+aes_key_mapping = {}
+
+def get_current_date():
+    now = datetime.now()
+    return {'year': str(now.year), 'month': str(now.month), 'day': str(now.day)}
 
 # ------------------------------------------------------------
 # 3. TB-PRE class (only if charm is available)
 # ------------------------------------------------------------
 if CHARM_AVAILABLE:
-    # Helper functions for TB-PRE
     def gcd(*numbers):
         from math import gcd
         return reduce(gcd, numbers)
@@ -212,9 +214,7 @@ if CHARM_AVAILABLE:
                     return i
             return False
 
-    # --------------------------------------------------------
     # Global TB-PRE setup
-    # --------------------------------------------------------
     print("Initializing TB-PRE system...")
     group = PairingGroup('SS512')
     tbpre = TBPRE(group)
@@ -223,13 +223,7 @@ if CHARM_AVAILABLE:
                   "radiologist","oncologist","gynecologist","urologist"]
     MK, PK, s, H = tbpre.setup(ATTRIBUTES)
     print(f"✅ TB-PRE ready with {len(ATTRIBUTES)} attributes")
-    G_GT = group.random(GT)          # fixed generator for GT mapping
-
-    def aes_to_gt(aes_key_b64):
-        """Convert AES key to a GT element (hash → G1 → GT)"""
-        h = hashlib.sha256(aes_key_b64.encode()).digest()
-        g1 = group.hash(h, G1)
-        return pair(g1, G_GT)
+    G_GT = group.random(GT)
 
     def serialize(g):
         return group.serialize(g).hex()
@@ -238,22 +232,11 @@ if CHARM_AVAILABLE:
         return group.deserialize(bytes.fromhex(hex_str))
 
 else:
-    # dummy functions when charm is missing
-    def aes_to_gt(x): return x
     def serialize(x): return x
     def deserialize(x,t): return x
 
-
 # ------------------------------------------------------------
-# 4. Helper: current date for time-based re-encryption
-# ------------------------------------------------------------
-def get_current_date():
-    now = datetime.now()
-    return {'year': str(now.year), 'month': str(now.month), 'day': str(now.day)}
-
-
-# ------------------------------------------------------------
-# 5. API Endpoints
+# 4. API Endpoints
 # ------------------------------------------------------------
 @app.route('/health', methods=['GET','OPTIONS'])
 def health():
@@ -277,10 +260,13 @@ def register_doctor():
         if not doctor_did:
             return jsonify({'error':'Doctor DID required'}),400
 
+        # Ensure doctor has at least "doctor" attribute
+        if "doctor" not in attrs:
+            attrs.append("doctor")
+        
         # Store basic info
         doctor_keys[doctor_did] = {'id':doctor_did, 'attributes':attrs, 'registered_at':int(time.time())}
 
-        # If charm available, also create TB-PRE user and generate attribute keys
         if CHARM_AVAILABLE:
             sku, pubuser = tbpre.registerUser(PK, H)
             user = {
@@ -296,7 +282,7 @@ def register_doctor():
                     tbpre.keygen(MK, PK, H, s, user, pubuser, attr, current_date)
             doctor_keys[doctor_did]['crypto_user'] = user
 
-        print(f"✅ Doctor registered: {doctor_did}")
+        print(f"✅ Doctor registered: {doctor_did}, attributes: {attrs}")
         return jsonify({'success':True, 'message':'Doctor registered', 'attributes':attrs})
     except Exception as e:
         print(f"❌ Register error: {e}")
@@ -339,7 +325,7 @@ def encrypt_aes():
                 'created_at': int(time.time())
             }
 
-        print(f"✅ Ciphertext stored: {ciphertext_id}")
+        print(f"✅ Ciphertext stored: {ciphertext_id} with policy: {policy}")
         return jsonify({'success':True, 'ciphertext_id':ciphertext_id, 'ciphertext':ciphertext_store[ciphertext_id]})
     except Exception as e:
         print(f"❌ Encrypt error: {e}")
@@ -356,26 +342,20 @@ def generate_rekey():
         delegatee_did = data.get('delegatee_did')
         delegatee_attrs = data.get('delegatee_attrs', ['doctor'])
 
-        print(f"\n--- REKEY REQUEST RECEIVED ---")
-        print(f"Requested ct_id: {ct_id}")
-        print(f"Requested delegatee_did: {delegatee_did}")
-        print(f"Current ciphertexts in memory: {list(ciphertext_store.keys())}")
-        print(f"Current doctors in memory: {list(doctor_keys.keys())}")
+        print(f"\n--- REKEY REQUEST ---")
+        print(f"ct_id: {ct_id}")
+        print(f"delegatee_did: {delegatee_did}")
 
         if not ct_id:
-            print("❌ Error: Missing ct_id in request payload.")
-            return jsonify({'error': 'Missing ct_id parameter'}), 400
+            return jsonify({'error': 'Missing ct_id'}), 400
             
         if ct_id not in ciphertext_store:
-            print(f"❌ Error: Ciphertext {ct_id} is not in memory. The server might have restarted.")
             return jsonify({'error': f'Ciphertext {ct_id} not found'}), 404
             
         if not delegatee_did:
-            print("❌ Error: Missing delegatee_did in request payload.")
-            return jsonify({'error': 'Missing delegatee_did parameter'}), 400
+            return jsonify({'error': 'Missing delegatee_did'}), 400
             
         if delegatee_did not in doctor_keys:
-            print(f"❌ Error: Doctor {delegatee_did} is not registered in memory.")
             return jsonify({'error': 'Delegatee doctor not registered'}), 404
 
         rekey_id = f"rekey_{ct_id}_{int(time.time())}_{os.urandom(4).hex()}"
@@ -385,11 +365,10 @@ def generate_rekey():
             'delegatee_attrs': delegatee_attrs,
             'created_at': int(time.time())
         }
-        print(f"✅ Rekey generated successfully: {rekey_id}")
+        print(f"✅ Rekey generated: {rekey_id}")
         return jsonify({'success':True, 'rekey_id':rekey_id})
     except Exception as e:
         print(f"❌ generate_rekey error: {e}")
-        traceback.print_exc()
         return jsonify({'error':str(e)}),500
 
 @app.route('/proxy_reencrypt', methods=['POST','OPTIONS'])
@@ -423,7 +402,7 @@ def proxy_reencrypt():
                 'transformed_id': transformed_id,
                 'original_ct_id': ct_id,
                 'delegatee_did': info['delegatee_did'],
-                'A': CTt['A'],
+                'policy': CTt['A'],
                 'U0t': serialize(CTt['U0t']),
                 'Ut': {
                     'year': [serialize(u) for u in CTt['Ut']['year']],
@@ -470,7 +449,7 @@ def decrypt_aes():
         if CHARM_AVAILABLE:
             user = doctor_keys[doctor_did]['crypto_user']
             CTt = {
-                'A': trans['A'],
+                'A': trans['policy'],
                 'U0t': deserialize(trans['U0t'], G1),
                 'Ut': {
                     'year': [deserialize(u, G1) for u in trans['Ut']['year']],
@@ -481,9 +460,9 @@ def decrypt_aes():
                 'nA': trans['nA'],
                 't': trans['t']
             }
-            _dummy = tbpre.decrypt(CTt, user)   
-            if _dummy is None:
-                return jsonify({'error':'Decryption failed (attribute/time mismatch)'}),403
+            result = tbpre.decrypt(CTt, user)
+            if result is None:
+                return jsonify({'error':'Decryption failed - attribute mismatch'}),403
 
         original_id = trans.get('original_ct_id')
         aes_key = aes_key_mapping.get(original_id)
@@ -492,7 +471,7 @@ def decrypt_aes():
         if not aes_key:
             return jsonify({'error':'AES key not found'}),404
 
-        print(f"✅ Doctor {doctor_did} decrypted successfully")
+        print(f"✅ Decryption successful for: {doctor_did}")
         return jsonify({'success':True, 'aes_key_b64':aes_key})
     except Exception as e:
         print(f"❌ decrypt error: {e}")
@@ -506,7 +485,7 @@ def get_doctor_status():
         if request.method == 'GET':
             did = request.args.get('doctor_did')
         else:
-            did = request.json.get('doctor_did')
+            did = request.json.get('doctor_did') if request.json else None
         if not did:
             return jsonify({'error':'Doctor DID required'}),400
         reg = did in doctor_keys
@@ -529,17 +508,17 @@ if __name__ == '__main__':
     print("="*70)
     print("🚀 TB-PRE Proxy Server with charm-crypto")
     print("="*70)
-    print("📡 Health           → POST /health")
-    print("🔐 Encrypt AES      → POST /encrypt_aes")
-    print("🔄 Generate rekey   → POST /generate_rekey")
-    print("🔁 Proxy re-encrypt → POST /proxy_reencrypt")
-    print("🔓 Decrypt AES      → POST /decrypt_aes")
-    print("📝 Register doctor  → POST /register_doctor")
-    print("🧪 Test             → GET  /test")
+    print("📡 Health:           POST /health")
+    print("🔐 Encrypt AES:      POST /encrypt_aes")
+    print("🔄 Generate rekey:   POST /generate_rekey")
+    print("🔁 Proxy re-encrypt: POST /proxy_reencrypt")
+    print("🔓 Decrypt AES:      POST /decrypt_aes")
+    print("📝 Register doctor:  POST /register_doctor")
+    print("🧪 Test:             GET  /test")
     print("="*70)
     if CHARM_AVAILABLE:
-        print("✅ Running with FULL charm-crypto (TB-PRE active)")
+        print("✅ Running with FULL charm-crypto")
     else:
-        print("⚠️ Running in SIMPLE mode (install charm-crypto for real security)")
+        print("⚠️ Running in SIMPLE mode")
     print("="*70)
     app.run(host='0.0.0.0', port=5000, debug=True)

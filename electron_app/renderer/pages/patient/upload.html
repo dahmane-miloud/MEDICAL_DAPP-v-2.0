@@ -4,32 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Medical Record - MediChain</title>
-    <link rel="stylesheet" href="../../assets/css/global.css">
-    <link rel="stylesheet" href="../../assets/css/patient-upload.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>MediChain | Upload Medical Record</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/patient-upload.css">
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar (same as before) -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>MediChain</h2>
+                <div class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <h2>MediChain</h2>
+                </div>
                 <p>Patient Portal</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
-                <a href="upload.html" class="nav-item active"><i class="fas fa-upload"></i><span>Upload
-                        Records</span></a>
-                <a href="history.html" class="nav-item"><i class="fas fa-history"></i><span>Access History</span></a>
-                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+                <a href="upload.html" class="nav-item active">
+                    <i class="fas fa-upload"></i><span>Upload Records</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <i class="fas fa-user-circle"></i>
-                    <div>
+                    <div class="avatar"><i class="fas fa-user-circle"></i></div>
+                    <div class="user-details">
                         <p class="user-name" id="userName">Loading...</p>
                         <p class="user-did" id="userDid"></p>
                     </div>
@@ -37,86 +44,43 @@
             </div>
         </aside>
 
-        <!-- Main content -->
+        <!-- Main Content -->
         <main class="main-content">
             <header class="content-header">
-                <h1>Upload Medical Record</h1>
+                <h1><i class="fas fa-cloud-upload-alt"></i> Upload Medical Record</h1>
+                <p>Securely encrypt and store your medical records on IPFS</p>
             </header>
 
             <div class="upload-card">
-                <div class="upload-area" id="uploadArea">
-                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea;"></i>
-                    <h3>Drag & Drop or Click to Browse</h3>
-                    <button class="btn-primary" id="browseBtn">Browse Files</button>
-                    <input type="file" id="fileInput" multiple style="display:none">
-                    <p class="upload-hint">No size limit – IPFS handles large files efficiently</p>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar"></i> Record Date</label>
+                    <input type="date" id="recordDate" class="form-control">
                 </div>
 
-                <div id="fileList" style="display:none">
-                    <h3>Selected Files</h3>
-                    <div id="selectedFiles"></div>
-                </div>
-
-                <div id="recordInfoSection" style="display:none">
-                    <h3>Record Information</h3>
-                    <div class="form-group">
-                        <label for="recordType">Record Type</label>
-                        <select id="recordType">
-                            <option value="lab">Laboratory Results</option>
-                            <option value="imaging">Imaging / X-Ray</option>
-                            <option value="prescription">Prescription</option>
-                            <option value="consultation">Consultation Note</option>
-                        </select>
+                <div class="form-group">
+                    <label><i class="fas fa-file"></i> Select File</label>
+                    <div class="file-zone" id="fileZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click or drag and drop to upload</p>
+                        <small>Supported: PDF, JPG, PNG, TXT, JSON (Max 10MB)</small>
+                        <input type="file" id="fileInput" style="display: none;">
                     </div>
-                    <div class="form-group">
-                        <label for="recordDate">Record Date</label>
-                        <input type="date" id="recordDate">
+                    <div id="fileInfo" class="file-info" style="display: none;">
+                        <i class="fas fa-file"></i>
+                        <span id="fileName"></span>
+                        <small id="fileSize"></small>
                     </div>
                 </div>
 
-                <div id="uploadProgress" style="display:none">
-                    <div class="progress-bar">
-                        <div id="progressFill" style="width:0%"></div>
-                    </div>
-                    <p id="progressStatus"></p>
-                </div>
-
-                <div class="upload-actions">
-                    <button class="btn-primary" id="uploadBtn" disabled>Upload & Encrypt</button>
-                    <button class="btn-secondary" id="cancelBtn" style="display:none">Cancel</button>
-                </div>
+                <button class="btn-primary" id="uploadBtn" disabled>
+                    <i class="fas fa-lock"></i> Encrypt & Upload to IPFS
+                </button>
             </div>
         </main>
     </div>
 
-    <div id="successModal" class="modal" style="display:none">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-check-circle"></i> Upload Successful</h2>
-                <button class="close-btn" onclick="closeSuccessModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Encrypted CID:</strong> <code id="uploadedCid"></code></p>
-                <p><strong>AES-256 Key (Base64):</strong> <code id="uploadedKey"></code></p>
-                <p>Save this key – you will need it to share the record with a doctor.</p>
-                <div class="success-actions">
-                    <button class="btn-primary" onclick="copyCID()">Copy CID</button>
-                    <button class="btn-primary" onclick="copyKey()">Copy Key</button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="uploadAnother()">Upload Another</button>
-                <button class="btn-primary" onclick="goToDashboard()">Go to Dashboard</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Load IPFS client library from node_modules -->
-
-    <script src="../../assets/js/utils/crypto-utils.js"></script>
+    <script src="../../assets/js/utils/MediChainCrypto.js"></script>
     <script src="../../assets/js/utils/patient-upload.js"></script>
-
-
 </body>
 
 </html>
