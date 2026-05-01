@@ -1,0 +1,15 @@
+aa know i want to give a secript to handl all flax of my dapp so the secript do the next :
+
+1- create a 3 users ( patient (a) , doctor (a) , health-department (a))
+2- active a doctor (a) (create a witness to make a patient share with hem a record )
+3- in patient (a) test the doctor (a) if active ( if have a witness )
+4- share a record from patient (a) to doctor (a)
+5- test the shared record in doctor (a) 
+6- revoke the shared record from patient (a) 
+7- test again in doctor (a) if is not abale to see the record 
+8- make a test for all flax of my dapp 
+
+so give a scripte to execute all the steps of my dapp and i want to calcule the time for etch step and save this data as txt file 
+
+
+

@@ -1,0 +1,54 @@
+// Run this in browser console to test all flows
+(async function quickTest() {
+console.log('🧪 Starting Quick DApp Test...\n');
+
+const results = [];
+let startTime = Date.now();
+
+// Test 1: Check session
+try {
+const session = await window.electronAPI.getSession();
+results.push({ test: 'Session Check', passed: !!session, duration: Date.now() - startTime });
+} catch(e) {
+results.push({ test: 'Session Check', passed: false, error: e.message });
+}
+
+startTime = Date.now();
+// Test 2: Check IPFS
+try {
+const ipfs = await window.electronAPI.checkIPFS();
+results.push({ test: 'IPFS Connection', passed: ipfs.success, message: ipfs.message, duration: Date.now() - startTime
+});
+} catch(e) {
+results.push({ test: 'IPFS Connection', passed: false, error: e.message });
+}
+
+startTime = Date.now();
+// Test 3: Check Proxy
+try {
+const proxy = await fetch('http://127.0.0.1:5000/health');
+results.push({ test: 'Proxy Server', passed: proxy.ok, status: proxy.status, duration: Date.now() - startTime });
+} catch(e) {
+results.push({ test: 'Proxy Server', passed: false, error: e.message });
+}
+
+startTime = Date.now();
+// Test 4: Check Blockchain
+try {
+const isActive = await window.electronAPI.isDoctorActive('test');
+results.push({ test: 'Blockchain Connection', passed: true, duration: Date.now() - startTime });
+} catch(e) {
+results.push({ test: 'Blockchain Connection', passed: false, error: e.message });
+}
+
+console.table(results);
+const passed = results.filter(r => r.passed).length;
+const total = results.length;
+console.log(`\n📊 Summary: ${passed}/${total} tests passed`);
+
+if (passed === total) {
+console.log('✅ All systems operational!');
+} else {
+console.log('⚠️ Some tests failed. Check the errors above.');
+}
+})();

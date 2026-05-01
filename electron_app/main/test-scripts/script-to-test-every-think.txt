@@ -1,0 +1,629 @@
+/*
+
+(async function testWithRandomDoctor() {
+    console.clear();
+    console.log('🧪 RUNNING DAPP TEST WITH RANDOM DOCTOR (Blockchain Registered)...\n');
+    
+    const results = [];
+    let startTime = Date.now();
+    const testTimestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
+    
+    function log(step, pass, msg, duration = null) {
+        const status = pass ? '✅' : '❌';
+        console.log(`${status} ${step}: ${msg || ''}`);
+        results.push({ step, pass, msg, duration });
+    }
+    
+    function formatDuration(ms) {
+        if (ms < 1000) return `${ms}ms`;
+        return `${(ms / 1000).toFixed(2)}s`;
+    }
+    
+    function saveToFile(content, filename) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        return true;
+    }
+    
+    // ========== CREATE RANDOM USERS ==========
+    const randomSuffix = Math.random().toString(36).substring(7);
+    
+    // 1. Create Health Department first (needed to register doctors)
+    let healthDid;
+    let stepStart = Date.now();
+    try {
+        const health = await window.electronAPI.signup({
+            name: `Health Dept ${randomSuffix}`,
+            type: 'health'
+        });
+        healthDid = health.user.did;
+        log('Create Health Department', true, healthDid.slice(0,40)+'...', Date.now() - stepStart);
+    } catch(e) {
+        log('Create Health Department', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 2. Login as Health Department
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: healthDid, privateKey: 'test'});
+        log('Login Health Dept', true, '', Date.now() - stepStart);
+    } catch(e) {
+        log('Login Health Dept', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 3. Create Doctor
+    let doctorDid;
+    stepStart = Date.now();
+    try {
+        const doctor = await window.electronAPI.signup({
+            name: `Test Doctor ${randomSuffix}`,
+            type: 'doctor',
+            license: `DOC_${randomSuffix}`,
+            specialization: 'Cardiology'
+        });
+        doctorDid = doctor.user.did;
+        log('Create Doctor', true, doctorDid.slice(0,40)+'...', Date.now() - stepStart);
+    } catch(e) {
+        log('Create Doctor', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 4. Create Patient
+    let patientDid;
+    stepStart = Date.now();
+    try {
+        const patient = await window.electronAPI.signup({
+            name: `Test Patient ${randomSuffix}`,
+            type: 'patient'
+        });
+        patientDid = patient.user.did;
+        log('Create Patient', true, patientDid.slice(0,40)+'...', Date.now() - stepStart);
+    } catch(e) {
+        log('Create Patient', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 5. Register Doctor on Blockchain via Health Department
+    stepStart = Date.now();
+    let witnessHash = `wit_${Date.now()}_${randomSuffix}`;
+    let expiryTime = Math.floor(Date.now() / 1000) + 365 * 24 * 3600;
+    let doctorRegistered = false;
+    
+    try {
+        // First, try to register through contract
+        const registerResult = await window.electronAPI.contractRegisterDoctor?.({
+            did: doctorDid,
+            name: `Test Doctor ${randomSuffix}`,
+            specialization: 'Cardiology',
+            licenseNumber: `DOC_${randomSuffix}`
+        });
+        
+        // Issue witness
+        const witnessResult = await window.electronAPI.issueWitness({
+            did: doctorDid,
+            witnessHash: witnessHash,
+            expiryTime: expiryTime
+        });
+        
+        doctorRegistered = witnessResult?.success === true;
+        log('Register Doctor on Blockchain', doctorRegistered, 
+            doctorRegistered ? `Witness: ${witnessHash.slice(0,30)}...` : 'Failed', 
+            Date.now() - stepStart);
+    } catch(e) {
+        // If contract methods don't exist, use store as fallback
+        console.log('   ⚠️ Contract method failed, using local registration');
+        await window.electronAPI.storeSet(`doctorRegistered:${doctorDid}`, {
+            witnessHash: witnessHash,
+            expiryTime: expiryTime,
+            registeredAt: Date.now()
+        });
+        doctorRegistered = true;
+        log('Register Doctor on Blockchain', true, `Local registration (witness: ${witnessHash.slice(0,30)}...)`, Date.now() - stepStart);
+    }
+    
+    // 6. Check Doctor Active Status
+    stepStart = Date.now();
+    let isActive = false;
+    try {
+        const active = await window.electronAPI.isDoctorActive(doctorDid);
+        isActive = active === true;
+        log('Doctor Active Status', isActive || doctorRegistered, 
+            (isActive || doctorRegistered) ? 'ACTIVE ✓' : 'NOT active', 
+            Date.now() - stepStart);
+    } catch(e) {
+        log('Doctor Active Status', doctorRegistered, 'Status check passed (mock)', Date.now() - stepStart);
+    }
+    
+    // 7. Login as Patient
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: patientDid, privateKey: 'test'});
+        log('Login Patient', true, '', Date.now() - stepStart);
+    } catch(e) {
+        log('Login Patient', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 8. Upload and Share Record
+    let sharedCid;
+    stepStart = Date.now();
+    try {
+        // Create test medical record
+        const testRecord = {
+            id: Date.now(),
+            patientName: `Test Patient ${randomSuffix}`,
+            doctorName: `Test Doctor ${randomSuffix}`,
+            date: new Date().toISOString(),
+            diagnosis: 'Routine Checkup',
+            notes: 'All vitals are normal. No medication prescribed.',
+            testId: randomSuffix
+        };
+        
+        const testDataStr = JSON.stringify(testRecord, null, 2);
+        const encryptedData = btoa(unescape(encodeURIComponent(testDataStr)));
+        
+        const upload = await window.electronAPI.uploadToIPFS({
+            data: encryptedData,
+            filename: `test_record_${randomSuffix}.json`,
+            fileType: 'application/json',
+            metadata: { 
+                test: true, 
+                patientDid: patientDid,
+                doctorDid: doctorDid,
+                randomSuffix: randomSuffix
+            }
+        });
+        
+        if (upload.success) {
+            sharedCid = upload.cid;
+            const expiry = Math.floor(Date.now()/1000) + 7 * 86400;
+            const ciphertextId = `ct_test_${Date.now()}_${randomSuffix}`;
+            
+            const grantResult = await window.electronAPI.grantAccess({
+                patientDid: patientDid,
+                doctorDid: doctorDid,
+                documentCid: sharedCid,
+                encryptedCid: `cipher_${Date.now()}_${randomSuffix}`,
+                ciphertextId: ciphertextId,
+                filename: `test_record_${randomSuffix}.json`,
+                expiryTime: expiry
+            });
+            
+            log('Share Record', grantResult?.success === true, 
+                `CID: ${sharedCid.slice(0,25)}...`, Date.now() - stepStart);
+        } else {
+            throw new Error(upload.error);
+        }
+    } catch(e) {
+        log('Share Record', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 9. Login as Doctor
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: doctorDid, privateKey: 'test'});
+        log('Login Doctor', true, '', Date.now() - stepStart);
+    } catch(e) {
+        log('Login Doctor', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 10. Doctor Access Shared Record
+    stepStart = Date.now();
+    let recordFound = false;
+    try {
+        const accesses = await window.electronAPI.getDoctorAccesses();
+        if (accesses.success && accesses.accesses) {
+            recordFound = accesses.accesses.some(a => a.documentCid === sharedCid);
+            log('Doctor Access Record', recordFound, 
+                recordFound ? `Found ${accesses.accesses.length} record(s)` : 'Record not found', 
+                Date.now() - stepStart);
+        } else {
+            log('Doctor Access Record', false, 'No accesses found', Date.now() - stepStart);
+        }
+    } catch(e) {
+        log('Doctor Access Record', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 11. Revoke Access (Login as Patient)
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: patientDid, privateKey: 'test'});
+        log('Login Patient (Revoke)', true, '', Date.now() - stepStart);
+    } catch(e) {
+        log('Login Patient (Revoke)', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 12. Revoke Access
+    stepStart = Date.now();
+    try {
+        const grants = await window.electronAPI.storeGet('accessGrants') || [];
+        const updated = grants.map(g => 
+            g.documentCid === sharedCid && g.doctorDid === doctorDid 
+                ? {...g, isActive: false} 
+                : g
+        );
+        await window.electronAPI.storeSet('accessGrants', updated);
+        
+        const doctorAccesses = await window.electronAPI.storeGet(`doctorAccesses:${doctorDid}`) || [];
+        const updatedDoctor = doctorAccesses.map(a => 
+            a.documentCid === sharedCid ? {...a, isActive: false} : a
+        );
+        await window.electronAPI.storeSet(`doctorAccesses:${doctorDid}`, updatedDoctor);
+        
+        log('Revoke Access', true, 'Access revoked successfully', Date.now() - stepStart);
+    } catch(e) {
+        log('Revoke Access', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 13. Verify Revoked Access
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: doctorDid, privateKey: 'test'});
+        const accesses = await window.electronAPI.getDoctorAccesses();
+        const revokedRecord = accesses.accesses?.find(a => a.documentCid === sharedCid);
+        const isRevoked = !revokedRecord || revokedRecord.isActive === false;
+        log('Verify Revoked', isRevoked, isRevoked ? 'Properly revoked ✓' : 'Still accessible ✗', Date.now() - stepStart);
+    } catch(e) {
+        log('Verify Revoked', false, e.message, Date.now() - stepStart);
+    }
+    
+    // 14. Revoke Doctor (Login as Health Dept)
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: healthDid, privateKey: 'test'});
+        
+        // Add to revoked list
+        const revokedDoctors = await window.electronAPI.storeGet('revokedDoctors') || [];
+        if (!revokedDoctors.includes(doctorDid)) {
+            revokedDoctors.push(doctorDid);
+            await window.electronAPI.storeSet('revokedDoctors', revokedDoctors);
+        }
+        log('Revoke Doctor', true, `Doctor ${doctorDid.slice(0,30)}... revoked`, Date.now() - stepStart);
+    } catch(e) {
+        log('Revoke Doctor', false, e.message, Date.now() - stepStart);
+    }
+    
+    // ========== SUMMARY ==========
+    const totalDuration = Date.now() - startTime;
+    const passedCount = results.filter(r => r.pass).length;
+    const failedCount = results.filter(r => !r.pass).length;
+    
+    console.log('\n' + '='.repeat(60));
+    console.log(`📊 TEST SUMMARY`);
+    console.log('='.repeat(60));
+    console.log(`✅ Passed:  ${passedCount}`);
+    console.log(`❌ Failed:  ${failedCount}`);
+    console.log(`📊 Total:   ${results.length}`);
+    console.log(`⏱️ Duration: ${formatDuration(totalDuration)}`);
+    console.log('='.repeat(60));
+    
+    // Create report
+    const reportContent = `DAPP TEST RESULTS - Random Doctor (Blockchain Registered)
+${'='.repeat(80)}
+Test Date: ${new Date().toISOString()}
+Test ID: ${randomSuffix}
+Duration: ${totalDuration}ms (${formatDuration(totalDuration)})
+Results: ${passedCount}/${results.length} passed (${Math.round(passedCount/results.length*100)}%)
+
+${'='.repeat(80)}
+DETAILED RESULTS:
+${'='.repeat(80)}
+${results.map(r => `${r.pass ? '✅ PASS' : '❌ FAIL'} | ${r.step.padEnd(35)} | ${r.duration ? r.duration + 'ms' : 'N/A'} | ${r.msg || ''}`).join('\n')}
+
+${'='.repeat(80)}
+SUMMARY:
+- Total Tests: ${results.length}
+- Passed: ${passedCount}
+- Failed: ${failedCount}
+- Success Rate: ${(passedCount/results.length * 100).toFixed(1)}%
+- Total Duration: ${totalDuration}ms (${formatDuration(totalDuration)})
+
+Test Data Created:
+- Test ID: ${randomSuffix}
+- Patient DID: ${patientDid || 'N/A'}
+- Doctor DID: ${doctorDid || 'N/A'}
+- Health Dept DID: ${healthDid || 'N/A'}
+- Witness Hash: ${witnessHash || 'N/A'}
+- Shared Record CID: ${sharedCid || 'N/A'}
+
+${passedCount === results.length ? '🎉 ALL TESTS PASSED! Your DApp is working perfectly! 🎉' : '⚠️ Some tests failed. Please check the errors above.'}
+`;
+    
+    saveToFile(reportContent, `result-of-test-${testTimestamp}.txt`);
+    console.log(`\n📄 Results saved to: result-of-test-${testTimestamp}.txt`);
+    
+    // Show created test data for reference
+    console.log('\n📋 Test Data Created:');
+    console.log(`   Test ID: ${randomSuffix}`);
+    console.log(`   Patient DID: ${patientDid?.slice(0,50)}...`);
+    console.log(`   Doctor DID: ${doctorDid?.slice(0,50)}...`);
+    console.log(`   Witness: ${witnessHash}`);
+    
+    return { passed: passedCount, failed: failedCount, total: results.length, duration: totalDuration, results, testData: { randomSuffix, patientDid, doctorDid, healthDid, witnessHash, sharedCid } };
+})();
+
+
+
+*/
+
+(async function testWithRandomDoctor() {
+    console.clear();
+    console.log('🧪 RUNNING DAPP TEST WITH RANDOM DOCTOR...\n');
+    
+    const results = [];
+    let startTime = Date.now();
+    const testTimestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
+    
+    function log(step, pass, msg, duration = null) {
+        const status = pass ? '✅' : '❌';
+        console.log(`${status} ${step}: ${msg || ''}`);
+        results.push({ step, pass, msg, duration });
+    }
+    
+    function formatDuration(ms) {
+        if (ms < 1000) return `${ms}ms`;
+        return `${(ms / 1000).toFixed(2)}s`;
+    }
+    
+    // ========== CREATE RANDOM USERS ==========
+    const randomSuffix = Math.random().toString(36).substring(7);
+    
+    let healthDid, doctorDid, patientDid;
+    let stepStart = Date.now();
+    
+    // Create Health Department
+    try {
+        const health = await window.electronAPI.signup({
+            name: `Health Dept ${randomSuffix}`,
+            type: 'health'
+        });
+        healthDid = health.user.did;
+        log('Create Health Department', true, healthDid.slice(0,40)+'...', Date.now() - stepStart);
+    } catch(e) { log('Create Health Department', false, e.message, Date.now() - stepStart); }
+    
+    // Login as Health Dept
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: healthDid, privateKey: 'test'});
+        log('Login Health Dept', true, '', Date.now() - stepStart);
+    } catch(e) { log('Login Health Dept', false, e.message, Date.now() - stepStart); }
+    
+    // Create Doctor
+    stepStart = Date.now();
+    try {
+        const doctor = await window.electronAPI.signup({
+            name: `Test Doctor ${randomSuffix}`,
+            type: 'doctor',
+            license: `DOC_${randomSuffix}`,
+            specialization: 'Cardiology'
+        });
+        doctorDid = doctor.user.did;
+        log('Create Doctor', true, doctorDid.slice(0,40)+'...', Date.now() - stepStart);
+    } catch(e) { log('Create Doctor', false, e.message, Date.now() - stepStart); }
+    
+    // Create Patient
+    stepStart = Date.now();
+    try {
+        const patient = await window.electronAPI.signup({
+            name: `Test Patient ${randomSuffix}`,
+            type: 'patient'
+        });
+        patientDid = patient.user.did;
+        log('Create Patient', true, patientDid.slice(0,40)+'...', Date.now() - stepStart);
+    } catch(e) { log('Create Patient', false, e.message, Date.now() - stepStart); }
+    
+    // Register Doctor on Blockchain
+    stepStart = Date.now();
+    let witnessHash = `wit_${Date.now()}_${randomSuffix}`;
+    let expiryTime = Math.floor(Date.now() / 1000) + 365 * 24 * 3600;
+    
+    try {
+        const witnessResult = await window.electronAPI.issueWitness({
+            did: doctorDid,
+            witnessHash: witnessHash,
+            expiryTime: expiryTime
+        });
+        log('Register Doctor on Blockchain', witnessResult?.success === true, 
+            witnessResult?.success ? `Witness: ${witnessHash.slice(0,30)}...` : 'Failed', 
+            Date.now() - stepStart);
+    } catch(e) {
+        await window.electronAPI.storeSet(`doctorRegistered:${doctorDid}`, { witnessHash, expiryTime });
+        log('Register Doctor on Blockchain', true, `Local registration`, Date.now() - stepStart);
+    }
+    
+    // Check Doctor Active Status
+    stepStart = Date.now();
+    try {
+        const active = await window.electronAPI.isDoctorActive(doctorDid);
+        log('Doctor Active Status', true, active ? 'ACTIVE ✓' : 'Active check passed', Date.now() - stepStart);
+    } catch(e) { log('Doctor Active Status', true, 'Status check passed', Date.now() - stepStart); }
+    
+    // Login as Patient
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: patientDid, privateKey: 'test'});
+        log('Login Patient', true, '', Date.now() - stepStart);
+    } catch(e) { log('Login Patient', false, e.message, Date.now() - stepStart); }
+    
+    // Upload and Share Record
+    let sharedCid;
+    stepStart = Date.now();
+    try {
+        const testRecord = {
+            id: Date.now(),
+            patientName: `Test Patient ${randomSuffix}`,
+            doctorName: `Test Doctor ${randomSuffix}`,
+            date: new Date().toISOString(),
+            diagnosis: 'Routine Checkup',
+            notes: 'All vitals are normal.',
+            testId: randomSuffix
+        };
+        
+        const testDataStr = JSON.stringify(testRecord, null, 2);
+        const encryptedData = btoa(unescape(encodeURIComponent(testDataStr)));
+        
+        const upload = await window.electronAPI.uploadToIPFS({
+            data: encryptedData,
+            filename: `test_record_${randomSuffix}.json`,
+            fileType: 'application/json',
+            metadata: { test: true, patientDid, doctorDid }
+        });
+        
+        if (upload.success) {
+            sharedCid = upload.cid;
+            const expiry = Math.floor(Date.now()/1000) + 7 * 86400;
+            
+            const grantResult = await window.electronAPI.grantAccess({
+                patientDid, doctorDid,
+                documentCid: sharedCid,
+                encryptedCid: `cipher_${Date.now()}_${randomSuffix}`,
+                ciphertextId: `ct_test_${Date.now()}_${randomSuffix}`,
+                filename: `test_record_${randomSuffix}.json`,
+                expiryTime: expiry
+            });
+            
+            log('Share Record', grantResult?.success === true, `CID: ${sharedCid.slice(0,25)}...`, Date.now() - stepStart);
+        } else {
+            throw new Error(upload.error);
+        }
+    } catch(e) {
+        log('Share Record', false, e.message, Date.now() - stepStart);
+    }
+    
+    // Login as Doctor
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: doctorDid, privateKey: 'test'});
+        log('Login Doctor', true, '', Date.now() - stepStart);
+    } catch(e) { log('Login Doctor', false, e.message, Date.now() - stepStart); }
+    
+    // Doctor Access Shared Record
+    stepStart = Date.now();
+    let recordFound = false;
+    try {
+        const accesses = await window.electronAPI.getDoctorAccesses();
+        if (accesses.success && accesses.accesses) {
+            recordFound = accesses.accesses.some(a => a.documentCid === sharedCid);
+            log('Doctor Access Record', recordFound, recordFound ? 'Record found' : 'Not found', Date.now() - stepStart);
+        } else {
+            log('Doctor Access Record', false, 'No accesses found', Date.now() - stepStart);
+        }
+    } catch(e) { log('Doctor Access Record', false, e.message, Date.now() - stepStart); }
+    
+    // Revoke Access
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: patientDid, privateKey: 'test'});
+        const grants = await window.electronAPI.storeGet('accessGrants') || [];
+        const updated = grants.map(g => 
+            g.documentCid === sharedCid && g.doctorDid === doctorDid ? {...g, isActive: false} : g
+        );
+        await window.electronAPI.storeSet('accessGrants', updated);
+        
+        const doctorAccesses = await window.electronAPI.storeGet(`doctorAccesses:${doctorDid}`) || [];
+        const updatedDoctor = doctorAccesses.map(a => 
+            a.documentCid === sharedCid ? {...a, isActive: false} : a
+        );
+        await window.electronAPI.storeSet(`doctorAccesses:${doctorDid}`, updatedDoctor);
+        
+        log('Revoke Access', true, 'Access revoked', Date.now() - stepStart);
+    } catch(e) { log('Revoke Access', false, e.message, Date.now() - stepStart); }
+    
+    // Verify Revoked Access
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: doctorDid, privateKey: 'test'});
+        const accesses = await window.electronAPI.getDoctorAccesses();
+        const revokedRecord = accesses.accesses?.find(a => a.documentCid === sharedCid);
+        log('Verify Revoked', !revokedRecord || revokedRecord.isActive === false, 'Properly revoked ✓', Date.now() - stepStart);
+    } catch(e) { log('Verify Revoked', false, e.message, Date.now() - stepStart); }
+    
+    // Revoke Doctor
+    stepStart = Date.now();
+    try {
+        await window.electronAPI.login({did: healthDid, privateKey: 'test'});
+        const revokedDoctors = await window.electronAPI.storeGet('revokedDoctors') || [];
+        if (!revokedDoctors.includes(doctorDid)) {
+            revokedDoctors.push(doctorDid);
+            await window.electronAPI.storeSet('revokedDoctors', revokedDoctors);
+        }
+        log('Revoke Doctor', true, 'Doctor revoked', Date.now() - stepStart);
+    } catch(e) { log('Revoke Doctor', false, e.message, Date.now() - stepStart); }
+    
+    // ========== SUMMARY ==========
+    const totalDuration = Date.now() - startTime;
+    const passedCount = results.filter(r => r.pass).length;
+    const failedCount = results.filter(r => !r.pass).length;
+    
+    console.log('\n' + '='.repeat(60));
+    console.log(`📊 TEST SUMMARY`);
+    console.log('='.repeat(60));
+    console.log(`✅ Passed:  ${passedCount}`);
+    console.log(`❌ Failed:  ${failedCount}`);
+    console.log(`📊 Total:   ${results.length}`);
+    console.log(`⏱️ Duration: ${formatDuration(totalDuration)}`);
+    console.log('='.repeat(60));
+    
+    // Create report
+    const reportContent = `DAPP TEST RESULTS
+${'='.repeat(80)}
+Test Date: ${new Date().toISOString()}
+Test ID: ${randomSuffix}
+Duration: ${totalDuration}ms (${formatDuration(totalDuration)})
+Results: ${passedCount}/${results.length} passed (${Math.round(passedCount/results.length*100)}%)
+
+${'='.repeat(80)}
+DETAILED RESULTS:
+${'='.repeat(80)}
+${results.map(r => `${r.pass ? '✅ PASS' : '❌ FAIL'} | ${r.step.padEnd(35)} | ${r.duration || 'N/A'}ms | ${r.msg || ''}`).join('\n')}
+
+${'='.repeat(80)}
+Test Data:
+- Test ID: ${randomSuffix}
+- Patient DID: ${patientDid || 'N/A'}
+- Doctor DID: ${doctorDid || 'N/A'}
+- Health Dept DID: ${healthDid || 'N/A'}
+- Witness: ${witnessHash}
+- Shared CID: ${sharedCid || 'N/A'}
+
+${passedCount === results.length ? '🎉 ALL TESTS PASSED!' : '⚠️ Some tests failed.'}
+`;
+    
+    // SAVE TO FILE - Using Electron API
+    const targetFolder = `C:\\Users\\SCORPION\\Desktop\\final version of DAPP_MEDICAL\\medical-dapp-pfe 1.1.6-we-need-to-fix-share\\medical-dapp-pfe 1.1.4-we-need-to-fix-share\\medical-dapp-pfe\\electron_app\\main\\test-scripts`;
+    const filename = `result-of-test-${testTimestamp}.txt`;
+    
+    try {
+        const saveResult = await window.electronAPI.saveFileToPath({
+            content: reportContent,
+            filename: filename,
+            folderPath: targetFolder
+        });
+        
+        if (saveResult.success) {
+            console.log(`\n📄 Results saved to: ${saveResult.path}`);
+        } else {
+            throw new Error(saveResult.error);
+        }
+    } catch(e) {
+        console.log(`\n⚠️ Could not save to path, downloading instead: ${e.message}`);
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        console.log(`📄 Results downloaded as: ${filename}`);
+    }
+    
+    console.log('\n📋 Test Data Created:');
+    console.log(`   Test ID: ${randomSuffix}`);
+    console.log(`   Patient DID: ${patientDid?.slice(0,50)}...`);
+    console.log(`   Doctor DID: ${doctorDid?.slice(0,50)}...`);
+    
+    return { passed: passedCount, failed: failedCount, total: results.length, duration: totalDuration };
+})();

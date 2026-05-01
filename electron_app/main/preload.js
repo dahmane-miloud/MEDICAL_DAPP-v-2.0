@@ -151,6 +151,8 @@ contextBridge.exposeInMainWorld('CryptoUtils', {
     getHealthStats: () => ipcRenderer.invoke('stats:getHealthStats'),
     getDoctorStats: () => ipcRenderer.invoke('stats:getDoctorStats'),
     getPatientStats: () => ipcRenderer.invoke('stats:getPatientStats'),
+    // Add this to preload.js
+    saveFileToPath: (data) => ipcRenderer.invoke('file:saveToPath', data),
 
 });
 

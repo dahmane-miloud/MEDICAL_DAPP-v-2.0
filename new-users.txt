@@ -8,7 +8,8 @@ privat_key : VNfWgnR7ILutW18T9xXhQ2UcfEiS5r76bJaIQCjX57cnCrJlt4/mvq6Kf3+rW7V1oZ0
 
 
 ---------------------------------------------------
-doctors-------------------------------------
+doctors-------------------------------------    
+dr.kamal 
 did : did:key:zsX93nI/4NaUg8kKbst5v0ua9OkPJqz7Ybvu6GngmSGg=
 privat_key : ZrpGP3wQ7Xhqi/awVL7dfysQ7sgOQGR3oghRnYtvfi2xf3ecj/g1pSDyQpuy3m/S5r06Q8mrPthu+7oaeCZIaA==
 -------------------------------------------------------

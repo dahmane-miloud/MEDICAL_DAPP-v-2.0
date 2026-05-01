@@ -1,0 +1,6 @@
+Medical Test Record
+Date: 2026-05-01T09:05:28.914Z
+Patient: Test Patient A
+Diagnosis: Routine checkup
+Notes: All vitals normal
+Medications: None

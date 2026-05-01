@@ -980,6 +980,25 @@ ipcMain.handle('contract:registerDoctor', async (event, data) => {
     return { success: true };
 });
 
+// ----------------------------------
+// Add this to your index.js if missing
+ipcMain.handle('contract:registerDoctor', async (event, { did, name, specialization, licenseNumber }) => {
+    try {
+        const signer = await getHealthSigner();
+        const contractWithSigner = witnessContract.connect(signer);
+
+        // Call the registerDoctor function on your smart contract
+        const tx = await contractWithSigner.registerDoctor(did, name, specialization, licenseNumber);
+        await tx.wait();
+
+        console.log(`✅ Doctor registered on blockchain: ${did}`);
+        return { success: true, txHash: tx.hash };
+    } catch (error) {
+        console.error('❌ Register doctor error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 // ==================== Store Handlers ====================
 ipcMain.handle('store:get', (event, key) => store.get(key));
 ipcMain.handle('store:set', (event, key, value) => {
@@ -1124,3 +1143,29 @@ ipcMain.handle('notification:get', async () => {
 });
 
 console.log('✅ Electron main process initialized successfully');
+
+//------- this using just for a test dapp completely work flaux 
+// Add this handler for saving files to specific path
+ipcMain.handle('file:saveToPath', async (event, { content, filename, folderPath }) => {
+    const fs = require('fs');
+    const path = require('path');
+
+    try {
+        // Use the specific folder path
+        const targetFolder = folderPath || path.join(__dirname, 'main', 'test-scripts');
+
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(targetFolder)) {
+            fs.mkdirSync(targetFolder, { recursive: true });
+        }
+
+        const fullPath = path.join(targetFolder, filename);
+        fs.writeFileSync(fullPath, content, 'utf8');
+
+        console.log(`✅ File saved to: ${fullPath}`);
+        return { success: true, path: fullPath };
+    } catch (error) {
+        console.error('Save error:', error);
+        return { success: false, error: error.message };
+    }
+});

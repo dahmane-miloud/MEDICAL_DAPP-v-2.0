@@ -1,0 +1,8 @@
+DAPP Test Results - 2026-05-01T09:05:28.913Z
+================================================================================
+
+[2026-05-01T09:05:28.925Z] ✅ PASSED - Create Patient User (0ms) - DID: did:key:test_patient_1777626328924
+[2026-05-01T09:05:28.927Z] ✅ PASSED - Create Doctor User (0ms) - DID: did:key:test_doctor_1777626328927
+[2026-05-01T09:05:28.929Z] ✅ PASSED - Create Health Department User (0ms) - DID: did:key:test_health_1777626328929
+[2026-05-01T09:05:30.936Z] ❌ FAILED - Activate Doctor (0ms) - BrowserWindow is not a constructor
+[2026-05-01T09:05:32.953Z] ❌ FAILED - Check Doctor Active Status (0ms) - BrowserWindow is not a constructor
