@@ -147,6 +147,10 @@ contextBridge.exposeInMainWorld('CryptoUtils', {
     decryptAES: (data) => ipcRenderer.invoke('proxy:decryptAES', data),
     navigateToPatientDashboard: () => ipcRenderer.send('nav:toPatientDashboard'),
     grantAccess: (data) => ipcRenderer.invoke('contract:grantAccess', data),
+    // In preload.js, add:
+    getHealthStats: () => ipcRenderer.invoke('stats:getHealthStats'),
+    getDoctorStats: () => ipcRenderer.invoke('stats:getDoctorStats'),
+    getPatientStats: () => ipcRenderer.invoke('stats:getPatientStats'),
 
 });
 

@@ -457,6 +457,7 @@ app.commandLine.appendSwitch('disable-gpu');
 
 */
 
+
 const { app, BrowserWindow, ipcMain, session, Menu, dialog } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
@@ -835,7 +836,7 @@ ipcMain.handle('proxy:decryptAES', async (event, { transformedCtId, doctorDid })
     }
 });
 
-// ==================== Blockchain Handlers ====================
+// ==================== Witness Accumulator Contract ====================
 const witnessAddress = contractConfig.witnessAccumulator;
 let witnessContract = new ethers.Contract(witnessAddress, WitnessABI, provider);
 
@@ -853,17 +854,34 @@ async function getHealthSigner() {
     return new ethers.Wallet(privateKey, provider);
 }
 
+// 1. Issue witness
+ipcMain.handle('issue-witness', async (event, { did, witnessHash, expiryTime }) => {
+    console.log(`📡 issue-witness called: DID=${did}, expiry=${expiryTime}`);
+    try {
+        const signer = await getHealthSigner();
+        const contractWithSigner = witnessContract.connect(signer);
+        const tx = await contractWithSigner.issueWitness(did, witnessHash, expiryTime);
+        await tx.wait();
+        return { success: true, txHash: tx.hash };
+    } catch (error) {
+        console.error(`❌ issue-witness error:`, error);
+        return { success: false, error: error.message };
+    }
+});
+
+// 2. Get doctor witness
 ipcMain.handle('getDoctorWitness', async (event, did) => {
     try {
         const contract = new ethers.Contract(witnessAddress, WitnessABI, provider);
         const [witnessHash, expiryTime] = await contract.getDoctorWitness(did);
         return { witnessHash, expiryTime: Number(expiryTime) };
     } catch (error) {
-        console.error('getDoctorWitness error:', error.message);
+        console.error(`❌ getDoctorWitness error:`, error.message);
         throw error;
     }
 });
 
+// 3. Check if doctor is active
 ipcMain.handle('isDoctorActive', async (event, did) => {
     try {
         const contract = new ethers.Contract(witnessAddress, WitnessABI, provider);
@@ -875,7 +893,43 @@ ipcMain.handle('isDoctorActive', async (event, did) => {
     }
 });
 
-// IMPORTANT: Updated grantAccess to include ciphertextId
+// 4. Revoke doctor
+ipcMain.handle('revoke-doctor', async (event, { did }) => {
+    console.log(`📡 revoke-doctor called for ${did}`);
+    try {
+        const signer = await getHealthSigner();
+        const contractWithSigner = witnessContract.connect(signer);
+        const tx = await contractWithSigner.revokeDoctor(did);
+        await tx.wait();
+        const revoked = store.get('revokedDoctors') || [];
+        revoked.push({ did, revokedAt: new Date().toISOString() });
+        store.set('revokedDoctors', revoked);
+        const users = store.get('users') || {};
+        if (users[did]) users[did].isActive = false;
+        store.set('users', users);
+        return { success: true, txHash: tx.hash };
+    } catch (error) {
+        console.error('Revoke error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Alias for contract:revokeDoctor
+ipcMain.handle('contract:revokeDoctor', async (event, { did }) => {
+    return ipcMain.emit('revoke-doctor', event, { did });
+});
+
+// Additional contract handlers
+ipcMain.handle('contract:verifyDoctor', async (event, did) => {
+    try {
+        const contract = new ethers.Contract(witnessAddress, WitnessABI, provider);
+        const isActive = await contract.isDoctorActive(did);
+        return { success: true, isActive };
+    } catch (error) {
+        return { success: false, isActive: false };
+    }
+});
+
 ipcMain.handle('contract:grantAccess', async (event, { patientDid, doctorDid, documentCid, encryptedCid, ciphertextId, filename, expiryTime }) => {
     try {
         const accesses = store.get('accessGrants') || [];
@@ -884,7 +938,7 @@ ipcMain.handle('contract:grantAccess', async (event, { patientDid, doctorDid, do
             doctorDid,
             documentCid,
             encryptedCid,
-            ciphertextId: ciphertextId,  // Store the proxy ciphertext ID
+            ciphertextId: ciphertextId,
             filename: filename || 'Medical Record',
             expiryTime: Number(expiryTime),
             isActive: true,
@@ -921,6 +975,11 @@ ipcMain.handle('contract:getDoctorAccesses', async () => {
     return { success: true, accesses };
 });
 
+ipcMain.handle('contract:registerDoctor', async (event, data) => {
+    console.log('contract:registerDoctor', data);
+    return { success: true };
+});
+
 // ==================== Store Handlers ====================
 ipcMain.handle('store:get', (event, key) => store.get(key));
 ipcMain.handle('store:set', (event, key, value) => {
@@ -940,17 +999,112 @@ ipcMain.handle('file:read', async (event, filePath) => {
     return { success: true, data: data.toString('base64') };
 });
 
-// ==================== Statistics ====================
+// ==================== Statistics Handlers ====================
+ipcMain.handle('stats:getHealthStats', async () => {
+    const session = store.get('currentSession');
+    if (!session || session.type !== 'health') {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    try {
+        const users = store.get('users') || {};
+        const revoked = store.get('revokedDoctors') || [];
+
+        let doctors = 0;
+        let patients = 0;
+        let activeDoctors = 0;
+
+        for (const [did, user] of Object.entries(users)) {
+            if (user.type === 'doctor') {
+                doctors++;
+                const isRevoked = revoked.some(r => r.did === did);
+                if (!isRevoked) {
+                    activeDoctors++;
+                }
+            } else if (user.type === 'patient') {
+                patients++;
+            }
+        }
+
+        const accessGrants = store.get('accessGrants') || [];
+        const totalShares = accessGrants.length;
+        const now = Date.now() / 1000;
+        const activeShares = accessGrants.filter(g => g.isActive && g.expiryTime > now).length;
+
+        return {
+            success: true,
+            stats: {
+                totalDoctors: doctors,
+                activeDoctors: activeDoctors,
+                revokedDoctors: revoked.length,
+                totalPatients: patients,
+                totalShares: totalShares,
+                activeShares: activeShares
+            }
+        };
+    } catch (error) {
+        console.error('Error getting health stats:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('stats:getDoctorStats', async () => {
+    const session = store.get('currentSession');
+    if (!session || session.type !== 'doctor') {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    try {
+        const accesses = store.get(`doctorAccesses:${session.did}`) || [];
+        const now = Date.now() / 1000;
+
+        const activeAccesses = accesses.filter(a => a.isActive && a.expiryTime > now);
+        const expiringSoon = activeAccesses.filter(a => (a.expiryTime - now) < 7 * 24 * 3600);
+        const uniquePatients = new Set(accesses.map(a => a.patientDid));
+
+        return {
+            success: true,
+            stats: {
+                totalPatients: uniquePatients.size,
+                availableRecords: accesses.length,
+                activeAccesses: activeAccesses.length,
+                expiringSoon: expiringSoon.length
+            }
+        };
+    } catch (error) {
+        console.error('Error getting doctor stats:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('stats:getPatientStats', async () => {
     const session = store.get('currentSession');
-    if (!session || session.type !== 'patient') return { success: false, error: 'Unauthorized' };
-    const files = store.get('userFiles:' + session.did) || [];
-    const accesses = store.get('accessGrants') || [];
-    const patientAccesses = accesses.filter(a => a.patientDid === session.did);
-    const now = Date.now() / 1000;
-    const activeShares = patientAccesses.filter(a => a.isActive && a.expiryTime > now).length;
-    const uniqueDoctors = new Set(patientAccesses.map(a => a.doctorDid));
-    return { success: true, stats: { totalRecords: files.length, authorizedDoctors: uniqueDoctors.size, activeShares } };
+    if (!session || session.type !== 'patient') {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    try {
+        const files = store.get('userFiles:' + session.did) || [];
+        const accesses = store.get('accessGrants') || [];
+        const patientAccesses = accesses.filter(a => a.patientDid === session.did);
+        const now = Date.now() / 1000;
+
+        const activeShares = patientAccesses.filter(a => a.isActive && a.expiryTime > now).length;
+        const uniqueDoctors = new Set(patientAccesses.map(a => a.doctorDid));
+
+        return {
+            success: true,
+            stats: {
+                totalRecords: files.length,
+                authorizedDoctors: uniqueDoctors.size,
+                activeShares: activeShares,
+                totalAccesses: patientAccesses.length
+            }
+        };
+    } catch (error) {
+        console.error('Error getting patient stats:', error);
+        return { success: false, error: error.message };
+    }
 });
 
 // ==================== Notifications ====================
