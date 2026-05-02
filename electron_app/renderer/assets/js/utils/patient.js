@@ -797,17 +797,18 @@ window.submitDoctorDid = submitDoctorDid;
 window.closeDoctorDidModal = closeDoctorDidModal;
 
 // ========== DOCTOR STATUS CHECK ==========
+// In patient.js, when checking doctor status
 async function checkDoctorStatus(doctorDid) {
     showLoading('Checking doctor status...');
     try {
-        const witnessResult = await window.electronAPI.getDoctorWitness(doctorDid);
         const isActive = await window.electronAPI.isDoctorActive(doctorDid);
+        const witness = await window.electronAPI.getDoctorWitness(doctorDid);
 
-        if (witnessResult && witnessResult.witnessHash && isActive) {
-            const expiryDate = new Date(witnessResult.expiryTime * 1000);
+        if (isActive && witness.isActive) {
+            const expiryDate = new Date(witness.expiryTime * 1000);
             showSuccess(`✅ Doctor is ACTIVE\nExpires: ${expiryDate.toLocaleString()}`);
         } else {
-            showError('❌ Doctor not active or has no witness');
+            showError('❌ Doctor is not active');
         }
     } catch (err) {
         showError('Doctor not found or not active');

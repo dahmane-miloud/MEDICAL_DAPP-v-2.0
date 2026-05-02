@@ -3,43 +3,50 @@ const fs = require("fs");
 const path = require("path");
 
 async function main() {
+  console.log("\n=========================================");
+  console.log("🚀 Deploying Accumulator Contract");
+  console.log("=========================================\n");
+
   const [deployer] = await hre.ethers.getSigners();
-  console.log("Deploying contracts with account:", deployer.address);
+  console.log(`📡 Deploying with account: ${deployer.address}`);
 
-  // 1. Deploy WitnessAccumulator
-  const WitnessAccumulator = await hre.ethers.getContractFactory("WitnessAccumulator");
-  const witness = await WitnessAccumulator.deploy({ gasLimit: 3000000 });
-  await witness.waitForDeployment();
-  const witnessAddress = await witness.getAddress();
-  console.log("✅ WitnessAccumulator deployed to:", witnessAddress);
+  const balance = await deployer.provider.getBalance(deployer.address);
+  console.log(`💰 Balance: ${hre.ethers.formatEther(balance)} ETH\n`);
 
-  // 2. Deploy AccessControl
-  const AccessControl = await hre.ethers.getContractFactory("AccessControl");
-  const access = await AccessControl.deploy({ gasLimit: 3000000 });
-  await access.waitForDeployment();
-  const accessAddress = await access.getAddress();
-  console.log("✅ AccessControl deployed to:", accessAddress);
+  // Deploy the contract
+  console.log("📝 Deploying Accumulator...");
+  const Accumulator = await hre.ethers.getContractFactory("Accumulator");
+  const accumulator = await Accumulator.deploy();
 
-  // 3. Save configuration
+  await accumulator.waitForDeployment();
+  const address = await accumulator.getAddress();
+
+  console.log(`\n✅ Accumulator deployed to: ${address}`);
+
+  // Save config for Electron app
   const config = {
-    witnessAccumulator: witnessAddress,
-    accessControl: accessAddress,
+    Accumulator: address,
     rpcUrl: "http://127.0.0.1:8545",
-    chainId: 1337
+    network: "localhost",
+    chainId: 1337,
+    deployedAt: new Date().toISOString()
   };
 
-  // Write to deployment.json (used by main/index.js)
-  fs.writeFileSync("deployment.json", JSON.stringify(config, null, 2));
-  console.log("📁 Configuration saved to deployment.json");
+  // Save to hardhat folder
+  fs.writeFileSync(path.join(__dirname, "../deployment.json"), JSON.stringify(config, null, 2));
+  console.log("📁 Saved to: hardhat/deployment.json");
 
-  // Also write to contracts.json if your app expects that name (optional)
-  const contractsPath = path.join(__dirname, "../electron_app/main/contracts.json");
-  if (fs.existsSync(path.dirname(contractsPath))) {
-    fs.writeFileSync(contractsPath, JSON.stringify(config, null, 2));
-    console.log("📁 Also updated electron_app/main/contracts.json");
-  } else {
-    console.log("⚠️ electron_app/main/contracts.json not found – copy deployment.json manually.");
+  // Save to electron_app folder
+  const electronPath = path.join(__dirname, "../../electron_app/main/contracts.json");
+  const electronDir = path.dirname(electronPath);
+  if (fs.existsSync(electronDir)) {
+    fs.writeFileSync(electronPath, JSON.stringify(config, null, 2));
+    console.log("📁 Saved to: electron_app/main/contracts.json");
   }
+
+  console.log("\n=========================================");
+  console.log("🎉 DEPLOYMENT COMPLETE!");
+  console.log("=========================================\n");
 }
 
 main().catch(console.error);

@@ -1,45 +1,39 @@
-// ipfs-pinata.js - Production IPFS with Pinata
-const pinataSDK = require('@pinata/sdk');
+// pinata-service.js
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const path = require('path');
+require('dotenv').config();
 
-class PinataIPFS {
+class PinataService {
     constructor() {
-        // Load credentials from environment variables
-        this.apiKey = process.env.PINATA_API_KEY || 'YOUR_API_KEY';
-        this.apiSecret = process.env.PINATA_API_SECRET || 'YOUR_API_SECRET';
-        this.jwt = process.env.PINATA_JWT || 'YOUR_JWT';
-
-        // Initialize Pinata client
-        this.pinata = new pinataSDK(this.apiKey, this.apiSecret);
+        this.apiKey = process.env.PINATA_API_KEY;
+        this.apiSecret = process.env.PINATA_API_SECRET;
+        this.jwt = process.env.PINATA_JWT;
         this.baseURL = 'https://api.pinata.cloud';
 
-        console.log('✅ Pinata IPFS client initialized');
+        if (!this.apiKey || !this.apiSecret || !this.jwt) {
+            console.warn('⚠️ Pinata credentials not found. Please check .env file');
+        } else {
+            console.log('✅ Pinata service initialized');
+        }
     }
 
-    // Upload file buffer to IPFS via Pinata
-    async uploadFile(buffer, filename, metadata = {}) {
+    async uploadToIPFS(buffer, filename, metadata = {}) {
         try {
             const formData = new FormData();
-            formData.append('file', buffer, { filename: filename });
+            formData.append('file', buffer, { filename });
 
-            // Add metadata
-            const pinataMetadata = {
+            formData.append('pinataMetadata', JSON.stringify({
                 name: filename,
                 keyvalues: {
                     ...metadata,
                     uploadedAt: new Date().toISOString()
                 }
-            };
-            formData.append('pinataMetadata', JSON.stringify(pinataMetadata));
+            }));
 
-            // Add options
-            const pinataOptions = {
+            formData.append('pinataOptions', JSON.stringify({
                 cidVersion: 1
-            };
-            formData.append('pinataOptions', JSON.stringify(pinataOptions));
+            }));
 
             const response = await axios.post(
                 'https://api.pinata.cloud/pinning/pinFileToIPFS',
@@ -65,29 +59,7 @@ class PinataIPFS {
         }
     }
 
-    // Upload JSON data to IPFS
-    async uploadJSON(data, name, metadata = {}) {
-        try {
-            const result = await this.pinata.pinJSONToIPFS(data, {
-                pinataMetadata: {
-                    name: name,
-                    keyvalues: metadata
-                }
-            });
-
-            return {
-                success: true,
-                cid: result.IpfsHash,
-                pinataUrl: `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`
-            };
-        } catch (error) {
-            console.error('Pinata JSON upload error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Get file from IPFS via Pinata gateway
-    async getFile(cid) {
+    async getFromIPFS(cid) {
         try {
             const response = await axios.get(`https://gateway.pinata.cloud/ipfs/${cid}`, {
                 responseType: 'arraybuffer'
@@ -99,35 +71,10 @@ class PinataIPFS {
                 contentType: response.headers['content-type']
             };
         } catch (error) {
-            console.error('Pinata get error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Unpin file (remove from Pinata)
-    async unpin(cid) {
-        try {
-            await this.pinata.unpin(cid);
-            return { success: true };
-        } catch (error) {
-            console.error('Unpin error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Get pin status
-    async getPinStatus(cid) {
-        try {
-            const result = await this.pinata.pinList({ hashContains: cid, status: 'pinned' });
-            return {
-                success: true,
-                isPinned: result.rows.length > 0,
-                pinInfo: result.rows[0]
-            };
-        } catch (error) {
+            console.error('Pinata get error:', error.message);
             return { success: false, error: error.message };
         }
     }
 }
 
-module.exports = { PinataIPFS };
+module.exports = { PinataService };

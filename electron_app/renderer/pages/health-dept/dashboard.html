@@ -4,124 +4,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Department - Dashboard</title>
-    <link rel="stylesheet" href="../../assets/css/global.css">
+    <title>MediChain | Health Department</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/health-dept.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
     <div class="app-container">
+        <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>MediChain</h2>
-                <p>Health Department</p>
+                <div class="logo">
+                    <i class="fas fa-hospital-user"></i>
+                    <h2>MediChain</h2>
+                </div>
+                <p class="logo-subtitle">Health Authority</p>
             </div>
+
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
-                <a href="doctors.html" class="nav-item"><i class="fas fa-user-md"></i><span>Manage Doctors</span></a>
-                <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="doctors">
+                    <i class="fas fa-user-md"></i>
+                    <span>Manage Doctors</span>
+                    <span class="badge" id="doctorsBadge">0</span>
+                </a>
+                <a href="#" class="nav-item" data-page="witnesses">
+                    <i class="fas fa-certificate"></i>
+                    <span>Witness Log</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
             </nav>
+
             <div class="sidebar-footer">
-                <div class="user-info">
-                    <i class="fas fa-hospital"></i>
-                    <div>
-                        <p class="user-name" id="userName">Loading...</p>
-                        <p class="user-did" id="userDid"></p>
+                <div class="user-card">
+                    <div class="user-avatar">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Health Dept</div>
+                        <div class="user-did" id="userDid">DID: ...</div>
                     </div>
                 </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
-            <header class="content-header">
-                <h1>Health Department Dashboard</h1>
+            <!-- Top Header -->
+            <div class="top-header">
+                <div class="header-title">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p>Welcome back, <span id="userNameHeader">Health Department</span></p>
+                </div>
                 <div class="header-actions">
-                    <button class="btn-primary" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    <button class="btn-refresh" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
                 </div>
-            </header>
+            </div>
 
-            <!-- Statistics Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <i class="fas fa-user-md"></i>
-                    <div>
-                        <h3>Total Doctors</h3>
-                        <p id="totalDoctors">0</p>
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Doctors</h3>
+                            <div class="number" id="totalDoctors">0</div>
+                            <span class="trend">Registered in system</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Active Doctors</h3>
+                            <div class="number" id="activeDoctors">0</div>
+                            <span class="trend active-trend">Witness issued</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Revoked Doctors</h3>
+                            <div class="number" id="revokedDoctors">0</div>
+                            <span class="trend revoked-trend">Access revoked</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Witnesses Issued</h3>
+                            <div class="number" id="witnessCount">0</div>
+                            <span class="trend">Total certificates</span>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-check-circle"></i>
-                    <div>
-                        <h3>Active Doctors</h3>
-                        <p id="activeDoctors">0</p>
+
+                <!-- Accumulator Status Card -->
+                <div class="accumulator-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-database"></i> Witness Accumulator</h3>
+                        <span class="badge success">Active</span>
+                    </div>
+                    <div class="accumulator-content">
+                        <div class="accumulator-value">
+                            <label>Current Hash</label>
+                            <code id="accumulatorValue">-</code>
+                            <button class="btn-copy" onclick="copyAccumulator()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="accumulator-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Active Witnesses</span>
+                                <span class="stat-value" id="activeWitnesses">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Last Sync Block</span>
+                                <span class="stat-value" id="lastSyncBlock">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-ban"></i>
-                    <div>
-                        <h3>Revoked Doctors</h3>
-                        <p id="revokedDoctors">0</p>
+
+                <!-- Issue Witness Card - NO VALIDITY PERIOD -->
+                <div class="issue-witness-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-certificate"></i> Issue New Witness</h3>
+                        <p>Enter the doctor's DID to issue a witness certificate</p>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-file-contract"></i>
-                    <div>
-                        <h3>Witnesses Issued</h3>
-                        <p id="witnessCount">0</p>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-id-card"></i> Doctor DID</label>
+                                <input type="text" id="doctorDid" placeholder="did:key:..." class="form-control">
+                            </div>
+                            <div class="form-group action-group">
+                                <button class="btn-primary" id="issueWitnessBtn">
+                                    <i class="fas fa-certificate"></i> Issue Witness
+                                </button>
+                            </div>
+                        </div>
+                        <div id="doctorPreview" class="doctor-preview" style="display: none;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Issue Witness for Existing Doctor -->
-            <section class="issue-witness-section">
-                <h2><i class="fas fa-certificate"></i> Issue Witness for Doctor</h2>
-                <div class="flex-form">
-                    <div class="form-group" style="flex: 2;">
-                        <label>Doctor DID</label>
-                        <input type="text" id="doctorDid" placeholder="did:key:..." required>
+            <!-- Doctors Management Page -->
+            <div id="doctorsPage" class="page">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-users"></i> Registered Doctors</h2>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchDoctors" placeholder="Search by name or DID...">
+                        </div>
                     </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Validity (days)</label>
-                        <input type="number" id="witnessDays" value="365" min="1">
+                    <div class="doctors-grid" id="doctorsList">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading doctors...</p>
+                        </div>
                     </div>
-                    <button class="btn-primary" id="issueWitnessBtn"><i class="fas fa-certificate"></i> Issue
-                        Witness</button>
                 </div>
-                <div id="doctorPreview"
-                    style="display:none; margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-                </div>
-            </section>
+            </div>
 
-            <!-- Doctors List -->
-            <section class="doctors-section">
-                <h2><i class="fas fa-list"></i> Registered Doctors</h2>
-                <div class="table-container">
-                    <table class="doctors-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>DID</th>
-                                <th>Specialization</th>
-                                <th>Status</th>
-                                <th>Witness Hash</th>
-                                <th>Expires</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="doctorsTableBody">
-                            <tr>
-                                <td colspan="7" class="no-data">Loading...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Witness Log Page -->
+            <div id="witnessesPage" class="page">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-history"></i> Witness Issuance Log</h2>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Doctor Name</th>
+                                    <th>DID</th>
+                                    <th>Specialization</th>
+                                    <th>Status</th>
+                                    <th>Witness Hash</th>
+                                    <th>Issued Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doctorsTableBody">
+                                <tr>
+                                    <td colspan="7" class="no-data">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="page">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-cog"></i> System Settings</h2>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <i class="fas fa-link"></i>
+                            <h3>Blockchain Connection</h3>
+                            <p>Status: <span id="blockchainStatus" class="status-badge success">Connected</span></p>
+                            <button class="btn-secondary" onclick="testConnection()">Test Connection</button>
+                        </div>
+                        <div class="setting-card">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>IPFS Status</h3>
+                            <p>Status: <span id="ipfsStatus" class="status-badge success">Connected</span></p>
+                        </div>
+                        <div class="setting-card">
+                            <i class="fas fa-database"></i>
+                            <h3>Contract Address</h3>
+                            <p><code id="contractAddress">-</code></p>
+                            <button class="btn-secondary" onclick="copyContractAddress()">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- CORRECTED SCRIPT PATH - no utils folder -->
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <script src="../../assets/js/utils/health-dept.js"></script>
 </body>
 

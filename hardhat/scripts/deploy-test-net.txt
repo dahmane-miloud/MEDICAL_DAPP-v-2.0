@@ -1,0 +1,31 @@
+cd hardhat
+
+# Create deployment script
+cat > scripts / deploy - witness.js << 'EOF'
+const hre = require("hardhat");
+
+async function main() {
+    console.log("Deploying WitnessAccumulator...");
+    const WitnessAccumulator = await hre.ethers.getContractFactory("WitnessAccumulator");
+    const witness = await WitnessAccumulator.deploy();
+    await witness.waitForDeployment();
+    const address = await witness.getAddress();
+
+    console.log(`✅ Accumulator deployed to: ${address}`);
+
+    const fs = require('fs');
+    fs.writeFileSync('deployment.json', JSON.stringify({
+        address,
+        network: hre.network.name,
+        deployedAt: new Date().toISOString()
+    }, null, 2));
+}
+
+main().catch(console.error);
+EOF
+
+# Deploy to Sepolia testnet(requires testnet ETH)
+npx hardhat run scripts / deploy - witness.js--network sepolia
+
+# Or deploy to Mumbai(Polygon testnet)
+npx hardhat run scripts / deploy - witness.js--network mumbai
