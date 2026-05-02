@@ -22,7 +22,6 @@
                 </div>
                 <p class="logo-subtitle">Health Authority</p>
             </div>
-
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-page="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
@@ -42,12 +41,9 @@
                     <span>Settings</span>
                 </a>
             </nav>
-
             <div class="sidebar-footer">
                 <div class="user-card">
-                    <div class="user-avatar">
-                        <i class="fas fa-building"></i>
-                    </div>
+                    <div class="user-avatar"><i class="fas fa-building"></i></div>
                     <div class="user-info">
                         <div class="user-name" id="userName">Health Dept</div>
                         <div class="user-did" id="userDid">DID: ...</div>
@@ -62,7 +58,6 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Header -->
             <div class="top-header">
                 <div class="header-title">
                     <h1 id="pageTitle">Dashboard</h1>
@@ -81,9 +76,7 @@
                 <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon blue">
-                            <i class="fas fa-user-md"></i>
-                        </div>
+                        <div class="stat-icon blue"><i class="fas fa-user-md"></i></div>
                         <div class="stat-info">
                             <h3>Total Doctors</h3>
                             <div class="number" id="totalDoctors">0</div>
@@ -91,9 +84,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon green">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+                        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                         <div class="stat-info">
                             <h3>Active Doctors</h3>
                             <div class="number" id="activeDoctors">0</div>
@@ -101,9 +92,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon red">
-                            <i class="fas fa-ban"></i>
-                        </div>
+                        <div class="stat-icon red"><i class="fas fa-ban"></i></div>
                         <div class="stat-info">
                             <h3>Revoked Doctors</h3>
                             <div class="number" id="revokedDoctors">0</div>
@@ -111,9 +100,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon purple">
-                            <i class="fas fa-certificate"></i>
-                        </div>
+                        <div class="stat-icon purple"><i class="fas fa-certificate"></i></div>
                         <div class="stat-info">
                             <h3>Witnesses Issued</h3>
                             <div class="number" id="witnessCount">0</div>
@@ -122,34 +109,7 @@
                     </div>
                 </div>
 
-                <!-- Accumulator Status Card -->
-                <div class="accumulator-card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-database"></i> Witness Accumulator</h3>
-                        <span class="badge success">Active</span>
-                    </div>
-                    <div class="accumulator-content">
-                        <div class="accumulator-value">
-                            <label>Current Hash</label>
-                            <code id="accumulatorValue">-</code>
-                            <button class="btn-copy" onclick="copyAccumulator()">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                        </div>
-                        <div class="accumulator-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Active Witnesses</span>
-                                <span class="stat-value" id="activeWitnesses">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Last Sync Block</span>
-                                <span class="stat-value" id="lastSyncBlock">-</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Issue Witness Card - NO VALIDITY PERIOD -->
+                <!-- Issue Witness Card -->
                 <div class="issue-witness-card">
                     <div class="card-header">
                         <h3><i class="fas fa-certificate"></i> Issue New Witness</h3>
@@ -180,6 +140,7 @@
                         <div class="search-box">
                             <i class="fas fa-search"></i>
                             <input type="text" id="searchDoctors" placeholder="Search by name or DID...">
+                            <span class="search-count" id="searchCount">0 doctors</span>
                         </div>
                     </div>
                     <div class="doctors-grid" id="doctorsList">
@@ -228,30 +189,70 @@
                     </div>
                     <div class="settings-grid">
                         <div class="setting-card">
-                            <i class="fas fa-link"></i>
+                            <div class="setting-icon"><i class="fas fa-link"></i></div>
                             <h3>Blockchain Connection</h3>
-                            <p>Status: <span id="blockchainStatus" class="status-badge success">Connected</span></p>
-                            <button class="btn-secondary" onclick="testConnection()">Test Connection</button>
+                            <p>Connection to Hardhat network</p>
+                            <div class="network-info">
+                                <div class="info-row"><span class="info-label">Status:</span><span id="blockchainStatus"
+                                        class="status-badge success">Connected</span></div>
+                                <div class="info-row"><span class="info-label">Network:</span><span
+                                        id="blockchainNetwork" class="info-value">localhost</span></div>
+                                <div class="info-row"><span class="info-label">Block:</span><span id="blockNumber"
+                                        class="info-value">-</span></div>
+                            </div>
+                            <div class="setting-actions"><button class="btn-secondary" onclick="testConnection()"><i
+                                        class="fas fa-plug"></i> Test</button><button class="btn-secondary"
+                                    onclick="syncAccumulator()"><i class="fas fa-sync-alt"></i> Sync</button></div>
                         </div>
                         <div class="setting-card">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h3>IPFS Status</h3>
-                            <p>Status: <span id="ipfsStatus" class="status-badge success">Connected</span></p>
+                            <div class="setting-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <h3>IPFS Storage</h3>
+                            <div class="network-info">
+                                <div class="info-row"><span class="info-label">Status:</span><span id="ipfsStatus"
+                                        class="status-badge success">Connected</span></div>
+                            </div>
+                            <div class="setting-actions"><button class="btn-secondary" onclick="testIPFS()"><i
+                                        class="fas fa-check-circle"></i> Test IPFS</button></div>
                         </div>
                         <div class="setting-card">
-                            <i class="fas fa-database"></i>
-                            <h3>Contract Address</h3>
-                            <p><code id="contractAddress">-</code></p>
-                            <button class="btn-secondary" onclick="copyContractAddress()">Copy</button>
+                            <div class="setting-icon"><i class="fas fa-database"></i></div>
+                            <h3>Accumulator Contract</h3>
+                            <code id="contractAddress">-</code>
+                            <div class="setting-actions"><button class="btn-secondary"
+                                    onclick="copyContractAddress()"><i class="fas fa-copy"></i> Copy</button><button
+                                    class="btn-secondary" onclick="viewContract()"><i
+                                        class="fas fa-external-link-alt"></i> View</button></div>
                         </div>
+                    </div>
+                    <div class="danger-zone">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
+                        <p>Clear all local cached data.</p>
+                        <button class="btn-danger" onclick="confirmReset()"><i class="fas fa-trash-alt"></i> Reset Local
+                            Cache</button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Toast Notification Container -->
+    <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Doctor Details Modal -->
+    <div id="doctorDetailsModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-md"></i> Doctor Details</h3>
+                <span class="close" onclick="closeDoctorDetailsModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="doctorDetailsContent">
+                <div class="loading-state">Loading doctor details...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDoctorDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
 
     <script src="../../assets/js/utils/health-dept.js"></script>
 </body>

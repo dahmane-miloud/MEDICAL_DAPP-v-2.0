@@ -527,6 +527,7 @@ function showToast(msg, type) {
 //------------- new code ------------------------------------
 
 // patient.js - Complete Patient Dashboard
+// patient.js - Complete Patient Dashboard
 console.log('Patient dashboard initializing...');
 
 window.currentUser = null;
@@ -534,17 +535,16 @@ let currentViewRecord = { cid: null, aesKeyBase64: null };
 let currentShareRecordId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for CryptoUtils to be available
-    if (typeof CryptoUtils === 'undefined') {
-        console.error('CryptoUtils not loaded!');
-        showError('CryptoUtils not available. Please refresh the page.');
+    // Check for MediChainCrypto (not CryptoUtils)
+    if (typeof window.MediChainCrypto === 'undefined') {
+        console.error('MediChainCrypto not loaded!');
+        showError('Crypto library not available. Please refresh the page.');
         return;
     }
     await checkSession();
     await loadDashboardData();
     attachEventListeners();
 });
-
 // ========== SESSION MANAGEMENT ==========
 async function checkSession() {
     const session = await window.electronAPI.getSession();

@@ -5,7 +5,7 @@ cat > scripts / deploy - witness.js << 'EOF'
 const hre = require("hardhat");
 
 async function main() {
-    console.log("Deploying WitnessAccumulator...");
+    console.log("Deploying Accumulator...");
     const WitnessAccumulator = await hre.ethers.getContractFactory("WitnessAccumulator");
     const witness = await WitnessAccumulator.deploy();
     await witness.waitForDeployment();
