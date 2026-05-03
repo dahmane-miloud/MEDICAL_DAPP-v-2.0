@@ -1,4 +1,4 @@
-// upload.js - Complete working version
+// patient-upload.js - Complete with both IPFS Desktop and Pinata upload
 console.log('Upload page initializing...');
 
 let currentFile = null;
@@ -59,7 +59,8 @@ async function checkSession() {
 function attachEventListeners() {
     const fileZone = document.getElementById('fileZone');
     const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadLocalBtn = document.getElementById('uploadLocalBtn');
+    const uploadPinataBtn = document.getElementById('uploadPinataBtn');
     const logoutBtn = document.getElementById('logoutBtn');
 
     if (fileZone) {
@@ -98,8 +99,16 @@ function attachEventListeners() {
         });
     }
 
-    if (uploadBtn) {
-        uploadBtn.addEventListener('click', startUpload);
+    if (uploadLocalBtn) {
+        uploadLocalBtn.addEventListener('click', () => {
+            startUpload('local');
+        });
+    }
+
+    if (uploadPinataBtn) {
+        uploadPinataBtn.addEventListener('click', () => {
+            startUpload('pinata');
+        });
     }
 
     if (logoutBtn) {
@@ -121,17 +130,19 @@ function handleFileSelect(file) {
     const fileInfo = document.getElementById('fileInfo');
     const fileName = document.getElementById('fileName');
     const fileSize = document.getElementById('fileSize');
-    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadLocalBtn = document.getElementById('uploadLocalBtn');
+    const uploadPinataBtn = document.getElementById('uploadPinataBtn');
 
     if (fileName) fileName.innerText = file.name;
     if (fileSize) fileSize.innerText = formatFileSize(file.size);
     if (fileInfo) fileInfo.style.display = 'flex';
-    if (uploadBtn) uploadBtn.disabled = false;
+    if (uploadLocalBtn) uploadLocalBtn.disabled = false;
+    if (uploadPinataBtn) uploadPinataBtn.disabled = false;
 
     console.log('File selected:', file.name);
 }
 
-async function startUpload() {
+async function startUpload(target = 'local') {
     if (!currentFile) {
         showError('Please select a file first');
         return;
@@ -139,19 +150,20 @@ async function startUpload() {
 
     const recordDate = document.getElementById('recordDate')?.value || new Date().toISOString().split('T')[0];
 
-    console.log(`Uploading: ${currentFile.name}`);
+    const targetName = target === 'pinata' ? 'Pinata Cloud IPFS' : 'IPFS Desktop';
+    console.log(`Uploading to ${targetName}: ${currentFile.name}`);
     console.log(`Record date: ${recordDate}`);
 
-    showLoading('Encrypting and uploading to IPFS...');
+    showLoading(`Encrypting and uploading to ${targetName}...`);
 
     try {
-        // Step 1: Generate AES key
+        // Step 1: Generate AES key (same for both)
         console.log('Generating AES key...');
         const aesKey = await window.MediChainCrypto.generateAESKey();
         const aesKeyBase64 = await window.MediChainCrypto.exportKey(aesKey);
         console.log('✅ AES key generated');
 
-        // Step 2: Encrypt the file
+        // Step 2: Encrypt the file (same for both)
         console.log('Encrypting file...');
         const encryptedArrayBuffer = await window.MediChainCrypto.encryptFile(currentFile, aesKey);
         console.log('✅ File encrypted, size:', encryptedArrayBuffer.byteLength);
@@ -159,28 +171,48 @@ async function startUpload() {
         // Step 3: Convert ArrayBuffer to Base64
         const encryptedBase64 = arrayBufferToBase64(encryptedArrayBuffer);
 
-        // Step 4: Upload encrypted file to IPFS
-        console.log('Uploading to IPFS...');
+        // Step 4: Upload encrypted file to IPFS (different based on target)
+        console.log(`Uploading to ${targetName}...`);
 
-        const ipfsResult = await window.electronAPI.uploadToIPFS({
-            data: encryptedBase64,
-            filename: currentFile.name + '.enc',
-            fileType: 'application/octet-stream',
-            metadata: {
-                originalName: currentFile.name,
-                recordDate: recordDate,
-                encrypted: true
-            }
-        });
+        let ipfsResult;
+
+        if (target === 'pinata') {
+            // Upload to Pinata (cloud IPFS) - REDUCED METADATA
+            ipfsResult = await window.electronAPI.uploadToPinata({
+                data: encryptedBase64,
+                filename: currentFile.name + '.enc',
+                fileType: 'application/octet-stream',
+                metadata: {
+                    // Only 2 metadata keys to avoid 10 key limit
+                    originalName: currentFile.name,
+                    recordDate: recordDate
+                }
+            });
+        } else {
+            // Upload to local IPFS Desktop
+            ipfsResult = await window.electronAPI.uploadToIPFS({
+                data: encryptedBase64,
+                filename: currentFile.name + '.enc',
+                fileType: 'application/octet-stream',
+                metadata: {
+                    originalName: currentFile.name,
+                    recordDate: recordDate,
+                    encrypted: true,
+                    uploadMethod: 'local'
+                }
+            });
+        }
 
         if (!ipfsResult.success) {
             throw new Error(ipfsResult.error || 'IPFS upload failed');
         }
 
         const encryptedCID = ipfsResult.cid;
-        console.log('✅ Uploaded to IPFS, CID:', encryptedCID);
+        const ipfsUrl = ipfsResult.pinataUrl || `http://127.0.0.1:8080/ipfs/${encryptedCID}`;
+        console.log(`✅ Uploaded to ${targetName}, CID: ${encryptedCID}`);
+        if (ipfsResult.pinataUrl) console.log(`   Pinata URL: ${ipfsResult.pinataUrl}`);
 
-        // Step 5: Encrypt AES key with proxy
+        // Step 5: Encrypt AES key with proxy (same for both)
         console.log('Encrypting AES key with proxy...');
 
         const policy = [["doctor"]];
@@ -205,20 +237,36 @@ async function startUpload() {
         const proxyResult = await proxyResponse.json();
         console.log('✅ AES key encrypted, ID:', proxyResult.ciphertext_id);
 
-        // Step 6: Upload ciphertext to IPFS
+        // Step 6: Upload ciphertext to IPFS (same for both)
         const ciphertextJson = JSON.stringify(proxyResult.ciphertext);
         const ciphertextBlob = new Blob([ciphertextJson], { type: 'application/json' });
         const ciphertextBase64 = await blobToBase64(ciphertextBlob);
 
-        const ciphertextResult = await window.electronAPI.uploadToIPFS({
-            data: ciphertextBase64,
-            filename: `cipher_${Date.now()}.json`,
-            fileType: 'application/json',
-            metadata: {
-                recordCID: encryptedCID,
-                policy: policy
-            }
-        });
+        let ciphertextResult;
+
+        if (target === 'pinata') {
+            // Upload ciphertext to Pinata - REDUCED METADATA
+            ciphertextResult = await window.electronAPI.uploadToPinata({
+                data: ciphertextBase64,
+                filename: `cipher_${Date.now()}.json`,
+                fileType: 'application/json',
+                metadata: {
+                    // Only 1 metadata key
+                    fileType: 'ciphertext'
+                }
+            });
+        } else {
+            ciphertextResult = await window.electronAPI.uploadToIPFS({
+                data: ciphertextBase64,
+                filename: `cipher_${Date.now()}.json`,
+                fileType: 'application/json',
+                metadata: {
+                    recordCID: encryptedCID,
+                    policy: policy,
+                    uploadMethod: 'local'
+                }
+            });
+        }
 
         if (!ciphertextResult.success) {
             throw new Error(ciphertextResult.error || 'Ciphertext upload failed');
@@ -227,7 +275,7 @@ async function startUpload() {
         const ciphertextCID = ciphertextResult.cid;
         console.log('✅ Ciphertext uploaded, CID:', ciphertextCID);
 
-        // Step 7: Save record to local storage
+        // Step 7: Save record to local storage with upload method info
         const records = JSON.parse(localStorage.getItem('sharedRecords') || '[]');
         const newRecord = {
             id: Date.now(),
@@ -237,22 +285,26 @@ async function startUpload() {
             encryptedCID: encryptedCID,
             ciphertextCID: ciphertextCID,
             aesKeyBase64: aesKeyBase64,
-            uploadedAt: new Date().toISOString()
+            uploadedAt: new Date().toISOString(),
+            uploadMethod: target,
+            ipfsUrl: ipfsUrl
         };
 
         records.push(newRecord);
         localStorage.setItem('sharedRecords', JSON.stringify(records));
 
-        showSuccess(`✅ "${currentFile.name}" uploaded successfully!`);
+        showSuccess(`✅ "${currentFile.name}" uploaded successfully to ${targetName}!`);
 
         // Reset form
         currentFile = null;
         const fileInfo = document.getElementById('fileInfo');
-        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadLocalBtn = document.getElementById('uploadLocalBtn');
+        const uploadPinataBtn = document.getElementById('uploadPinataBtn');
         const fileInput = document.getElementById('fileInput');
 
         if (fileInfo) fileInfo.style.display = 'none';
-        if (uploadBtn) uploadBtn.disabled = true;
+        if (uploadLocalBtn) uploadLocalBtn.disabled = true;
+        if (uploadPinataBtn) uploadPinataBtn.disabled = true;
         if (fileInput) fileInput.value = '';
 
         // Redirect to dashboard after 2 seconds
@@ -265,7 +317,11 @@ async function startUpload() {
 
         let errorMsg = error.message;
         if (errorMsg.includes('IPFS') || errorMsg.includes('ipfs')) {
-            errorMsg = 'Cannot connect to IPFS. Please make sure IPFS Desktop is running on port 5001.';
+            if (target === 'pinata') {
+                errorMsg = 'Cannot connect to Pinata. Please check your internet connection and API keys.';
+            } else {
+                errorMsg = 'Cannot connect to IPFS Desktop. Please make sure IPFS Desktop is running on port 5001.';
+            }
         } else if (errorMsg.includes('proxy') || errorMsg.includes('5000')) {
             errorMsg = 'Proxy server error. Please make sure TB-PRE server is running on port 5000.';
         } else if (errorMsg.includes('Failed to fetch')) {

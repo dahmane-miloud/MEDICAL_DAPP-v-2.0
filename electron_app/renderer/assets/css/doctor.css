@@ -754,3 +754,7 @@ textarea.form-control {
         width: 100%;
     }
 }
+
+.toast.warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}

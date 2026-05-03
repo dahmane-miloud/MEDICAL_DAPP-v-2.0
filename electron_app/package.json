@@ -10,7 +10,7 @@
     "dependencies": {
         "@nomicfoundation/hardhat-toolbox": "^7.0.0",
         "@pinata/sdk": "^2.1.0",
-        "axios": "^1.15.2",
+        "axios": "^1.16.0",
         "dotenv": "^17.4.2",
         "electron-store": "^8.2.0",
         "ethers": "^6.16.0",

@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    <!-- Share Record Modal -->
+    <!-- Share Record Modal - Updated with TWO buttons -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -194,11 +194,16 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeShareModal()">Cancel</button>
-                <button class="btn-primary" id="confirmShareBtn">Confirm Share</button>
+                <!-- TWO SHARE BUTTONS -->
+                <button class="btn-primary" id="confirmShareBtn">
+                    <i class="fas fa-desktop"></i> Share via IPFS Desktop
+                </button>
+                <button class="btn-primary" id="confirmSharePinataBtn" style="background: #6c5ce7;">
+                    <i class="fas fa-cloud-upload-alt"></i> Share via Pinata (Cloud)
+                </button>
             </div>
         </div>
     </div>
-
     <!-- Key Display Modal -->
     <div id="keyModal" class="modal">
         <div class="modal-content">

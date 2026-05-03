@@ -371,3 +371,29 @@ body {
         padding: 1.5rem;
     }
 }
+
+/* Add to your existing CSS */
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.button-group .btn-primary {
+    flex: 1;
+    justify-content: center;
+}
+
+.button-group .btn-primary.pinata {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.button-group .btn-primary.pinata:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.button-group .btn-primary i {
+    margin-right: 0.5rem;
+}

@@ -50,6 +50,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Notifications
     sendNotification: (data) => ipcRenderer.invoke('notification:send', data),
     getNotifications: () => ipcRenderer.invoke('notification:get'),
+    //------------ ipfs pinats -------------------
+    // Add these to your preload.js if not already present
+    checkIPFS: () => ipcRenderer.invoke('ipfs:check'),
+    uploadToIPFS: (data) => ipcRenderer.invoke('ipfs:upload', data),
+    getFromIPFS: (cid) => ipcRenderer.invoke('ipfs:get', cid),
+    //---------------- upload from patient to pinata -------------------
+    // In preload.js, add this to the exposed API
+    uploadToPinata: (data) => ipcRenderer.invoke('uploadToPinata', data),
+    // Add to your existing contextBridge
+    pinataUpload: (data) => ipcRenderer.invoke('pinata:upload', data),
+    pinataGet: (cid) => ipcRenderer.invoke('pinata:get', cid),
+    pinataCheck: () => ipcRenderer.invoke('pinata:check'),
+    // Add these to your existing contextBridge.exposeInMainWorld
+    pinataUpload: (data) => ipcRenderer.invoke('pinata:upload', data),
+    pinataGet: (cid) => ipcRenderer.invoke('pinata:get', cid),
+    pinataCheck: () => ipcRenderer.invoke('pinata:check'),
 });
 
 console.log('✅ Preload script loaded successfully');

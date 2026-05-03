@@ -11,7 +11,7 @@ privat_key : VNfWgnR7ILutW18T9xXhQ2UcfEiS5r76bJaIQCjX57cnCrJlt4/mvq6Kf3+rW7V1oZ0
 doctors-------------------------------------    
 dr.abdala : 
 did : did:key:zD/wMzPIfBTSqa0nCCYuWqcxEJZnPYzkta3rvMMZCpdU=
-privat_key :0+2bfR4nKZkC8c+TcbBcNB/Ib55OLWwyVEAbaBbJrfkP/AzM8h8FNKprScIJi5apzEQlmc9jOS1reu8wxkKl1Q==
+privat_key : 0+2bfR4nKZkC8c+TcbBcNB/Ib55OLWwyVEAbaBbJrfkP/AzM8h8FNKprScIJi5apzEQlmc9jOS1reu8wxkKl1Q==
 -----------------------------------------
 dr.kamal 
 did : did:key:zsX93nI/4NaUg8kKbst5v0ua9OkPJqz7Ybvu6GngmSGg=

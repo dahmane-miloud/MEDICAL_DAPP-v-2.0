@@ -945,6 +945,161 @@ async function confirmShare() {
     }
 }
 
+
+// NEW FUNCTION: Share via Pinata (Cloud IPFS - No desktop required)
+async function confirmShareViaPinata() {
+    const doctorDidInput = document.getElementById('shareDoctorDid');
+    const doctorDid = doctorDidInput ? doctorDidInput.value.trim() : '';
+
+    if (!doctorDid) {
+        showError('Please enter doctor DID');
+        return;
+    }
+
+    const attributeSelect = document.getElementById('shareAttribute');
+    const attribute = attributeSelect ? attributeSelect.value : 'doctor';
+
+    const activeDuration = document.querySelector('.duration-btn.active');
+    const durationDays = activeDuration ? parseInt(activeDuration.dataset.days) : 7;
+
+    const records = JSON.parse(localStorage.getItem('sharedRecords') || '[]');
+    const record = records.find(r => r.id == currentShareRecordId);
+
+    if (!record) {
+        showError('Record not found');
+        return;
+    }
+
+    const expiryTime = Math.floor(Date.now() / 1000) + durationDays * 86400;
+
+    showLoading('Encrypting and sharing via Pinata (Cloud IPFS)...');
+    try {
+        // 1. Verify doctor is active
+        const isActive = await window.electronAPI.isDoctorActive(doctorDid);
+        if (!isActive) throw new Error('Doctor not active');
+
+        // 2. Encrypt AES key with proxy
+        const proxyResult = await encryptKeyWithProxy(record.aesKeyBase64, attribute);
+        const ciphertextId = proxyResult.ciphertext_id;
+        console.log('✅ Ciphertext ID from proxy:', ciphertextId);
+
+        // 3. Upload ciphertext to PINATA (not local IPFS)
+        const ciphertextJson = JSON.stringify(proxyResult.ciphertext);
+        const ciphertextBlob = new Blob([ciphertextJson], { type: 'application/json' });
+        const ciphertextBase64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(ciphertextBlob);
+        });
+
+        // Upload to Pinata instead of local IPFS
+        const uploadResult = await window.electronAPI.pinataUpload({
+            data: ciphertextBase64,
+            filename: `cipher_${Date.now()}.json`,
+            fileType: 'application/json',
+            metadata: {
+                recordCID: record.encryptedCID,
+                attribute,
+                ciphertextId: ciphertextId,
+                sharedWith: doctorDid,
+                timestamp: Date.now()
+            }
+        });
+
+        if (!uploadResult.success) {
+            throw new Error(uploadResult.error || 'Pinata upload failed');
+        }
+
+        const ciphertextCID = uploadResult.cid;
+        console.log('✅ Ciphertext uploaded to Pinata, CID:', ciphertextCID);
+
+        // 4. Grant access
+        const grantResult = await window.electronAPI.grantAccess({
+            patientDid: window.currentUser.did,
+            doctorDid: doctorDid,
+            documentCid: record.encryptedCID,
+            encryptedCid: ciphertextCID,
+            ciphertextId: proxyResult.ciphertext_id,
+            filename: record.filename,
+            expiryTime: expiryTime,
+            storageMethod: 'pinata'  // Mark as Pinata storage
+        });
+
+        if (!grantResult.success) throw new Error('Grant access failed');
+
+        // 5. Send notification
+        await window.electronAPI.sendNotification({
+            toDid: doctorDid,
+            message: `Patient ${window.currentUser.name} shared a medical record (${record.filename}) with attribute "${attribute}" for ${durationDays} days (via Pinata Cloud)`
+        });
+
+        showSuccess(`✅ Record shared successfully via Pinata! ${durationDays} days access`);
+        closeShareModal();
+        await loadDashboardData();
+
+    } catch (err) {
+        console.error('Pinata share error:', err);
+        let errorMsg = err.message;
+        if (errorMsg.includes('Pinata') || errorMsg.includes('pinata')) {
+            errorMsg = 'Pinata upload failed. Please check API keys in index.js';
+        }
+        showError(errorMsg);
+    } finally {
+        hideLoading();
+    }
+}
+function attachEventListeners() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    const newRecordBtn = document.getElementById('newRecordBtn');
+    const checkDoctorBtn = document.getElementById('checkDoctorBtn');
+    const refreshBtn = document.getElementById('refreshRecordsBtn');
+    const confirmShareBtn = document.getElementById('confirmShareBtn');
+    const confirmSharePinataBtn = document.getElementById('confirmSharePinataBtn');  // NEW
+    const downloadEncryptedBtn = document.getElementById('downloadEncryptedBtn');
+    const decryptAndOpenBtn = document.getElementById('decryptAndOpenBtn');
+
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
+        window.electronAPI.logout();
+        window.location.href = '../login.html';
+    });
+    if (newRecordBtn) newRecordBtn.addEventListener('click', () => {
+        window.location.href = 'upload.html';
+    });
+    if (checkDoctorBtn) checkDoctorBtn.addEventListener('click', () => {
+        openDoctorDidModal(checkDoctorStatus);
+    });
+    if (refreshBtn) refreshBtn.addEventListener('click', () => {
+        loadDashboardData();
+    });
+    if (confirmShareBtn) confirmShareBtn.addEventListener('click', () => {
+        confirmShare();  // Original - uses local IPFS Desktop
+    });
+    // NEW: Pinata share button listener
+    if (confirmSharePinataBtn) confirmSharePinataBtn.addEventListener('click', () => {
+        confirmShareViaPinata();  // New - uses Pinata Cloud
+    });
+    if (downloadEncryptedBtn) downloadEncryptedBtn.addEventListener('click', () => {
+        downloadEncryptedFile(currentViewRecord.cid);
+        closeViewOptionsModal();
+    });
+    if (decryptAndOpenBtn) decryptAndOpenBtn.addEventListener('click', () => {
+        decryptAndDownload(currentViewRecord.cid, currentViewRecord.aesKeyBase64,
+            document.getElementById('viewFileName')?.innerText || 'file');
+        closeViewOptionsModal();
+    });
+
+    // Duration buttons
+    document.querySelectorAll('.duration-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+}
+
+
+
+
 window.shareWithDoctor = function (doctorDid) {
     const shareDoctorDid = document.getElementById('shareDoctorDid');
     if (shareDoctorDid) shareDoctorDid.value = doctorDid;

@@ -255,6 +255,9 @@ async function loadSharedRecords() {
             const isExpired = expiryDate < new Date();
             const daysLeft = Math.ceil((expiryTimeSec * 1000 - Date.now()) / (1000 * 3600 * 24));
 
+            // Check if storage method is pinata
+            const isPinata = access.storageMethod === 'pinata';
+
             html += `
                 <div class="record-card">
                     <div class="record-header">
@@ -262,16 +265,21 @@ async function loadSharedRecords() {
                         <span class="record-status ${isExpired ? 'status-expired' : 'status-active'}">
                             ${isExpired ? 'Expired' : 'Active'}
                         </span>
+                        ${isPinata ? '<span class="badge-pinata" style="background:#6c5ce7; color:white; padding:2px 8px; border-radius:12px; font-size:11px;"><i class="fas fa-cloud"></i> Pinata</span>' : ''}
                     </div>
                     <div class="record-info">
                         <h4>${escapeHtml(access.filename || 'Medical Record')}</h4>
                         <p><i class="fas fa-user"></i> Patient: ${shortenDid(access.patientDid)}</p>
                         <p><i class="fas fa-calendar"></i> Expires: ${expiryDate.toLocaleString()}</p>
                         ${!isExpired ? `<p><i class="fas fa-clock"></i> ${daysLeft} days left</p>` : ''}
+                        ${isPinata ? `<p><i class="fas fa-cloud"></i> Stored on: Pinata Cloud</p>` : '<p><i class="fas fa-server"></i> Stored on: Local IPFS</p>'}
                     </div>
                     <div class="record-actions" style="display: flex; gap: 0.5rem;">
                         <button class="btn-primary" onclick="window.previewRecord('${access.documentCid}', '${access.encryptedCid}')" style="flex: 1;">
-                            <i class="fas fa-eye"></i> Preview
+                            <i class="fas fa-eye"></i> Preview (Local)
+                        </button>
+                        <button class="btn-primary" onclick="window.previewRecordViaPinata('${access.documentCid}', '${access.encryptedCid}')" style="flex: 1; background: #6c5ce7;">
+                            <i class="fas fa-cloud-upload-alt"></i> Preview (Pinata)
                         </button>
                         <button class="btn-primary" onclick="window.openDecryptModal('${access.documentCid}', '${access.encryptedCid}')" style="flex: 1;">
                             <i class="fas fa-download"></i> Download
@@ -289,6 +297,202 @@ async function loadSharedRecords() {
         console.error('Error loading shared records:', err);
         container.innerHTML = '<div class="no-data">Error loading records: ' + err.message + '</div>';
     }
+}
+
+
+// ========== PREVIEW RECORD VIA PINATA (WORKING VERSION) ==========
+window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
+    console.log('🔵 PINATA PREVIEW - START');
+
+    if (!documentCid || !encryptedCid) {
+        showError('No record selected');
+        return;
+    }
+
+    showLoading('Loading from Pinata...');
+
+    try {
+        // Get the access record
+        const result = await window.electronAPI.getDoctorAccesses();
+        const accesses = result.success ? result.accesses : [];
+        const accessRecord = accesses.find(a => a.documentCid === documentCid);
+
+        if (!accessRecord) throw new Error('Access record not found');
+        if (!accessRecord.ciphertextId) throw new Error('No ciphertextId');
+
+        console.log('1. Ciphertext ID:', accessRecord.ciphertextId);
+
+        // Get AES key from proxy
+        console.log('2. Getting AES key from proxy...');
+        const rekeyRes = await fetch('http://127.0.0.1:5000/generate_rekey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ct_id: accessRecord.ciphertextId,
+                delegatee_did: window.currentUser.did,
+                delegatee_attrs: ["doctor"]
+            })
+        });
+
+        if (!rekeyRes.ok) throw new Error('Rekey failed: ' + await rekeyRes.text());
+        const rekey = await rekeyRes.json();
+
+        const reencryptRes = await fetch('http://127.0.0.1:5000/proxy_reencrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rekey_id: rekey.rekey_id })
+        });
+        if (!reencryptRes.ok) throw new Error('Reencrypt failed');
+        const reencrypt = await reencryptRes.json();
+
+        const decryptRes = await fetch('http://127.0.0.1:5000/decrypt_aes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transformed_ct_id: reencrypt.transformed_ct_id,
+                doctor_did: window.currentUser.did
+            })
+        });
+        if (!decryptRes.ok) throw new Error('Decrypt failed');
+        const decryptResult = await decryptRes.json();
+
+        const aesKeyBase64 = decryptResult.aes_key_b64;
+        console.log('3. Got AES key, length:', aesKeyBase64.length);
+
+        // Get the encrypted file from Pinata
+        console.log('4. Fetching from Pinata, CID:', documentCid);
+        const fileResult = await window.electronAPI.pinataGet(documentCid);
+
+        if (!fileResult || !fileResult.success) {
+            throw new Error('Pinata fetch failed: ' + (fileResult?.error || 'Unknown'));
+        }
+
+        console.log('5. Got file, base64 length:', fileResult.data.data.length);
+
+        // Convert base64 to bytes
+        console.log('6. Converting to bytes...');
+        let encryptedBytes;
+        try {
+            encryptedBytes = Uint8Array.from(atob(fileResult.data.data), c => c.charCodeAt(0));
+        } catch (e) {
+            // Try direct charCode approach
+            encryptedBytes = new Uint8Array(fileResult.data.data.length);
+            for (let i = 0; i < fileResult.data.data.length; i++) {
+                encryptedBytes[i] = fileResult.data.data.charCodeAt(i);
+            }
+        }
+        console.log('7. Bytes length:', encryptedBytes.length);
+
+        // Import key using native crypto
+        console.log('8. Importing AES key...');
+        const aesKey = await window.crypto.subtle.importKey(
+            'raw',
+            Uint8Array.from(atob(aesKeyBase64), c => c.charCodeAt(0)),
+            { name: 'AES-GCM' },
+            false,
+            ['decrypt']
+        );
+
+        console.log('9. Decrypting...');
+        // Extract IV (first 12 bytes) and ciphertext
+        const iv = encryptedBytes.slice(0, 12);
+        const ciphertext = encryptedBytes.slice(12);
+        console.log('IV length:', iv.length, 'Ciphertext length:', ciphertext.length);
+
+        const decryptedBuffer = await window.crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            aesKey,
+            ciphertext
+        );
+
+        const decryptedData = new Uint8Array(decryptedBuffer);
+        console.log('10. Decrypted! Size:', decryptedData.length);
+
+        // Display preview
+        const blob = new Blob([decryptedData]);
+        const fileType = fileResult.data.fileType || 'application/octet-stream';
+        const fileName = fileResult.data.filename?.replace('.enc', '') || 'medical_record';
+
+        // Create preview
+        const url = URL.createObjectURL(blob);
+        const previewModal = document.getElementById('previewModal');
+        const previewContent = document.getElementById('previewContent');
+        const previewTitle = document.getElementById('previewTitle');
+
+        if (!previewModal) {
+            console.error('Preview modal not found');
+            showError('Preview modal not found in HTML');
+            return;
+        }
+
+        previewTitle.innerText = `Preview: ${fileName}`;
+        previewContent.innerHTML = '';
+
+        // Preview based on file type
+        if (fileType.includes('image') || fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '70vh';
+            img.style.objectFit = 'contain';
+            previewContent.appendChild(img);
+        }
+        else if (fileType.includes('pdf') || fileName.match(/\.pdf$/i)) {
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.style.width = '100%';
+            iframe.style.height = '70vh';
+            iframe.style.border = 'none';
+            previewContent.appendChild(iframe);
+        }
+        else {
+            // For text/JSON - read as text
+            const text = await blob.text();
+            const pre = document.createElement('pre');
+            pre.textContent = text;
+            pre.style.maxHeight = '60vh';
+            pre.style.overflow = 'auto';
+            pre.style.background = '#f5f5f5';
+            pre.style.padding = '1rem';
+            pre.style.borderRadius = '8px';
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.style.wordWrap = 'break-word';
+            previewContent.appendChild(pre);
+        }
+
+        previewModal.style.display = 'flex';
+
+        // Store blob URL for cleanup
+        const closeBtn = document.getElementById('closePreviewModalBtn');
+        const closeFooterBtn = document.getElementById('closePreviewFooterBtn');
+
+        const cleanup = () => {
+            URL.revokeObjectURL(url);
+            previewModal.style.display = 'none';
+        };
+
+        closeBtn.onclick = cleanup;
+        closeFooterBtn.onclick = cleanup;
+
+        hideLoading();
+        showSuccess('Record loaded from Pinata!');
+
+    } catch (err) {
+        console.error('❌ ERROR:', err);
+        console.error('Error name:', err.name);
+        console.error('Error message:', err.message);
+        showError('Error: ' + err.message);
+        hideLoading();
+    }
+};
+
+// Add warning toast function if not exists
+function showWarning(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast warning';
+    toast.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${escapeHtml(msg)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
 }
 
 // ========== LOAD ACCESS REQUESTS ==========

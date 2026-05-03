@@ -468,6 +468,10 @@ const { encodeBase64, decodeBase64 } = require('tweetnacl-util');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const FormData = require('form-data');
+// At the top with other requires
+const { PinataService } = require('./pinata-service');
+const pinata = new PinataService();
+require('dotenv').config();
 
 // ============ FIX GPU FLASHING ISSUES ============
 app.disableHardwareAcceleration();
@@ -1037,5 +1041,219 @@ ipcMain.handle('notification:get', async () => {
     const notifications = store.get('notifications') || {};
     return { success: true, notifications: notifications[session.did] || [] };
 });
+
+
+// ----------------upload from patientto pinata ------------------- //
+
+// Add this handler for uploading patient files to Pinata
+// ==================== Pinata Cloud IPFS Handler ====================
+ipcMain.handle('uploadToPinata', async (event, { data, filename, fileType, metadata }) => {
+    const session = store.get('currentSession');
+    if (!session) return { success: false, error: 'Not authenticated' };
+
+    try {
+        console.log('📤 Uploading to Pinata Cloud IPFS:', filename);
+
+        const buffer = Buffer.from(data, 'base64');
+
+        // Use the Pinata service
+        const result = await pinata.uploadFile(buffer, filename, {
+            uploadedBy: session.did,
+            userType: session.type,
+            fileName: filename,
+            fileType: fileType || 'application/octet-stream',
+            timestamp: new Date().toISOString(),
+            ...metadata
+        });
+
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+
+        console.log(`✅ File uploaded to Pinata, CID: ${result.cid}`);
+        console.log(`   URL: ${result.url}`);
+
+        // Store in electron-store for reference
+        const files = store.get('ipfsFiles') || [];
+        files.push({
+            cid: result.cid,
+            filename,
+            fileType,
+            size: buffer.length,
+            uploadedAt: new Date().toISOString(),
+            uploadedBy: session.did,
+            metadata,
+            pinataUrl: result.url,
+            storageType: 'pinata'
+        });
+        store.set('ipfsFiles', files);
+
+        // Also store user-specific files
+        const userFiles = store.get('userFiles:' + session.did) || [];
+        userFiles.push({
+            cid: result.cid,
+            filename,
+            uploadedAt: new Date().toISOString(),
+            metadata,
+            pinataUrl: result.url,
+            storageType: 'pinata'
+        });
+        store.set('userFiles:' + session.did, userFiles);
+
+        return {
+            success: true,
+            cid: result.cid,
+            pinataUrl: result.url
+        };
+
+    } catch (error) {
+        console.error('Pinata upload error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+
+
+// ==================== Pinata Configuration ====================
+const PINATA_API_KEY = '03959fc6abd1baa890bf';
+const PINATA_API_SECRET = '226d0b2203d0fc90f1ce99a0cc0a5eb0950a777c1784e02072c835bf66c51778';
+
+// ==================== Pinata Handlers ====================
+ipcMain.handle('pinata:upload', async (event, { data, filename, fileType, metadata }) => {
+    const session = store.get('currentSession');
+    if (!session) return { success: false, error: 'Not authenticated' };
+
+    try {
+        const FormData = require('form-data');
+        const buffer = Buffer.from(data, 'base64');
+
+        const formData = new FormData();
+        formData.append('file', buffer, { filename: filename, contentType: fileType || 'application/json' });
+
+        if (metadata) {
+            formData.append('pinataMetadata', JSON.stringify({
+                name: filename,
+                keyvalues: metadata
+            }));
+        }
+
+        const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+            method: 'POST',
+            headers: {
+                'pinata_api_key': PINATA_API_KEY,
+                'pinata_secret_api_key': PINATA_API_SECRET,
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Pinata error:', errorText);
+            throw new Error(`Pinata API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const cid = result.IpfsHash;
+
+        // Store metadata locally for the uploader (patient)
+        const pinataFiles = store.get('pinataFiles') || [];
+        pinataFiles.push({
+            cid,
+            filename,
+            fileType,
+            size: buffer.length,
+            uploadedAt: new Date().toISOString(),
+            uploadedBy: session.did,
+            metadata
+        });
+        store.set('pinataFiles', pinataFiles);
+
+        return { success: true, cid };
+
+    } catch (error) {
+        console.error('Pinata upload error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('pinata:get', async (event, cid) => {
+    try {
+        console.log('📥 Pinata get called with CID:', cid);
+
+        // List of gateways to try
+        const gateways = [
+            'https://gateway.pinata.cloud',
+            'https://ipfs.io',
+            'https://cloudflare-ipfs.com'
+        ];
+
+        // List of CID variations to try
+        const cidVariations = [cid];
+
+        // If it's a CIDv0 (starts with Qm), also try to convert to CIDv1
+        if (cid.startsWith('Qm')) {
+            // CIDv0 to CIDv1 conversion - same file, different format
+            // For IPFS, both point to the same content
+            console.log('CID is v0 format, will also try original');
+        }
+
+        let lastError = null;
+
+        // Try each gateway with each CID variation
+        for (const gateway of gateways) {
+            for (const cidToTry of cidVariations) {
+                try {
+                    const url = `${gateway}/ipfs/${cidToTry}`;
+                    console.log(`Trying: ${url}`);
+
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: { 'Accept': '*/*' }
+                    });
+
+                    if (response.ok) {
+                        const buffer = await response.arrayBuffer();
+                        const base64Data = Buffer.from(buffer).toString('base64');
+
+                        console.log(`✅ Success from ${gateway} with CID ${cidToTry}`);
+
+                        // Try to get metadata from local store
+                        const pinataFiles = store.get('pinataFiles') || [];
+                        const file = pinataFiles.find(f => f.cid === cid || f.cid === cidToTry);
+
+                        return {
+                            success: true,
+                            data: {
+                                data: base64Data,
+                                filename: file?.filename || `file_${cidToTry.substring(0, 8)}.bin`,
+                                fileType: file?.fileType || 'application/octet-stream'
+                            }
+                        };
+                    }
+                } catch (err) {
+                    lastError = err;
+                    console.log(`Failed: ${gateway}/ipfs/${cidToTry} - ${err.message}`);
+                }
+            }
+        }
+
+        throw new Error(`File not found on any gateway: ${lastError?.message || 'Unknown error'}`);
+
+    } catch (error) {
+        console.error('Pinata get error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+
+ipcMain.handle('pinata:check', async () => {
+    const isConfigured = PINATA_API_KEY && PINATA_API_KEY !== 'YOUR_PINATA_API_KEY';
+    return {
+        success: isConfigured,
+        message: isConfigured ? 'Pinata ready' : 'Pinata not configured - add API keys'
+    };
+});
+
+
 
 console.log('✅ Electron main process initialized successfully');
