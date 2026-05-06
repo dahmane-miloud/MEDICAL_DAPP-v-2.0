@@ -1,3 +1,4 @@
+/*
 require("@nomicfoundation/hardhat-toolbox");
 
 module.exports = {
@@ -27,4 +28,19 @@ module.exports = {
       gasPrice: "auto"
     }
   }
+};
+
+*/
+
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
+
+module.exports = {
+  solidity: "0.8.19",
+  networks: {
+    sepolia: {
+      url: "https://ethereum-sepolia.publicnode.com",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+  },
 };
