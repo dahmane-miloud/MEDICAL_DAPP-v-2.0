@@ -1,0 +1,18 @@
+{
+  "iterations": 5,
+  "network": "Sepolia",
+  "contract": "0x59Ee6DB1bf1fbFF834492fb4Da73e66d92150c7C",
+  "metrics": {
+    "witnessIssuance": {
+      "timeMs": 5166,
+      "gasUsed": "85870",
+      "costDZD": 0.030055491798500002
+    },
+    "revocation": {
+      "timeMs": 13644,
+      "gasUsed": "46064",
+      "costDZD": 0.0161229320392
+    },
+    "averageAccessTimeMs": 42
+  }
+}

@@ -1,1 +1,38 @@
 npx hardhat run scripts/deploy.js --network sepolia
+
+
+
+
+
+
+i need for 100 EHR and save a data in html and css and json file and make sure this mitric 
+les metric : 
+
+Les métriques pour l'expérimentation 1:
+sont les suivantes : le temps de
+chiffrement par AES-256 GCM.
+le temps d'encapsulation de la clé
+(encryption of the key by the time
+based-PRE)
+le temps de upload dans pinata
+pour le médecin
+le temps de vérification du witness par le
+patient.
+le temps de téléchargement depuis
+pinata
+le temps pour déchiffreer le ehr
+le temps total pour accèder au dossier
+déchiffré du patient : depuis la demande
+d'accès par le médecin, jusqu'au
+déchiffrement du dossier.
+la consommation du gaz pour le
+workflow
+sachant que le workflow complet doit
+etre répété 100 fois avec 100 ehr
+différents.
+
+and add AES encryption time and decryption time and pre generate keys time and crypt and decrypt time 
+and add pinata upload time and download time and wetiness time and all the metrics that you see fit 
+and crypte a users time ( for patient and doctor and health department ) and request share time and share time and 
+revoke time and access time so i want to messuer every think 
+So give a secript to handel all of this !
