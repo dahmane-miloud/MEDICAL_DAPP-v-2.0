@@ -11,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -21,13 +21,13 @@
             justify-content: center;
             overflow: hidden;
         }
-        
+
         .splash-screen {
             text-align: center;
             color: white;
             animation: fadeIn 1s ease;
         }
-        
+
         .logo {
             font-size: 4rem;
             font-weight: 700;
@@ -35,13 +35,13 @@
             letter-spacing: 2px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
-        
+
         .subtitle {
             font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 2rem;
         }
-        
+
         .loader {
             width: 50px;
             height: 50px;
@@ -51,26 +51,28 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 2rem;
         }
-        
+
         .status {
             font-size: 0.9rem;
             opacity: 0.8;
         }
-        
+
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
             }
+
             100% {
                 transform: rotate(360deg);
             }
         }
-        
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -94,5 +96,7 @@
         }, 2000);
     </script>
 </body>
+<script src="../renderer/assets/js/utils/MediChainCrypto.js"></script>
+<script src="../main/pinata-service.js"></script>
 
 </html>

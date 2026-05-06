@@ -3,5 +3,5 @@
   "rpcUrl": "http://127.0.0.1:8545",
   "network": "localhost",
   "chainId": 1337,
-  "deployedAt": "2026-05-06T18:34:03.513Z"
+  "deployedAt": "2026-05-06T18:00:03.441Z"
 }
