@@ -1,0 +1,26 @@
+{
+  "patientDID": "did:key:zzs37vtoUl2yfoZaw4w/y3D3qa4aNHUjuapzbNTT7jAc=",
+  "doctorDID": "did:key:z1VhRn0oix+AU0uMDfA318H0tmNHK2+rdBkYQTd4iztA=",
+  "ehrCID": "QmUwAPWxvEGpARqevUyFViuPhpCRDB27VFQVXr2VnEBdF7",
+  "times": {
+    "patientSSI": 46.7595,
+    "aesEncrypt": 0.8749,
+    "pinataUpload": 1814.0041,
+    "doctorSSI": 5.5011,
+    "proxyReg": 22.875,
+    "witness": 21985.1174,
+    "check": 119.1863,
+    "proxyEnc": 16.0907,
+    "rekey": 10.9208,
+    "reenc": 21.7091,
+    "decKey": 13.4616,
+    "download": 6940.8902,
+    "decEHR": 0.4778,
+    "revoke": 17666.0128
+  },
+  "totalAccessMs": 6987.4595,
+  "gas": {
+    "witness": 85882,
+    "revoke": 46064
+  }
+}

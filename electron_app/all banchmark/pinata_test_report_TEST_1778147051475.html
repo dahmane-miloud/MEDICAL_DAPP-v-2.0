@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain Performance Report | Pinata + Sepolia</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .report-header { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
+        .report-header h1 { color: #1a5276; font-size: 2.5rem; margin-bottom: 10px; }
+        .test-badge { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 20px; border-radius: 30px; font-weight: 600; margin-top: 10px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: transform 0.3s; text-align: center; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card .stat-value { font-size: 2.5rem; font-weight: 700; color: #2c3e50; }
+        .stat-card .stat-label { color: #7f8c8d; margin-top: 8px; }
+        .section { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .section-title { font-size: 1.5rem; color: #2c3e50; margin-bottom: 20px; border-bottom: 3px solid #667eea; display: inline-block; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .metric-item { background: #f8f9fa; border-radius: 12px; padding: 20px; text-align: center; }
+        .metric-item .metric-value { font-size: 1.8rem; font-weight: 700; color: #667eea; }
+        .metric-item .metric-name { color: #7f8c8d; margin-bottom: 8px; }
+        .table-container { overflow-x: auto; margin-top: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th { background: #667eea; color: white; padding: 12px; text-align: left; }
+        .data-table td { padding: 10px 12px; border-bottom: 1px solid #ecf0f1; }
+        .data-table tr:hover { background: #f8f9fa; }
+        .status-pass { color: #27ae60; font-weight: 600; }
+        .status-fail { color: #e74c3c; font-weight: 600; }
+        .chart-container { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 12px; }
+        .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 20px; }
+        .gas-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 25px; margin-top: 20px; }
+        .gas-stats { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; text-align: center; }
+        .footer { text-align: center; color: white; margin-top: 30px; padding: 20px; opacity: 0.8; }
+        @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="report-header">
+        <h1>🏥 MediChain Performance Report</h1>
+        <p>Real Pinata Cloud IPFS + Sepolia Testnet | TB-PRE Proxy</p>
+        <div class="test-badge">Test ID: TEST_1778147051475...</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">10</div><div class="stat-label">Total EHRs</div></div>
+        <div class="stat-card"><div class="stat-value">100.0%</div><div class="stat-label">Success Rate</div></div>
+        <div class="stat-card"><div class="stat-value">279.1s</div><div class="stat-label">Total Duration</div></div>
+        <div class="stat-card"><div class="stat-value">512 KB</div><div class="stat-label">Avg EHR Size</div></div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">⚡ Performance Metrics</h2>
+        <div class="metrics-grid">
+            <div class="metric-item"><div class="metric-name">AES Encryption</div><div class="metric-value">1.83 ms</div></div>
+            <div class="metric-item"><div class="metric-name">AES Decryption</div><div class="metric-value">0.97 ms</div></div>
+            <div class="metric-item"><div class="metric-name">Pinata Upload</div><div class="metric-value">2809.84 ms</div></div>
+            <div class="metric-item"><div class="metric-name">Pinata Download</div><div class="metric-value">20329.75 ms</div></div>
+            <div class="metric-item"><div class="metric-name">Proxy Re-encrypt</div><div class="metric-value">19.91 ms</div></div>
+            <div class="metric-item"><div class="metric-name">Total Access Time</div><div class="metric-value">20705.30 ms</div></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">📈 Performance Distribution</h2>
+        <div class="chart-row">
+            <div class="chart-container"><canvas id="accessTimeChart"></canvas></div>
+            <div class="chart-container"><canvas id="uploadTimeChart"></canvas></div>
+        </div>
+        <div class="chart-row">
+            <div class="chart-container"><canvas id="sizeComparisonChart"></canvas></div>
+            <div class="chart-container"><canvas id="successRateChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">📏 Performance by EHR Size</h2>
+        <div class="metrics-grid">
+            <div class="metric-item"><div class="metric-name">Small (50-100KB)</div><div class="metric-value">2</div><div class="metric-name" style="font-size:0.8rem">Avg: 7068 ms</div></div>
+            <div class="metric-item"><div class="metric-name">Medium (200-400KB)</div><div class="metric-value">4</div><div class="metric-name" style="font-size:0.8rem">Avg: 17580 ms</div></div>
+            <div class="metric-item"><div class="metric-name">Large (500-800KB)</div><div class="metric-value">3</div><div class="metric-name" style="font-size:0.8rem">Avg: 26771 ms</div></div>
+            <div class="metric-item"><div class="metric-name">XL (1-2MB)</div><div class="metric-value">1</div><div class="metric-name" style="font-size:0.8rem">Avg: 42287 ms</div></div>
+        </div>
+    </div>
+
+    <div class="gas-card">
+        <h3>💰 Blockchain Gas Costs (Sepolia)</h3>
+        <div class="gas-stats">
+            <div><div>Witness Issuance</div><div style="font-size:1.5rem; font-weight:700">85,882 gas</div><div>≈ 0.5148 DZD</div></div>
+            <div><div>Revocation</div><div style="font-size:1.5rem; font-weight:700">46,064 gas</div><div>≈ 0.2761 DZD</div></div>
+            <div><div>Gas Price</div><div style="font-size:1.2rem">0.02 Gwei</div><div>1 ETH = 350,000 DZD</div></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">📊 Total Access Time Percentiles</h2>
+        <div class="metrics-grid">
+            <div class="metric-item"><div class="metric-name">Median (p50)</div><div class="metric-value">18849 ms</div></div>
+            <div class="metric-item"><div class="metric-name">p75</div><div class="metric-value">29264 ms</div></div>
+            <div class="metric-item"><div class="metric-name">p90</div><div class="metric-value">42287 ms</div></div>
+            <div class="metric-item"><div class="metric-name">p95</div><div class="metric-value">42287 ms</div></div>
+            <div class="metric-item"><div class="metric-name">p99</div><div class="metric-value">42287 ms</div></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">📋 Detailed EHR Results</h2>
+        <div class="table-container">
+            <table class="data-table">
+                <thead><tr><th>#</th><th>Size(KB)</th><th>Cat</th><th>AES Enc(ms)</th><th>AES Dec(ms)</th><th>Pinata Up(ms)</th><th>Pinata Down(ms)</th><th>Proxy ReEnc(ms)</th><th>Total Access(ms)</th><th>Status</th></tr></thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>1</td>
+                        <td>380</td>
+                        <td>M</td>
+                        <td>7.02</td>
+                        <td>0.85</td>
+                        <td>2362.61</td>
+                        <td>14703.45</td>
+                        <td>18.14</td>
+                        <td><strong>16066.94</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>2</td>
+                        <td>508</td>
+                        <td>L</td>
+                        <td>1.47</td>
+                        <td>1.29</td>
+                        <td>2556.10</td>
+                        <td>31907.35</td>
+                        <td>17.91</td>
+                        <td><strong>32198.34</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>3</td>
+                        <td>39</td>
+                        <td>S</td>
+                        <td>0.19</td>
+                        <td>0.13</td>
+                        <td>2646.79</td>
+                        <td>6008.99</td>
+                        <td>23.21</td>
+                        <td><strong>6293.78</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>4</td>
+                        <td>885</td>
+                        <td>L</td>
+                        <td>3.09</td>
+                        <td>2.01</td>
+                        <td>2906.69</td>
+                        <td>29019.26</td>
+                        <td>18.28</td>
+                        <td><strong>29264.19</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>5</td>
+                        <td>471</td>
+                        <td>M</td>
+                        <td>1.54</td>
+                        <td>1.00</td>
+                        <td>4270.50</td>
+                        <td>17987.34</td>
+                        <td>17.77</td>
+                        <td><strong>18255.16</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>6</td>
+                        <td>529</td>
+                        <td>L</td>
+                        <td>0.96</td>
+                        <td>0.83</td>
+                        <td>3505.61</td>
+                        <td>18547.91</td>
+                        <td>20.58</td>
+                        <td><strong>18849.09</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>7</td>
+                        <td>428</td>
+                        <td>M</td>
+                        <td>0.70</td>
+                        <td>0.79</td>
+                        <td>2279.75</td>
+                        <td>19101.82</td>
+                        <td>23.46</td>
+                        <td><strong>19379.28</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>8</td>
+                        <td>152</td>
+                        <td>S</td>
+                        <td>0.44</td>
+                        <td>0.35</td>
+                        <td>1746.60</td>
+                        <td>7588.37</td>
+                        <td>23.06</td>
+                        <td><strong>7841.72</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>9</td>
+                        <td>397</td>
+                        <td>M</td>
+                        <td>0.61</td>
+                        <td>0.49</td>
+                        <td>2028.37</td>
+                        <td>16386.03</td>
+                        <td>17.39</td>
+                        <td><strong>16617.88</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>10</td>
+                        <td>1336</td>
+                        <td>XL</td>
+                        <td>2.33</td>
+                        <td>1.96</td>
+                        <td>3795.35</td>
+                        <td>42047.00</td>
+                        <td>19.33</td>
+                        <td><strong>42286.62</strong></td>
+                        <td class="status-pass">✓ PASS</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated on 07/05/2026, 10:48:50 | MediChain Performance Test | Pinata + Sepolia</p>
+    </div>
+</div>
+
+<script>
+    const accessTimes = [6293.7757,7841.724,16066.9444,16617.8827,18255.1635,18849.0874,19379.2814,29264.1867,32198.3386,42286.6162];
+    const uploadTimes = [2362.6108,2556.1031,2646.7883,2906.6947,4270.5044,3505.6124,2279.7456,1746.5965,2028.3723,3795.3474];
+    const accessMin = Math.min(...accessTimes), accessMax = Math.max(...accessTimes);
+    const accessBinWidth = (accessMax - accessMin) / 20;
+    const accessBins = Array(20).fill(0);
+    accessTimes.forEach(t => { let idx = Math.floor((t - accessMin) / accessBinWidth); if (idx === 20) idx = 19; if (idx >= 0) accessBins[idx]++; });
+    new Chart(document.getElementById('accessTimeChart'), {
+        type: 'bar', data: { labels: Array(20).fill().map((_,i)=> (accessMin + i*accessBinWidth).toFixed(0)), datasets: [{ label: 'Frequency', data: accessBins, backgroundColor: '#667eea' }] },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Total Access Time Distribution (ms)' } } }
+    });
+    const uploadMin = Math.min(...uploadTimes), uploadMax = Math.max(...uploadTimes);
+    const uploadBinWidth = (uploadMax - uploadMin) / 20;
+    const uploadBins = Array(20).fill(0);
+    uploadTimes.forEach(t => { let idx = Math.floor((t - uploadMin) / uploadBinWidth); if (idx === 20) idx = 19; if (idx >= 0) uploadBins[idx]++; });
+    new Chart(document.getElementById('uploadTimeChart'), {
+        type: 'bar', data: { labels: Array(20).fill().map((_,i)=> (uploadMin + i*uploadBinWidth).toFixed(0)), datasets: [{ label: 'Frequency', data: uploadBins, backgroundColor: '#27ae60' }] },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Pinata Upload Time Distribution (ms)' } } }
+    });
+    new Chart(document.getElementById('sizeComparisonChart'), {
+        type: 'bar', data: { labels: ['Small', 'Medium', 'Large', 'XL'], datasets: [{ label: 'Avg Access Time (ms)', data: [7068, 17580, 26771, 42287], backgroundColor: '#e74c3c' }] },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Average Access Time by EHR Size' } } }
+    });
+    new Chart(document.getElementById('successRateChart'), {
+        type: 'doughnut', data: { labels: ['Successful (10)', 'Failed (0)'], datasets: [{ data: [10, 0], backgroundColor: ['#27ae60', '#e74c3c'] }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Upload Success Rate' } } }
+    });
+</script>
+</body>
+</html>

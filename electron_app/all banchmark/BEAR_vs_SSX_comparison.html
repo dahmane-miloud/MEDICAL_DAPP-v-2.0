@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>BEAR vs SSX – PFE Report</title>
+<style>
+body { font-family: 'Segoe UI', Arial; margin: 40px; background: #f0f2f5; }
+.container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+h1 { color: #1a5276; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+th { background: #2c3e50; color: white; }
+.even { background: #f9f9f9; }
+.bear-good { color: #27ae60; font-weight: bold; }
+.ssx-bad { color: #e74c3c; }
+.footer { margin-top: 30px; font-size: 0.8em; color: #7f8c8d; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🏥 BEAR vs SSX‑EHRs Performance Comparison</h1>
+<p><strong>Test environment:</strong> Real Pinata IPFS + Sepolia testnet | Proxy: localhost:5000 | 5 iterations per size</p>
+<h2>⏱️ Total Access Time (ms)</h2>
+<table>
+<tr><th>File Size (KB)</th><th>BEAR (measured)</th><th>SSX‑EHRs (interpolated)</th><th>Difference (%)</th></tr>
+<tr class="even"><td>50</td><td class="bear-good">6332</td><td class="ssx-bad">15000</td><td>-57.8%</td></tr><tr class=""><td>100</td><td class="bear-good">7689</td><td class="ssx-bad">15000</td><td>-48.7%</td></tr><tr class="even"><td>200</td><td class="bear-good">7834</td><td class="ssx-bad">15000</td><td>-47.8%</td></tr><tr class=""><td>400</td><td class="bear-good">10578</td><td class="ssx-bad">15000</td><td>-29.5%</td></tr><tr class="even"><td>800</td><td class="bear-good">12940</td><td class="ssx-bad">15000</td><td>-13.7%</td></tr><tr class=""><td>1600</td><td class="">21444</td><td class="">15000</td><td>43.0%</td></tr>
+</table>
+<h2>⚙️ Detailed Metrics (BEAR average)</h2>
+<table>
+<tr><th>Size(KB)</th><th>AES Enc(ms)</th><th>AES Dec(ms)</th><th>Upload(ms)</th><th>Download(ms)</th><th>Proxy Re‑enc(ms)</th></tr>
+<tr><td>50</td><td>0.3</td><td>0.2</td><td>1649</td><td>5999</td><td>19.3</td></tr><tr><td>100</td><td>0.3</td><td>0.3</td><td>3668</td><td>7051</td><td>29.2</td></tr><tr><td>200</td><td>0.5</td><td>0.5</td><td>4021</td><td>7341</td><td>25.2</td></tr><tr><td>400</td><td>1.0</td><td>0.7</td><td>3332</td><td>9699</td><td>28.4</td></tr><tr><td>800</td><td>2.0</td><td>1.3</td><td>4051</td><td>12651</td><td>20.9</td></tr><tr><td>1600</td><td>2.8</td><td>1.9</td><td>3289</td><td>21209</td><td>18.1</td></tr>
+</table>
+<h2>💰 Gas Costs (Sepolia)</h2>
+<p><strong>BEAR:</strong> Witness issuance = 85882 gas | Revocation = 46064 gas</p>
+<p><strong>SSX (reported):</strong> Witness ≈ 95000 gas | Revocation ≈ 48000 gas</p>
+<p><em>Gas price at test time: 0.00 Gwei | 1 ETH = 350000 DZD</em></p>
+<div class="footer">Report generated on 11/05/2026, 10:03:40 | BEAR real‑world benchmark | SSX values based on paper (interpolated where missing)</div>
+</div>
+</body></html>

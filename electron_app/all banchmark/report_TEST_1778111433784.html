@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Performance Report - Medical DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header .test-info { margin-top: 20px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .badge { background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 30px; font-size: 0.9em; }
+        .content { padding: 40px; }
+        .section { margin-bottom: 40px; }
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .card-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 6px 8px;
+            background: white;
+            border-radius: 8px;
+        }
+        .metric-label { font-weight: 500; color: #7f8c8d; }
+        .metric-value { font-family: 'Courier New', monospace; font-weight: 600; color: #2c3e50; }
+        .highlight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .highlight-card .metric-label { color: rgba(255,255,255,0.8); }
+        .highlight-card .metric-value { color: white; }
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas { max-height: 400px; width: 100%; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.85em;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover { background: #f5f5f5; }
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            font-size: 0.85em;
+        }
+        .confidence-interval {
+            font-size: 0.8em;
+            color: #27ae60;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 1.4em; }
+            .header h1 { font-size: 1.6em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Medical DApp Performance Report</h1>
+            <p>Professional Performance Testing Suite - Sepolia Testnet</p>
+            <div class="test-info">
+                <div class="badge">📊 100 EHRs Processed</div>
+                <div class="badge">⏱️ 38.4s Total Duration</div>
+                <div class="badge">💰 0.001000018 Gwei Gas Price</div>
+                <div class="badge">🔄 1 Run(s)</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Executive Summary -->
+            <div class="section">
+                <h2 class="section-title">📊 Executive Summary</h2>
+                <div class="stats-grid">
+                    <div class="card highlight-card">
+                        <div class="card-title">⚡ Total Access Time</div>
+                        <div class="metric-row"><span class="metric-label">Average:</span><span class="metric-value">198.03 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">345.09 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P99:</span><span class="metric-value">1054.61 ms</span></div>
+                        <div class="confidence-interval">95% CI: [177.28, 218.78]</div>
+                    </div>
+                    <div class="card highlight-card">
+                        <div class="card-title">💰 Witness Issuance Cost</div>
+                        <div class="metric-row"><span class="metric-label">Average:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Total 100 EHRs:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Gas Used:</span><span class="metric-value">85870 gas</span></div>
+                    </div>
+                    <div class="card highlight-card">
+                        <div class="card-title">📁 Data Efficiency</div>
+                        <div class="metric-row"><span class="metric-label">Original EHR:</span><span class="metric-value">0.83 KB</span></div>
+                        <div class="metric-row"><span class="metric-label">Encrypted:</span><span class="metric-value">0.85 KB</span></div>
+                        <div class="metric-row"><span class="metric-label">Overhead:</span><span class="metric-value">103.3%</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Crypto Metrics -->
+            <div class="section">
+                <h2 class="section-title">🔐 Cryptographic Performance</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">AES-256 Key Generation</div>
+                        <div class="metric-row"><span class="metric-label">Mean ± StdDev:</span><span class="metric-value">0.04 ± 0.03 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Median (P50):</span><span class="metric-value">0.04 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95 / P99:</span><span class="metric-value">0.08 / 0.26 ms</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">AES-256 GCM Encryption</div>
+                        <div class="metric-row"><span class="metric-label">Mean ± StdDev:</span><span class="metric-value">0.11 ± 0.10 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Min / Max:</span><span class="metric-value">0.06 / 0.88 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Outliers:</span><span class="metric-value">11</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">AES Decryption</div>
+                        <div class="metric-row"><span class="metric-label">Mean ± StdDev:</span><span class="metric-value">0.09 ± 0.09 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95 / P99:</span><span class="metric-value">0.25 / 0.86 ms</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Proxy Metrics -->
+            <div class="section">
+                <h2 class="section-title">🔑 TB-PRE Proxy Performance</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">Key Encapsulation</div>
+                        <div class="metric-row"><span class="metric-label">Mean:</span><span class="metric-value">17.30 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">32.48 ms</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Rekey Generation (Share Request)</div>
+                        <div class="metric-row"><span class="metric-label">Mean:</span><span class="metric-value">8.08 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">14.35 ms</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Proxy Re-encryption (Share Time)</div>
+                        <div class="metric-row"><span class="metric-label">Mean:</span><span class="metric-value">29.75 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">52.22 ms</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Blockchain Metrics -->
+            <div class="section">
+                <h2 class="section-title">⛓️ Sepolia Blockchain Metrics</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">Witness Issuance (setDoctorWitness)</div>
+                        <div class="metric-row"><span class="metric-label">Time:</span><span class="metric-value">13412.05 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Gas:</span><span class="metric-value">85870 gas</span></div>
+                        <div class="metric-row"><span class="metric-label">Cost:</span><span class="metric-value">0.0301 DZD</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Witness Verification (per EHR)</div>
+                        <div class="metric-row"><span class="metric-label">Mean:</span><span class="metric-value">147.04 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">262.59 ms</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Revocation</div>
+                        <div class="metric-row"><span class="metric-label">Time:</span><span class="metric-value">16738.02 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Gas:</span><span class="metric-value">46064 gas</span></div>
+                        <div class="metric-row"><span class="metric-label">Cost:</span><span class="metric-value">0.0161 DZD</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- End-to-End Access Time Distribution -->
+            <div class="section">
+                <h2 class="section-title">📈 End-to-End Access Time Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="accessTimeChart"></canvas>
+                </div>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">Statistical Summary</div>
+                        <div class="metric-row"><span class="metric-label">Mean:</span><span class="metric-value">198.03 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Median:</span><span class="metric-value">169.44 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Std Dev:</span><span class="metric-value">105.86 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">CV (σ/μ):</span><span class="metric-value">53.5%</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Percentile Analysis</div>
+                        <div class="metric-row"><span class="metric-label">P50 (Median):</span><span class="metric-value">169.44 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P90:</span><span class="metric-value">274.71 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">345.09 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P99:</span><span class="metric-value">1054.61 ms</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Per-EHR Results Table -->
+            <div class="section">
+                <h2 class="section-title">📋 Detailed Results per EHR (Last 20)</h2>
+                <div style="overflow-x: auto; max-height: 500px;">
+                    <table>
+                        <thead>
+                            <tr><th>EHR #</th><th>AES Enc (ms)</th><th>AES Dec (ms)</th><th>Proxy Encap (ms)</th><th>Proxy ReEnc (ms)</th><th>Witness Chk (ms)</th><th>Total Access (ms)</th></tr>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>81</td>
+                                <td>0.12</td>
+                                <td>0.08</td>
+                                <td>18.22</td>
+                                <td>23.37</td>
+                                <td>136.51</td>
+                                <td><strong>176.11</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>82</td>
+                                <td>0.23</td>
+                                <td>0.09</td>
+                                <td>15.80</td>
+                                <td>40.58</td>
+                                <td>116.48</td>
+                                <td><strong>186.45</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>83</td>
+                                <td>0.19</td>
+                                <td>0.06</td>
+                                <td>15.94</td>
+                                <td>23.39</td>
+                                <td>124.05</td>
+                                <td><strong>172.41</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>84</td>
+                                <td>0.08</td>
+                                <td>0.05</td>
+                                <td>19.84</td>
+                                <td>25.27</td>
+                                <td>122.23</td>
+                                <td><strong>164.83</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>85</td>
+                                <td>0.06</td>
+                                <td>0.09</td>
+                                <td>14.44</td>
+                                <td>52.22</td>
+                                <td>127.18</td>
+                                <td><strong>206.77</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>86</td>
+                                <td>0.10</td>
+                                <td>0.08</td>
+                                <td>35.97</td>
+                                <td>282.25</td>
+                                <td>136.22</td>
+                                <td><strong>465.43</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>87</td>
+                                <td>0.09</td>
+                                <td>0.06</td>
+                                <td>23.32</td>
+                                <td>22.42</td>
+                                <td>120.42</td>
+                                <td><strong>159.47</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>88</td>
+                                <td>0.06</td>
+                                <td>0.13</td>
+                                <td>13.07</td>
+                                <td>30.17</td>
+                                <td>164.09</td>
+                                <td><strong>214.19</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>89</td>
+                                <td>0.08</td>
+                                <td>0.06</td>
+                                <td>15.43</td>
+                                <td>23.97</td>
+                                <td>193.90</td>
+                                <td><strong>237.78</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>90</td>
+                                <td>0.11</td>
+                                <td>0.13</td>
+                                <td>14.62</td>
+                                <td>27.42</td>
+                                <td>297.35</td>
+                                <td><strong>345.09</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>91</td>
+                                <td>0.17</td>
+                                <td>0.07</td>
+                                <td>15.40</td>
+                                <td>27.37</td>
+                                <td>113.73</td>
+                                <td><strong>161.23</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>92</td>
+                                <td>0.09</td>
+                                <td>0.08</td>
+                                <td>13.94</td>
+                                <td>25.10</td>
+                                <td>141.65</td>
+                                <td><strong>190.21</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>93</td>
+                                <td>0.08</td>
+                                <td>0.07</td>
+                                <td>18.00</td>
+                                <td>23.83</td>
+                                <td>128.63</td>
+                                <td><strong>170.98</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>94</td>
+                                <td>0.08</td>
+                                <td>0.25</td>
+                                <td>14.30</td>
+                                <td>181.00</td>
+                                <td>119.48</td>
+                                <td><strong>381.65</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>95</td>
+                                <td>0.23</td>
+                                <td>0.08</td>
+                                <td>45.19</td>
+                                <td>37.57</td>
+                                <td>149.66</td>
+                                <td><strong>230.83</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>96</td>
+                                <td>0.10</td>
+                                <td>0.08</td>
+                                <td>18.20</td>
+                                <td>94.99</td>
+                                <td>130.23</td>
+                                <td><strong>316.49</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>97</td>
+                                <td>0.08</td>
+                                <td>0.08</td>
+                                <td>24.82</td>
+                                <td>28.91</td>
+                                <td>111.39</td>
+                                <td><strong>160.08</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>98</td>
+                                <td>0.13</td>
+                                <td>0.07</td>
+                                <td>72.50</td>
+                                <td>25.50</td>
+                                <td>150.62</td>
+                                <td><strong>196.51</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>99</td>
+                                <td>0.07</td>
+                                <td>0.07</td>
+                                <td>25.66</td>
+                                <td>20.87</td>
+                                <td>482.28</td>
+                                <td><strong>526.75</strong></td>
+                            </tr>
+                            
+                            <tr>
+                                <td>100</td>
+                                <td>0.08</td>
+                                <td>0.33</td>
+                                <td>13.77</td>
+                                <td>19.99</td>
+                                <td>1019.38</td>
+                                <td><strong>1054.61</strong></td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Gas & Cost Analysis -->
+            <div class="section">
+                <h2 class="section-title">💰 Gas Consumption & Cost Analysis</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">Total Gas Consumption</div>
+                        <div class="metric-row"><span class="metric-label">Witness Issuance (Total):</span><span class="metric-value">85,870 gas</span></div>
+                        <div class="metric-row"><span class="metric-label">Per EHR Average:</span><span class="metric-value">85870 gas</span></div>
+                        <div class="metric-row"><span class="metric-label">Revocation:</span><span class="metric-value">46064 gas</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Total Cost (DZD)</div>
+                        <div class="metric-row"><span class="metric-label">Witness Issuance:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Per EHR:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Revocation:</span><span class="metric-value">0.0161 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label"><strong>Total Cost:</strong></span><span class="metric-value"><strong>0.0462 DZD</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated by Professional Performance Test Suite | 07/05/2026, 00:51:27</p>
+            <p>Network: Sepolia Testnet | Contract: 0x59Ee6DB1bf1fbF... | Run ID: TEST_1778111433784_RUN1</p>
+            <p>Confidence Interval: 95% | Statistical analysis includes outlier detection</p>
+        </div>
+    </div>
+    
+    <script>
+        // Access Time Distribution Chart
+        const accessTimes = [173.4489,172.4007,181.8463,147.7766,169.3493,175.1853,151.8197,169.3901,178.7821,161.4253,167.4375,166.8686,157.7119,154.5226,174.8332,159.3089,183.8058,283.1656,325.8695,274.4697,299.8058,162.6086,196.8771,164.845,164.9124,157.3977,162.9547,152.9652,153.9927,164.3561,171.0729,173.8221,157.4158,173.8095,179.4074,153.0723,167.1027,160.7606,151.4739,186.8363,154.7518,183.652,174.9146,163.7273,159.4936,162.5121,180.5996,169.4411,189.6801,189.1888,154.3465,164.5299,174.6475,158.1455,140.1135,197.0769,159.7888,157.3547,210.0039,159.8177,156.4768,159.3038,153.031,225.5667,152.4571,167.722,181.3726,156.9561,148.7377,165.1913,164.8412,170.5945,164.8534,158.7522,178.9382,173.1266,166.453,187.0521,190.26,274.715,176.1067,186.4496,172.4065,164.8265,206.7726,465.4297,159.467,214.1866,237.7759,345.0915,161.2342,190.2106,170.9826,381.6471,230.8265,316.4905,160.0803,196.5093,526.7543,1054.6121];
+        const bins = 20;
+        const min = Math.min(...accessTimes);
+        const max = Math.max(...accessTimes);
+        const binWidth = (max - min) / bins;
+        const histogram = Array(bins).fill(0);
+        accessTimes.forEach(t => {
+            let idx = Math.floor((t - min) / binWidth);
+            if (idx === bins) idx = bins - 1;
+            if (idx >= 0 && idx < bins) histogram[idx]++;
+        });
+        const labels = Array(bins).fill().map((_, i) => (min + i * binWidth).toFixed(0));
+        
+        new Chart(document.getElementById('accessTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Frequency',
+                    data: histogram,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    title: { display: true, text: 'Total Access Time Distribution (ms)' },
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Access Time (ms)' } },
+                    y: { title: { display: true, text: 'Number of EHRs' }, beginAtZero: true }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

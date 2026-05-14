@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>MediChain Benchmark – 20MB EHRs × 10</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',Arial;background:linear-gradient(135deg,#667eea,#764ba2);padding:40px}
+  .container{max-width:1400px;margin:auto;background:#fff;border-radius:20px;overflow:hidden}
+  .header{background:linear-gradient(135deg,#2c3e50,#3498db);color:#fff;padding:40px;text-align:center}
+  .grade-card{background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:15px;padding:30px;margin:30px;text-align:center;color:#fff}
+  .grade-card .grade{font-size:4em;font-weight:bold}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin:30px}
+  .stat-card{background:#f8f9fa;border-radius:15px;padding:20px;text-align:center;border-left:4px solid #3498db}
+  .stat-card .value{font-size:2em;font-weight:bold;color:#3498db}
+  table{width:calc(100% - 60px);margin:20px auto;border-collapse:collapse}
+  th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd}
+  th{background:#3498db;color:#fff}
+  .gas-card{background:linear-gradient(135deg,#2c3e50,#1a252f);color:#fff;border-radius:15px;padding:25px;margin:30px}
+  .gas-stats{display:flex;justify-content:space-around;flex-wrap:wrap;gap:20px}
+  .chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:30px;margin:30px}
+  .chart-container{background:#f8f9fa;border-radius:12px;padding:20px}
+  .footer{background:#2c3e50;color:#fff;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>🏥 MediChain Benchmark Report</h1><p>10 iterations × 20MB EHRs | Pinata + Sepolia</p></div>
+  <div class="grade-card"><div class="grade">🏆 A</div><div>Average workflow: 116320.69 ms | Throughput: 0.01 ops/sec</div></div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="value">116320.69 ms</div><div>Avg Total Access</div><div>min 42121.62 | max 444608.09</div></div>
+    <div class="stat-card"><div class="value">12.72 ms</div><div>Avg AES Encrypt</div></div>
+    <div class="stat-card"><div class="value">11.71 ms</div><div>Avg AES Decrypt</div></div>
+    <div class="stat-card"><div class="value">13685.90 ms</div><div>Avg Pinata Upload</div></div>
+    <div class="stat-card"><div class="value">115930.25 ms</div><div>Avg Pinata Download</div></div>
+    <div class="stat-card"><div class="value">19.61 ms</div><div>Avg Proxy Re‑encrypt</div></div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-container"><canvas id="accessChart"></canvas></div>
+    <div class="chart-container"><canvas id="uploadChart"></canvas></div>
+  </div>
+  <div class="gas-card">
+    <h3>⛽ Gas Costs (Sepolia) 1 ETH = 350,000 DZD</h3>
+    <div class="gas-stats">
+      <div><strong>Witness Issuance</strong><br>85,870 gas<br>≈ 0.0301 DZD</div>
+      <div><strong>Revocation</strong><br>46,064 gas<br>≈ 0.0161 DZD</div>
+      <div><strong>Gas Price</strong><br>0.00 Gwei</div>
+    </div>
+  </div>
+  <div style="overflow-x:auto; margin:0 30px 30px">
+    <table><thead><tr><th>#</th><th>Size(MB)</th><th>AES Enc(ms)</th><th>AES Dec(ms)</th><th>Pinata Up(ms)</th><th>Pinata Down(ms)</th><th>Proxy ReEnc(ms)</th><th>Total Access(ms)</th><th>Status</th></tr></thead>
+    <tbody><tr>
+      <td>1</td><td>9.74</td>
+      <td>13.48</td><td>11.12</td>
+      <td>13445.89</td>
+      <td>41856.51</td>
+      <td>17.80</td>
+      <td><strong>42121.62</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>2</td><td>9.74</td>
+      <td>12.10</td><td>14.34</td>
+      <td>10162.23</td>
+      <td>48219.89</td>
+      <td>21.58</td>
+      <td><strong>48502.96</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>3</td><td>9.74</td>
+      <td>14.29</td><td>10.67</td>
+      <td>10485.84</td>
+      <td>42585.00</td>
+      <td>19.16</td>
+      <td><strong>42882.46</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>4</td><td>9.74</td>
+      <td>11.90</td><td>11.91</td>
+      <td>9401.60</td>
+      <td>74959.35</td>
+      <td>19.17</td>
+      <td><strong>75261.49</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>5</td><td>9.74</td>
+      <td>13.07</td><td>12.84</td>
+      <td>10562.53</td>
+      <td>61322.18</td>
+      <td>19.16</td>
+      <td><strong>61578.40</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>6</td><td>9.74</td>
+      <td>11.58</td><td>10.46</td>
+      <td>10704.97</td>
+      <td>47296.40</td>
+      <td>18.85</td>
+      <td><strong>47676.33</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>7</td><td>9.74</td>
+      <td>13.29</td><td>11.66</td>
+      <td>12747.11</td>
+      <td>259269.79</td>
+      <td>24.32</td>
+      <td><strong>259564.92</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>8</td><td>9.74</td>
+      <td>12.22</td><td>10.77</td>
+      <td>18150.31</td>
+      <td>443428.64</td>
+      <td>16.36</td>
+      <td><strong>444608.09</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>9</td><td>9.74</td>
+      <td>12.34</td><td>12.60</td>
+      <td>28040.81</td>
+      <td>81097.29</td>
+      <td>19.53</td>
+      <td><strong>81472.69</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr><tr>
+      <td>10</td><td>9.74</td>
+      <td>12.91</td><td>10.67</td>
+      <td>13157.74</td>
+      <td>59267.45</td>
+      <td>20.19</td>
+      <td><strong>59537.98</strong></td>
+      <td class="status-pass">✓ PASS</td>
+    </tr></tbody></table>
+  </div>
+  <div class="footer">Generated on 08/05/2026, 08:03:44 | Test ID: TEST_1778222492025</div>
+</div>
+<script>
+  const accessTimes = [42121.6157,42882.4615,47676.3303,48502.9647,59537.9799,61578.4037,75261.4852,81472.6932,259564.9242,444608.0858];
+  const uploadTimes = [13445.8856,10162.2283,10485.8433,9401.5987,10562.5299,10704.9686,12747.1114,18150.3056,28040.813,13157.7371];
+  const bins = 20;
+  const aMin = Math.min(...accessTimes), aMax = Math.max(...accessTimes);
+  const aBin = (aMax-aMin)/bins;
+  const aBins = Array(bins).fill(0);
+  accessTimes.forEach(t=>{let i=Math.min(bins-1,Math.floor((t-aMin)/aBin)); if(i>=0) aBins[i]++;});
+  new Chart(document.getElementById('accessChart'),{type:'bar',data:{labels:Array(bins).fill().map((_,i)=>(aMin+i*aBin).toFixed(0)),datasets:[{label:'Frequency',data:aBins,backgroundColor:'#667eea'}]},options:{responsive:true,plugins:{title:{display:true,text:'Total Access Time Distribution (ms)'}}}});
+  const uMin = Math.min(...uploadTimes), uMax = Math.max(...uploadTimes);
+  const uBin = (uMax-uMin)/bins;
+  const uBins = Array(bins).fill(0);
+  uploadTimes.forEach(t=>{let i=Math.min(bins-1,Math.floor((t-uMin)/uBin)); if(i>=0) uBins[i]++;});
+  new Chart(document.getElementById('uploadChart'),{type:'bar',data:{labels:Array(bins).fill().map((_,i)=>(uMin+i*uBin).toFixed(0)),datasets:[{label:'Frequency',data:uBins,backgroundColor:'#27ae60'}]},options:{responsive:true,plugins:{title:{display:true,text:'Pinata Upload Time Distribution (ms)'}}}});
+</script>
+</body>
+</html>

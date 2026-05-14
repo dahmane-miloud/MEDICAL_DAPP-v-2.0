@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Performance Report - Large EHR Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .test-info { margin-top: 20px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .badge { background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 30px; font-size: 0.9em; }
+        .content { padding: 40px; }
+        .section { margin-bottom: 40px; }
+        .section-title { font-size: 1.8em; color: #2c3e50; border-left: 5px solid #3498db; padding-left: 15px; margin-bottom: 25px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 30px; }
+        .card { background: #f8f9fa; border-radius: 16px; padding: 20px; transition: transform 0.3s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .card-title { font-size: 1.2em; font-weight: 700; color: #2c3e50; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3498db; }
+        .metric-row { display: flex; justify-content: space-between; margin: 8px 0; padding: 6px 8px; background: white; border-radius: 8px; }
+        .metric-label { font-weight: 500; color: #7f8c8d; }
+        .metric-value { font-family: 'Courier New', monospace; font-weight: 600; color: #2c3e50; }
+        .highlight-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .highlight-card .metric-label { color: rgba(255,255,255,0.8); }
+        .highlight-card .metric-value { color: white; }
+        .chart-container { background: white; border-radius: 16px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        canvas { max-height: 400px; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85em; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #3498db; color: white; position: sticky; top: 0; }
+        tr:hover { background: #f5f5f5; }
+        .footer { background: #2c3e50; color: white; text-align: center; padding: 30px; font-size: 0.85em; }
+        .size-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+        .size-s { background: #2ecc71; }
+        .size-m { background: #f39c12; }
+        .size-l { background: #e74c3c; }
+        .size-xl { background: #8e44ad; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Medical DApp Performance Report</h1>
+            <p>Large EHR Performance Testing - Sepolia Testnet</p>
+            <div class="test-info">
+                <div class="badge">📊 100 EHRs Processed</div>
+                <div class="badge">⏱️ 34.2s Total Duration</div>
+                <div class="badge">💰 0.001000027 Gwei Gas Price</div>
+                <div class="badge">📦 Mixed Sizes (10KB - 5MB)</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Size Distribution -->
+            <div class="section">
+                <h2 class="section-title">📊 EHR Size Distribution</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">Size Categories</div>
+                        <div class="metric-row"><span class="metric-label"><span class="size-indicator size-s"></span> Small (10-50 KB):</span><span class="metric-value">100 EHRs</span></div>
+                        <div class="metric-row"><span class="metric-label"><span class="size-indicator size-m"></span> Medium (100-300 KB):</span><span class="metric-value">0 EHRs</span></div>
+                        <div class="metric-row"><span class="metric-label"><span class="size-indicator size-l"></span> Large (500KB-1MB):</span><span class="metric-value">0 EHRs</span></div>
+                        <div class="metric-row"><span class="metric-label"><span class="size-indicator size-xl"></span> XL (2-5 MB):</span><span class="metric-value">0 EHRs</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Size Statistics</div>
+                        <div class="metric-row"><span class="metric-label">Min / Max:</span><span class="metric-value">24 / 26 KB</span></div>
+                        <div class="metric-row"><span class="metric-label">Mean ± StdDev:</span><span class="metric-value">25 ± 0 KB</span></div>
+                        <div class="metric-row"><span class="metric-label">Median:</span><span class="metric-value">25 KB</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Executive Summary -->
+            <div class="section">
+                <h2 class="section-title">⚡ Executive Summary</h2>
+                <div class="stats-grid">
+                    <div class="card highlight-card">
+                        <div class="card-title">Total Access Time</div>
+                        <div class="metric-row"><span class="metric-label">Average:</span><span class="metric-value">196.95 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P95:</span><span class="metric-value">364.78 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">P99:</span><span class="metric-value">781.21 ms</span></div>
+                    </div>
+                    <div class="card highlight-card">
+                        <div class="card-title">Witness Issuance Cost</div>
+                        <div class="metric-row"><span class="metric-label">Average:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Total 100 EHRs:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Gas Used:</span><span class="metric-value">85882 gas</span></div>
+                    </div>
+                    <div class="card highlight-card">
+                        <div class="card-title">Data Efficiency</div>
+                        <div class="metric-row"><span class="metric-label">Original EHR:</span><span class="metric-value">25.21 KB</span></div>
+                        <div class="metric-row"><span class="metric-label">Encrypted:</span><span class="metric-value">25.24 KB</span></div>
+                        <div class="metric-row"><span class="metric-label">Overhead:</span><span class="metric-value">100.1%</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Crypto Metrics -->
+            <div class="section">
+                <h2 class="section-title">🔐 Cryptographic Performance by Size</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">AES Encryption Time</div>
+                        <div class="metric-row"><span class="metric-label">Overall Mean:</span><span class="metric-value">0.17 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Small EHRs:</span><span class="metric-value">0.17 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Large EHRs (>1MB):</span><span class="metric-value">0.00 ms</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">IPFS Upload Time</div>
+                        <div class="metric-row"><span class="metric-label">Overall Mean:</span><span class="metric-value">0.05 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Small EHRs:</span><span class="metric-value">0.05 ms</span></div>
+                        <div class="metric-row"><span class="metric-label">Large EHRs (>1MB):</span><span class="metric-value">0.00 ms</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="section">
+                <h2 class="section-title">📈 Performance vs EHR Size</h2>
+                <div class="chart-container">
+                    <canvas id="sizeVsTimeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="accessTimeDistChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Detailed Results Table -->
+            <div class="section">
+                <h2 class="section-title">📋 Detailed Results per EHR (Last 30)</h2>
+                <div style="overflow-x: auto; max-height: 500px;">
+                    <table>
+                        <thead>
+                            <tr><th>EHR #</th><th>Size (KB)</th><th>AES Enc (ms)</th><th>AES Dec (ms)</th><th>Proxy Encap (ms)</th><th>Proxy ReEnc (ms)</th><th>IPFS Upload (ms)</th><th>Total Access (ms)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                    <td>71</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.07</td>
+                                    <td>0.11</td>
+                                    <td>10.26</td>
+                                    <td>21.09</td>
+                                    <td>0.03</td>
+                                    <td><strong>211.25</strong></td>
+                                </tr><tr>
+                                    <td>72</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.09</td>
+                                    <td>0.10</td>
+                                    <td>10.11</td>
+                                    <td>20.75</td>
+                                    <td>0.03</td>
+                                    <td><strong>173.86</strong></td>
+                                </tr><tr>
+                                    <td>73</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.10</td>
+                                    <td>0.07</td>
+                                    <td>10.90</td>
+                                    <td>21.57</td>
+                                    <td>0.03</td>
+                                    <td><strong>165.64</strong></td>
+                                </tr><tr>
+                                    <td>74</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.08</td>
+                                    <td>0.10</td>
+                                    <td>11.15</td>
+                                    <td>17.35</td>
+                                    <td>0.03</td>
+                                    <td><strong>158.45</strong></td>
+                                </tr><tr>
+                                    <td>75</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.12</td>
+                                    <td>0.10</td>
+                                    <td>10.99</td>
+                                    <td>17.01</td>
+                                    <td>0.03</td>
+                                    <td><strong>147.86</strong></td>
+                                </tr><tr>
+                                    <td>76</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.11</td>
+                                    <td>0.09</td>
+                                    <td>10.27</td>
+                                    <td>20.02</td>
+                                    <td>0.03</td>
+                                    <td><strong>165.21</strong></td>
+                                </tr><tr>
+                                    <td>77</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.13</td>
+                                    <td>0.07</td>
+                                    <td>17.15</td>
+                                    <td>19.60</td>
+                                    <td>0.04</td>
+                                    <td><strong>165.28</strong></td>
+                                </tr><tr>
+                                    <td>78</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.10</td>
+                                    <td>0.09</td>
+                                    <td>13.33</td>
+                                    <td>20.38</td>
+                                    <td>0.03</td>
+                                    <td><strong>169.20</strong></td>
+                                </tr><tr>
+                                    <td>79</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.08</td>
+                                    <td>0.17</td>
+                                    <td>12.28</td>
+                                    <td>28.65</td>
+                                    <td>0.03</td>
+                                    <td><strong>178.34</strong></td>
+                                </tr><tr>
+                                    <td>80</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.10</td>
+                                    <td>0.12</td>
+                                    <td>12.97</td>
+                                    <td>28.44</td>
+                                    <td>0.04</td>
+                                    <td><strong>176.18</strong></td>
+                                </tr><tr>
+                                    <td>81</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.08</td>
+                                    <td>0.12</td>
+                                    <td>14.78</td>
+                                    <td>20.75</td>
+                                    <td>0.04</td>
+                                    <td><strong>145.61</strong></td>
+                                </tr><tr>
+                                    <td>82</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.72</td>
+                                    <td>0.14</td>
+                                    <td>12.84</td>
+                                    <td>18.95</td>
+                                    <td>0.05</td>
+                                    <td><strong>185.15</strong></td>
+                                </tr><tr>
+                                    <td>83</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.10</td>
+                                    <td>0.09</td>
+                                    <td>12.60</td>
+                                    <td>20.23</td>
+                                    <td>0.15</td>
+                                    <td><strong>167.71</strong></td>
+                                </tr><tr>
+                                    <td>84</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.08</td>
+                                    <td>0.09</td>
+                                    <td>10.14</td>
+                                    <td>22.85</td>
+                                    <td>0.03</td>
+                                    <td><strong>171.88</strong></td>
+                                </tr><tr>
+                                    <td>85</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.08</td>
+                                    <td>0.07</td>
+                                    <td>10.16</td>
+                                    <td>20.51</td>
+                                    <td>0.03</td>
+                                    <td><strong>151.39</strong></td>
+                                </tr><tr>
+                                    <td>86</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.09</td>
+                                    <td>0.10</td>
+                                    <td>11.40</td>
+                                    <td>24.20</td>
+                                    <td>0.04</td>
+                                    <td><strong>156.20</strong></td>
+                                </tr><tr>
+                                    <td>87</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.14</td>
+                                    <td>0.07</td>
+                                    <td>14.74</td>
+                                    <td>20.21</td>
+                                    <td>0.06</td>
+                                    <td><strong>168.79</strong></td>
+                                </tr><tr>
+                                    <td>88</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.20</td>
+                                    <td>0.13</td>
+                                    <td>13.34</td>
+                                    <td>19.81</td>
+                                    <td>0.04</td>
+                                    <td><strong>164.81</strong></td>
+                                </tr><tr>
+                                    <td>89</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.19</td>
+                                    <td>0.10</td>
+                                    <td>12.51</td>
+                                    <td>30.82</td>
+                                    <td>0.04</td>
+                                    <td><strong>172.06</strong></td>
+                                </tr><tr>
+                                    <td>90</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.11</td>
+                                    <td>0.07</td>
+                                    <td>12.73</td>
+                                    <td>20.85</td>
+                                    <td>0.03</td>
+                                    <td><strong>162.11</strong></td>
+                                </tr><tr>
+                                    <td>91</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.08</td>
+                                    <td>0.18</td>
+                                    <td>24.95</td>
+                                    <td>31.07</td>
+                                    <td>0.06</td>
+                                    <td><strong>169.27</strong></td>
+                                </tr><tr>
+                                    <td>92</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.19</td>
+                                    <td>0.08</td>
+                                    <td>12.15</td>
+                                    <td>19.71</td>
+                                    <td>0.05</td>
+                                    <td><strong>161.59</strong></td>
+                                </tr><tr>
+                                    <td>93</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.09</td>
+                                    <td>0.09</td>
+                                    <td>9.65</td>
+                                    <td>29.34</td>
+                                    <td>0.04</td>
+                                    <td><strong>160.65</strong></td>
+                                </tr><tr>
+                                    <td>94</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.16</td>
+                                    <td>0.14</td>
+                                    <td>16.40</td>
+                                    <td>18.55</td>
+                                    <td>0.05</td>
+                                    <td><strong>151.64</strong></td>
+                                </tr><tr>
+                                    <td>95</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.42</td>
+                                    <td>0.07</td>
+                                    <td>17.73</td>
+                                    <td>20.41</td>
+                                    <td>0.04</td>
+                                    <td><strong>150.16</strong></td>
+                                </tr><tr>
+                                    <td>96</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.16</td>
+                                    <td>0.08</td>
+                                    <td>20.44</td>
+                                    <td>20.41</td>
+                                    <td>0.06</td>
+                                    <td><strong>156.87</strong></td>
+                                </tr><tr>
+                                    <td>97</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.14</td>
+                                    <td>0.10</td>
+                                    <td>13.49</td>
+                                    <td>21.20</td>
+                                    <td>0.03</td>
+                                    <td><strong>160.53</strong></td>
+                                </tr><tr>
+                                    <td>98</td>
+                                    <td><span class="size-indicator size-s"></span> 25</td>
+                                    <td>0.11</td>
+                                    <td>0.14</td>
+                                    <td>11.07</td>
+                                    <td>19.84</td>
+                                    <td>0.03</td>
+                                    <td><strong>199.75</strong></td>
+                                </tr><tr>
+                                    <td>99</td>
+                                    <td><span class="size-indicator size-s"></span> 24</td>
+                                    <td>0.11</td>
+                                    <td>0.10</td>
+                                    <td>19.04</td>
+                                    <td>20.41</td>
+                                    <td>0.04</td>
+                                    <td><strong>166.33</strong></td>
+                                </tr><tr>
+                                    <td>100</td>
+                                    <td><span class="size-indicator size-s"></span> 26</td>
+                                    <td>0.08</td>
+                                    <td>0.08</td>
+                                    <td>9.63</td>
+                                    <td>21.19</td>
+                                    <td>0.03</td>
+                                    <td><strong>197.37</strong></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Cost Analysis -->
+            <div class="section">
+                <h2 class="section-title">💰 Cost Analysis</h2>
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-title">Total Gas Consumption</div>
+                        <div class="metric-row"><span class="metric-label">Witness Issuance (Total):</span><span class="metric-value">85,882 gas</span></div>
+                        <div class="metric-row"><span class="metric-label">Per EHR Average:</span><span class="metric-value">85882 gas</span></div>
+                        <div class="metric-row"><span class="metric-label">Revocation:</span><span class="metric-value">46064 gas</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Total Cost (DZD)</div>
+                        <div class="metric-row"><span class="metric-label">Witness Issuance:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label">Per EHR:</span><span class="metric-value">0.0301 DZD</span></div>
+                        <div class="metric-row"><span class="metric-label"><strong>Total (100 EHRs):</strong></span><span class="metric-value"><strong>0.0462 DZD</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated by Professional Performance Test Suite | 07/05/2026, 01:05:25</p>
+            <p>Network: Sepolia Testnet | Contract: 0x59Ee6DB1bf1fbF... | Mixed EHR Sizes (10KB - 5MB)</p>
+        </div>
+    </div>
+    
+    <script>
+        const ehrData = [{"sizeKB":24.62109375,"time":203.1011},{"sizeKB":25.8408203125,"time":180.2456},{"sizeKB":25.5556640625,"time":167.6067},{"sizeKB":25.66015625,"time":189.9094},{"sizeKB":25.44921875,"time":170.124},{"sizeKB":25.33984375,"time":164.6532},{"sizeKB":25.2587890625,"time":169.7702},{"sizeKB":25.0419921875,"time":172.2552},{"sizeKB":24.5966796875,"time":177.0475},{"sizeKB":24.8779296875,"time":172.407},{"sizeKB":25.24609375,"time":155.6113},{"sizeKB":25.2919921875,"time":167.7668},{"sizeKB":25.0380859375,"time":158.5646},{"sizeKB":24.7431640625,"time":538.9684},{"sizeKB":25.3525390625,"time":781.2139},{"sizeKB":25.5556640625,"time":364.7771},{"sizeKB":26.1455078125,"time":151.9346},{"sizeKB":25.388671875,"time":171.8955},{"sizeKB":25.6884765625,"time":167.8788},{"sizeKB":25.296875,"time":158.2775},{"sizeKB":24.5390625,"time":178.3284},{"sizeKB":24.771484375,"time":195.0336},{"sizeKB":25.779296875,"time":192.075},{"sizeKB":25.4228515625,"time":165.1794},{"sizeKB":24.462890625,"time":149.5107},{"sizeKB":25.04296875,"time":169.1519},{"sizeKB":25.0068359375,"time":179.6633},{"sizeKB":25.5390625,"time":159.402},{"sizeKB":24.46484375,"time":154.4339},{"sizeKB":24.607421875,"time":164.0829},{"sizeKB":25.0478515625,"time":186.9082},{"sizeKB":24.9248046875,"time":185.252},{"sizeKB":24.4677734375,"time":291.6029},{"sizeKB":24.884765625,"time":223.4914},{"sizeKB":25.4775390625,"time":187.7055},{"sizeKB":24.8896484375,"time":261.225},{"sizeKB":24.5390625,"time":169.0814},{"sizeKB":24.9970703125,"time":185.4984},{"sizeKB":24.96484375,"time":351.5824},{"sizeKB":24.953125,"time":243.8613},{"sizeKB":25.33203125,"time":403.3077},{"sizeKB":25.5751953125,"time":628.4891},{"sizeKB":25.2060546875,"time":217.3272},{"sizeKB":25.83203125,"time":193.1048},{"sizeKB":25.1259765625,"time":189.3207},{"sizeKB":25.2197265625,"time":168.939},{"sizeKB":25.591796875,"time":185.5653},{"sizeKB":25.369140625,"time":189.9596},{"sizeKB":25.53515625,"time":173.3855},{"sizeKB":24.578125,"time":167.8842},{"sizeKB":24.197265625,"time":195.1778},{"sizeKB":25.1015625,"time":178.9051},{"sizeKB":25.0859375,"time":162.8132},{"sizeKB":25.314453125,"time":186.232},{"sizeKB":25.71484375,"time":187.1785},{"sizeKB":24.958984375,"time":199.2402},{"sizeKB":25.8193359375,"time":170.271},{"sizeKB":25.1708984375,"time":165.5825},{"sizeKB":25.767578125,"time":174.721},{"sizeKB":25.0908203125,"time":179.1033},{"sizeKB":25.6943359375,"time":175.8576},{"sizeKB":25.5693359375,"time":183.1928},{"sizeKB":25.009765625,"time":171.1048},{"sizeKB":25.150390625,"time":168.3008},{"sizeKB":25.3046875,"time":172.0715},{"sizeKB":25.1240234375,"time":166.623},{"sizeKB":25.5400390625,"time":169.8256},{"sizeKB":24.93359375,"time":189.6642},{"sizeKB":25.890625,"time":172.3695},{"sizeKB":25.2080078125,"time":201.5281},{"sizeKB":25.353515625,"time":211.2525},{"sizeKB":25.7431640625,"time":173.8642},{"sizeKB":24.99609375,"time":165.6418},{"sizeKB":25.2451171875,"time":158.4539},{"sizeKB":25.44921875,"time":147.8576},{"sizeKB":25.08984375,"time":165.2137},{"sizeKB":25.166015625,"time":165.2849},{"sizeKB":25.76171875,"time":169.1994},{"sizeKB":25.1083984375,"time":178.3397},{"sizeKB":26.2060546875,"time":176.1821},{"sizeKB":25.1064453125,"time":145.6136},{"sizeKB":25.400390625,"time":185.1507},{"sizeKB":24.90625,"time":167.7114},{"sizeKB":25.81640625,"time":171.8801},{"sizeKB":24.65625,"time":151.3907},{"sizeKB":26.064453125,"time":156.2046},{"sizeKB":25.5126953125,"time":168.7893},{"sizeKB":24.7265625,"time":164.814},{"sizeKB":25.8212890625,"time":172.0603},{"sizeKB":25.3876953125,"time":162.1132},{"sizeKB":25.1982421875,"time":169.2741},{"sizeKB":24.5673828125,"time":161.5915},{"sizeKB":24.8037109375,"time":160.6457},{"sizeKB":24.5947265625,"time":151.6416},{"sizeKB":24.92578125,"time":150.1603},{"sizeKB":24.80078125,"time":156.8692},{"sizeKB":25.728515625,"time":160.5256},{"sizeKB":25.0400390625,"time":199.748},{"sizeKB":24.3046875,"time":166.3264},{"sizeKB":25.9169921875,"time":197.3734}];
+        
+        new Chart(document.getElementById('sizeVsTimeChart'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Total Access Time vs EHR Size',
+                    data: ehrData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    pointRadius: 5,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { title: { display: true, text: 'Access Time vs EHR Size' } },
+                scales: {
+                    x: { title: { display: true, text: 'EHR Size (KB)' } },
+                    y: { title: { display: true, text: 'Total Access Time (ms)' } }
+                }
+            }
+        });
+        
+        const times = [203.1011,180.2456,167.6067,189.9094,170.124,164.6532,169.7702,172.2552,177.0475,172.407,155.6113,167.7668,158.5646,538.9684,781.2139,364.7771,151.9346,171.8955,167.8788,158.2775,178.3284,195.0336,192.075,165.1794,149.5107,169.1519,179.6633,159.402,154.4339,164.0829,186.9082,185.252,291.6029,223.4914,187.7055,261.225,169.0814,185.4984,351.5824,243.8613,403.3077,628.4891,217.3272,193.1048,189.3207,168.939,185.5653,189.9596,173.3855,167.8842,195.1778,178.9051,162.8132,186.232,187.1785,199.2402,170.271,165.5825,174.721,179.1033,175.8576,183.1928,171.1048,168.3008,172.0715,166.623,169.8256,189.6642,172.3695,201.5281,211.2525,173.8642,165.6418,158.4539,147.8576,165.2137,165.2849,169.1994,178.3397,176.1821,145.6136,185.1507,167.7114,171.8801,151.3907,156.2046,168.7893,164.814,172.0603,162.1132,169.2741,161.5915,160.6457,151.6416,150.1603,156.8692,160.5256,199.748,166.3264,197.3734];
+        const bins = 20;
+        const min = Math.min(...times);
+        const max = Math.max(...times);
+        const binWidth = (max - min) / bins;
+        const histogram = Array(bins).fill(0);
+        times.forEach(t => {
+            let idx = Math.floor((t - min) / binWidth);
+            if (idx === bins) idx = bins - 1;
+            if (idx >= 0 && idx < bins) histogram[idx]++;
+        });
+        const labels = Array(bins).fill().map((_, i) => (min + i * binWidth).toFixed(0));
+        
+        new Chart(document.getElementById('accessTimeDistChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Frequency', data: histogram, backgroundColor: 'rgba(75, 192, 192, 0.6)' }] },
+            options: {
+                responsive: true,
+                plugins: { title: { display: true, text: 'Total Access Time Distribution' } },
+                scales: { x: { title: { display: true, text: 'Time (ms)' } }, y: { title: { display: true, text: 'Count' } } }
+            }
+        });
+    </script>
+</body>
+</html>

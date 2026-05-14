@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><title>BEAR vs SSX Comparison – Real Test</title>
+<style>
+body { font-family: Arial; margin: 40px; background: #f5f5f5; }
+.container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 10px; }
+h1 { color: #1a5276; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+th { background: #2c3e50; color: white; }
+.good { color: green; font-weight: bold; }
+.bad { color: red; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🏥 BEAR vs SSX‑EHRs Comparison Report</h1>
+<p><strong>Test date:</strong> 13/05/2026, 09:39:12</p>
+<p><strong>Configuration:</strong> 50, 100, 200, 400, 800, 1600 KB | 3 iterations each</p>
+<h2>Access Time Comparison</h2>
+<table><tr><th>Size (KB)</th><th>BEAR (ms)</th><th>SSX (ms)</th><th>Improvement</th></tr>
+<tr><td>50</td><td class="good">12011</td><td>15000</td><td class="good">+19.9%</td></tr><tr><td>100</td><td class="good">10304</td><td>15000</td><td class="good">+31.3%</td></tr><tr><td>200</td><td class="good">12299</td><td>15000</td><td class="good">+18.0%</td></tr><tr><td>400</td><td class="good">13878</td><td>15000</td><td class="good">+7.5%</td></tr><tr><td>800</td><td class="bad">21001</td><td>15000</td><td class="good">-40.0%</td></tr><tr><td>1600</td><td class="bad">33824</td><td>15000</td><td class="good">-125.5%</td></tr></table>
+<h2>Gas Comparison</h2>
+<table><tr><th>Operation</th><th>BEAR (gas)</th><th>SSX (gas)</th><th>Reduction</th></tr>
+<tr><td>Witness issuance</td><td class="good">85870</td><td>95000</td><td class="good">9.6%</td></tr>
+<tr><td>Revocation</td><td class="good">46064</td><td>48000</td><td class="good">4.0%</td></tr>
+</table>
+<h2>Detailed BEAR Metrics (averages)</h2>
+<table><tr><th>Size(KB)</th><th>AES Enc(ms)</th><th>AES Dec(ms)</th><th>Upload(ms)</th><th>Download(ms)</th><th>Proxy(ms)</th></tr>
+<tr><td>50</td><td>0.5</td><td>0.2</td><td>5412</td><td>9747</td><td>21.3</td></tr><tr><td>100</td><td>0.4</td><td>0.4</td><td>4988</td><td>8835</td><td>21.9</td></tr><tr><td>200</td><td>0.5</td><td>0.5</td><td>8527</td><td>10159</td><td>20.7</td></tr><tr><td>400</td><td>0.8</td><td>0.9</td><td>5622</td><td>12150</td><td>20.0</td></tr><tr><td>800</td><td>1.7</td><td>1.4</td><td>14075</td><td>18676</td><td>19.2</td></tr><tr><td>1600</td><td>2.3</td><td>2.0</td><td>7958</td><td>31851</td><td>22.5</td></tr></table>
+</div></body></html>

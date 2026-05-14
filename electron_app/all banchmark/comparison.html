@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparaison BEAR vs SSX et autres</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <h1>Comparaison de performance : BEAR, SSX et autres approches</h1>
+
+    <section>
+        <h2>Temps de chiffrement symétrique par taille de fichier</h2>
+        <canvas id="encryptionChart" width="800" height="400"></canvas>
+    </section>
+
+    <section>
+        <h2>Performance du workflow complet</h2>
+        <canvas id="workflowChart" width="800" height="400"></canvas>
+    </section>
+
+    <section>
+        <h2>Coût blockchain (gas) par transaction</h2>
+        <canvas id="gasChart" width="800" height="400"></canvas>
+    </section>
+
+    <section>
+        <h2>Tableau récapitulatif des données</h2>
+        <div id="summaryTable"></div>
+    </section>
+
+    <script>
+        // Données injectées directement depuis le JSON (pas de chargement externe)
+        const comparisonData = {
+  "metadata": {
+    "title": "Comparaison de performance BEAR vs SSX et autres",
+    "metrics": {
+      "encryption_time_ms_per_file_size": "Temps de chiffrement sym\u00e9trique (ms)",
+      "full_workflow_encryption_ms": "Temps de workflow complet (chiffrement) (ms)",
+      "full_workflow_decryption_ms": "Temps de workflow complet (d\u00e9chiffrement) (ms)",
+      "gas_cost": "Co\u00fbt en gas (unit\u00e9s)"
+    },
+    "file_sizes_kb": [
+      50,
+      100,
+      200,
+      400,
+      800,
+      1600
+    ]
+  },
+  "systems": {
+    "BEAR (nos r\u00e9sultats)": {
+      "encryption_times_ms": {
+        "50": 12.3,
+        "100": 24.1,
+        "200": 47.8,
+        "400": 95.2,
+        "800": 189.6,
+        "1600": 378.0
+      },
+      "full_workflow_encryption_ms": 520.4,
+      "full_workflow_decryption_ms": 310.2,
+      "gas_cost": 215000
+    },
+    "SSX (article compar\u00e9)": {
+      "encryption_times_ms": {
+        "50": 18.7,
+        "100": 36.2,
+        "200": 71.5,
+        "400": 143.0,
+        "800": 285.8,
+        "1600": 570.3
+      },
+      "full_workflow_encryption_ms": 780.1,
+      "full_workflow_decryption_ms": 465.5,
+      "gas_cost": 310000
+    },
+    "Paper_A": {
+      "encryption_times_ms": {
+        "50": 25.0,
+        "100": 49.8,
+        "200": 98.4,
+        "400": 196.2,
+        "800": 392.0,
+        "1600": 782.5
+      },
+      "full_workflow_encryption_ms": 920.0,
+      "full_workflow_decryption_ms": 580.0,
+      "gas_cost": 450000
+    },
+    "Paper_B": {
+      "encryption_times_ms": {
+        "50": 30.1,
+        "100": 60.3,
+        "200": 120.0,
+        "400": 238.7,
+        "800": 476.5,
+        "1600": 950.0
+      },
+      "full_workflow_encryption_ms": 1100.0,
+      "full_workflow_decryption_ms": 720.0,
+      "gas_cost": 520000
+    }
+  }
+};
+
+        // Récupération des systèmes
+        const systems = comparisonData.systems;
+        const systemNames = Object.keys(systems);
+        const fileSizes = comparisonData.metadata.file_sizes_kb.map(s => s.toString());
+
+        // Couleurs pour les systèmes
+        const colors = [
+            'rgba(54, 162, 235, 0.7)',   // Bleu
+            'rgba(255, 99, 132, 0.7)',    // Rouge
+            'rgba(75, 192, 192, 0.7)',    // Vert
+            'rgba(255, 206, 86, 0.7)',    // Jaune
+            'rgba(153, 102, 255, 0.7)',   // Violet
+            'rgba(255, 159, 64, 0.7)'     // Orange
+        ];
+        const borderColors = colors.map(c => c.replace('0.7', '1'));
+
+        // ---- Graphique 1 : Chiffrement symétrique en fonction de la taille ----
+        const ctxEnc = document.getElementById('encryptionChart').getContext('2d');
+        const datasetsEnc = systemNames.map((name, i) => {
+            const encTimes = systems[name].encryption_times_ms;
+            return {
+                label: name,
+                data: fileSizes.map(s => encTimes[s]),
+                backgroundColor: colors[i % colors.length],
+                borderColor: borderColors[i % borderColors.length],
+                borderWidth: 1
+            };
+        });
+        new Chart(ctxEnc, {
+            type: 'bar',
+            data: {
+                labels: fileSizes.map(s => s + ' Ko'),
+                datasets: datasetsEnc
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Temps (ms)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Taille du fichier' }
+                    }
+                },
+                plugins: {
+                    tooltip: { mode: 'index' },
+                    title: { display: true, text: 'Temps de chiffrement symétrique (ms) par taille de fichier' }
+                }
+            }
+        });
+
+        // ---- Graphique 2 : Workflow complet ----
+        const ctxWorkflow = document.getElementById('workflowChart').getContext('2d');
+        const encWorkflow = systemNames.map(name => systems[name].full_workflow_encryption_ms);
+        const decWorkflow = systemNames.map(name => systems[name].full_workflow_decryption_ms);
+        new Chart(ctxWorkflow, {
+            type: 'bar',
+            data: {
+                labels: systemNames,
+                datasets: [
+                    {
+                        label: 'Chiffrement workflow (ms)',
+                        data: encWorkflow,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Déchiffrement workflow (ms)',
+                        data: decWorkflow,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Temps (ms)' }
+                    }
+                },
+                plugins: {
+                    title: { display: true, text: 'Performance du workflow complet' }
+                }
+            }
+        });
+
+        // ---- Graphique 3 : Coût gas ----
+        const ctxGas = document.getElementById('gasChart').getContext('2d');
+        const gasData = systemNames.map(name => systems[name].gas_cost);
+        new Chart(ctxGas, {
+            type: 'bar',
+            data: {
+                labels: systemNames,
+                datasets: [{
+                    label: 'Coût en gas',
+                    data: gasData,
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Unités de gas' }
+                    }
+                },
+                plugins: {
+                    title: { display: true, text: 'Consommation de gas blockchain' }
+                }
+            }
+        });
+
+        // ---- Tableau récapitulatif ----
+        function buildSummaryTable() {
+            let html = '<table><thead><tr><th>Système</th>';
+            fileSizes.forEach(s => html += `<th>Chiffrement ${s} Ko (ms)</th>`);
+            html += '<th>Chiffrement workflow (ms)</th><th>Déchiffrement workflow (ms)</th><th>Gas (unités)</th></tr></thead><tbody>';
+            systemNames.forEach(name => {
+                const d = systems[name];
+                html += `<tr><td><strong>${name}</strong></td>`;
+                fileSizes.forEach(s => html += `<td>${d.encryption_times_ms[s]}</td>`);
+                html += `<td>${d.full_workflow_encryption_ms}</td>`;
+                html += `<td>${d.full_workflow_decryption_ms}</td>`;
+                html += `<td>${d.gas_cost}</td>`;
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('summaryTable').innerHTML = html;
+        }
+        buildSummaryTable();
+    </script>
+</body>
+</html>

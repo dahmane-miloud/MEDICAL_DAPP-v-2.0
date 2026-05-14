@@ -1,7 +1,7 @@
 {
-  "Accumulator": "0x59Ee6DB1bf1fbFF834492fb4Da73e66d92150c7C",
-  "rpcUrl": "http://127.0.0.1:8545",
-  "network": "localhost",
-  "chainId": 1337,
-  "deployedAt": "2026-05-06T22:09:37.009Z"
+  "Accumulator": "0xA94B495a761122b1C601Cdf2D6CA3e14480C0bFb",
+  "rpcUrl": "https://ethereum-sepolia.publicnode.com",
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": "2026-05-13T13:01:34.829Z"
 }

@@ -461,6 +461,7 @@ app.commandLine.appendSwitch('disable-gpu');
 const { app, BrowserWindow, ipcMain, session, Menu, dialog } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
+require('dotenv').config();
 const { createMenu } = require('./menu');
 const { ethers } = require('ethers');
 const nacl = require('tweetnacl');
@@ -825,21 +826,21 @@ function getAccumulatorContract() {
 }
 
 async function getHealthSigner() {
-    const session = store.get('currentSession');
-    if (!session || session.type !== 'health') {
-        throw new Error('No health department session');
-    }
-
+    const ownerPrivateKey = '0x09c3001360dd134cecb5eb769656b8fafe79e248f265f53e9294858d80dd65d6';
+    return new ethers.Wallet(ownerPrivateKey, provider);
+}
+/*
     const users = store.get('users') || {};
     const healthUser = users[session.did];
     let privateKey = healthUser?.ethPrivateKey;
 
     if (!privateKey) {
-        privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+        privateKey = '09c3001360dd134cecb5eb769656b8fafe79e248f265f53e9294858d80dd65d6';
     }
 
     return new ethers.Wallet(privateKey, provider);
 }
+    */
 
 ipcMain.handle('accumulator:getCurrent', async () => {
     try {

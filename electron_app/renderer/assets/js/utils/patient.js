@@ -798,20 +798,48 @@ window.closeDoctorDidModal = closeDoctorDidModal;
 
 // ========== DOCTOR STATUS CHECK ==========
 // In patient.js, when checking doctor status
+
+async function getAccumulatorInfo() {
+    try {
+        return await window.electronAPI.getAccumulator();
+    } catch (err) {
+        console.error('Failed to fetch accumulator:', err);
+        return null;
+    }
+}
+
 async function checkDoctorStatus(doctorDid) {
     showLoading('Checking doctor status...');
     try {
+        // 1. Get on‑chain doctor info
         const isActive = await window.electronAPI.isDoctorActive(doctorDid);
         const witness = await window.electronAPI.getDoctorWitness(doctorDid);
 
+        // 2. Get current accumulator value
+        const accumulatorInfo = await getAccumulatorInfo();
+
+        let message = '';
         if (isActive && witness.isActive) {
             const expiryDate = new Date(witness.expiryTime * 1000);
-            showSuccess(`✅ Doctor is ACTIVE\nExpires: ${expiryDate.toLocaleString()}`);
+            message = `✅ Doctor is ACTIVE\n`;
+            message += `📅 Expires: ${expiryDate.toLocaleString()}\n`;
+            message += `🔑 Witness hash: ${witness.witnessHash.substring(0, 16)}...\n`;
+            if (accumulatorInfo) {
+                message += `🌀 Current Accumulator: ${accumulatorInfo.accumulator.substring(0, 16)}...\n`;
+                message += `👥 Active doctors: ${accumulatorInfo.activeDoctorCount}\n`;
+                message += `📦 Block: ${accumulatorInfo.blockNumber}`;
+            }
+            showSuccess(message);
         } else {
-            showError('❌ Doctor is not active');
+            message = `❌ Doctor is NOT active`;
+            if (accumulatorInfo) {
+                message += `\n🌀 Accumulator: ${accumulatorInfo.accumulator.substring(0, 16)}...`;
+            }
+            showError(message);
         }
     } catch (err) {
-        showError('Doctor not found or not active');
+        console.error(err);
+        showError('Doctor not found or network error');
     } finally {
         hideLoading();
     }

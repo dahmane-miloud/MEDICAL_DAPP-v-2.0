@@ -1,0 +1,306 @@
+const { ethers } = require('ethers');
+const fs = require('fs');
+const crypto = require('crypto');
+const axios = require('axios');
+const FormData = require('form-data');
+const nacl = require('tweetnacl');
+const { encodeBase64, decodeBase64 } = require('tweetnacl-util');
+
+// ==================== CONFIGURATION ====================
+const CONFIG = {
+  PINATA_API_KEY: '03959fc6abd1baa890bf',
+  PINATA_API_SECRET: '226d0b2203d0fc90f1ce99a0cc0a5eb0950a777c1784e02072c835bf66c51778',
+  PROXY_URL: 'http://127.0.0.1:5000',
+  RPC_URL: 'https://ethereum-sepolia.publicnode.com',
+  HEALTH_PRIVATE_KEY: '09c3001360dd134cecb5eb769656b8fafe79e248f265f53e9294858d80dd65d6',
+  CONTRACT_ADDRESS: '0x59Ee6DB1bf1fbFF834492fb4Da73e66d92150c7C',
+  WITNESS_VALIDITY_DAYS: 365,
+};
+
+// ==================== UTILITIES ====================
+
+function generateSSI() {
+  const keyPair = nacl.sign.keyPair();
+  const pubB64 = encodeBase64(keyPair.publicKey);
+  const privB64 = encodeBase64(keyPair.secretKey);
+  const did = 'did:key:z' + pubB64.substring(0, 44);
+  return { did, publicKey: pubB64, privateKey: privB64, keyPair };
+}
+
+function generateEHR() {
+  return JSON.stringify({
+    patient: "John Doe",
+    diagnosis: "Hypertension",
+    medications: ["Lisinopril"],
+    timestamp: new Date().toISOString()
+  });
+}
+
+function aesEncrypt(plaintextBuffer, key) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintextBuffer), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  return Buffer.concat([iv, authTag, encrypted]);
+}
+
+function aesDecrypt(encryptedBuffer, key) {
+  const iv = encryptedBuffer.subarray(0, 12);
+  const authTag = encryptedBuffer.subarray(12, 28);
+  const ciphertext = encryptedBuffer.subarray(28);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+}
+
+async function pinataUpload(buffer, filename) {
+  const formData = new FormData();
+  formData.append('file', buffer, { filename });
+  formData.append('pinataMetadata', JSON.stringify({ name: filename }));
+  const res = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', formData, {
+    headers: {
+      ...formData.getHeaders(),
+      pinata_api_key: CONFIG.PINATA_API_KEY,
+      pinata_secret_api_key: CONFIG.PINATA_API_SECRET,
+    },
+    maxBodyLength: Infinity,
+  });
+  return res.data.IpfsHash;
+}
+
+async function pinataDownload(cid) {
+  const gateways = [
+    'https://gateway.pinata.cloud/ipfs',
+    'https://ipfs.io/ipfs',
+    'https://cloudflare-ipfs.com/ipfs',
+  ];
+  for (const gw of gateways) {
+    try {
+      const res = await axios.get(`${gw}/${cid}`, { responseType: 'arraybuffer', timeout: 60000 });
+      return Buffer.from(res.data);
+    } catch (e) { /* next */ }
+  }
+  throw new Error('All gateways failed for ' + cid);
+}
+
+// ==================== BLOCKCHAIN ====================
+const provider = new ethers.JsonRpcProvider(CONFIG.RPC_URL);
+const healthWallet = new ethers.Wallet(CONFIG.HEALTH_PRIVATE_KEY, provider);
+const ACCUMULATOR_ABI = [
+  "function setDoctorWitness(string memory doctorDid, bytes32 witnessHash, uint64 expiryTime) external",
+  "function revokeDoctor(string memory doctorDid) external",
+  "function getCurrentAccumulator() external view returns (bytes32, uint256, uint256)",
+  "function isDoctorActive(string memory doctorDid) external view returns (bool)",
+];
+const accumulator = new ethers.Contract(CONFIG.CONTRACT_ADDRESS, ACCUMULATOR_ABI, healthWallet);
+
+// ==================== PROXY HELPERS ====================
+async function proxyRegisterDoctor(did, attributes = ["doctor"]) {
+  await axios.post(`${CONFIG.PROXY_URL}/register_doctor`, {
+    doctor_did: did,
+    attributes: attributes,
+  });
+}
+
+async function proxyEncryptAES(aesKeyB64, policy, timeSlot) {
+  const res = await axios.post(`${CONFIG.PROXY_URL}/encrypt_aes`, {
+    aes_key_b64: aesKeyB64,
+    policy: policy,
+    time_slot: timeSlot,
+  });
+  return res.data; // { ciphertext_id, ciphertext }
+}
+
+async function proxyGenerateRekey(ctId, delegateeDid, attrs) {
+  const res = await axios.post(`${CONFIG.PROXY_URL}/generate_rekey`, {
+    ct_id: ctId,
+    delegatee_did: delegateeDid,
+    delegatee_attrs: attrs,
+  });
+  return res.data.rekey_id;
+}
+
+async function proxyReencrypt(rekeyId) {
+  const res = await axios.post(`${CONFIG.PROXY_URL}/proxy_reencrypt`, { rekey_id: rekeyId });
+  return res.data.transformed_ct_id;
+}
+
+async function proxyDecryptAES(transformedCtId, doctorDid) {
+  const res = await axios.post(`${CONFIG.PROXY_URL}/decrypt_aes`, {
+    transformed_ct_id: transformedCtId,
+    doctor_did: doctorDid,
+  });
+  return res.data.aes_key_b64;
+}
+
+// ==================== HIGH‑RES TIMER ====================
+function now() { return process.hrtime.bigint(); }
+function elapsed(start) { return Number(now() - start) / 1_000_000; } // ms
+
+// ==================== MAIN WORKFLOW ====================
+async function runWorkflow() {
+  const times = {};
+  let startAll = now();
+
+  // ---- PATIENT ----
+  console.log('👤 Patient: generating SSI...');
+  let t = now();
+  const patient = generateSSI();
+  times.patientSSI = elapsed(t);
+  console.log(`   DID: ${patient.did}  (${times.patientSSI.toFixed(2)} ms)`);
+
+  console.log('📄 Patient: generating EHR...');
+  const ehr = generateEHR();
+  const ehrBuffer = Buffer.from(ehr, 'utf-8');
+  const aesKey = crypto.randomBytes(32);
+
+  t = now();
+  const encryptedEHR = aesEncrypt(ehrBuffer, aesKey);
+  times.aesEncrypt = elapsed(t);
+  console.log(`   AES-256 GCM encryption done in ${times.aesEncrypt.toFixed(2)} ms`);
+
+  console.log('☁️  Patient: uploading encrypted EHR to Pinata...');
+  t = now();
+  const ehrCID = await pinataUpload(encryptedEHR, 'ehr.enc');
+  times.pinataUpload = elapsed(t);
+  console.log(`   CID: ${ehrCID}  (${times.pinataUpload.toFixed(2)} ms)`);
+
+  // ---- DOCTOR ----
+  console.log('👨‍⚕️  Doctor: generating SSI...');
+  t = now();
+  const doctor = generateSSI();
+  times.doctorSSI = elapsed(t);
+  console.log(`   DID: ${doctor.did}  (${times.doctorSSI.toFixed(2)} ms)`);
+
+  // ---- REGISTER DOCTOR ON PROXY (prevents 404) ----
+  console.log('🔑 Registering doctor on TB‑PRE proxy...');
+  t = now();
+  await proxyRegisterDoctor(doctor.did, ['doctor']);
+  times.proxyRegisterDoctor = elapsed(t);
+  console.log(`   Registered in ${times.proxyRegisterDoctor.toFixed(2)} ms`);
+
+  // ---- HEALTH DEPT ISSUES WITNESS ----
+  console.log('🏥 Health Dept: issuing witness for doctor...');
+  const witnessExpiry = Math.floor(Date.now() / 1000) + CONFIG.WITNESS_VALIDITY_DAYS * 86400;
+  const witnessStr = 'witness_' + Date.now();
+  const witnessHash = ethers.keccak256(ethers.toUtf8Bytes(witnessStr));
+
+  t = now();
+  const tx = await accumulator.setDoctorWitness(doctor.did, witnessHash, witnessExpiry);
+  const receipt = await tx.wait();
+  times.setDoctorWitness = elapsed(t);
+  console.log(`   Tx hash: ${tx.hash}, gas used: ${receipt.gasUsed}  (${times.setDoctorWitness.toFixed(2)} ms)`);
+
+  // ---- PATIENT VERIFIES DOCTOR ACTIVE ----
+  console.log('🔍 Patient: checking doctor active on blockchain...');
+  t = now();
+  const active = await accumulator.isDoctorActive(doctor.did);
+  times.checkActive = elapsed(t);
+  console.log(`   Is active: ${active}  (${times.checkActive.toFixed(2)} ms)`);
+  if (!active) throw new Error('Doctor not active!');
+
+  // ---- PATIENT ENCAPSULATES AES KEY (PRE) ----
+  console.log('🔑 Patient: encrypting AES key with proxy (PRE encapsulation)...');
+  const timeSlot = Math.floor(Date.now() / 1000 / 3600);
+  const policy = [["doctor"]];
+  t = now();
+  const proxyEncResult = await proxyEncryptAES(aesKey.toString('base64'), policy, timeSlot);
+  times.proxyEncrypt = elapsed(t);
+  console.log(`   Ciphertext ID: ${proxyEncResult.ciphertext_id}  (${times.proxyEncrypt.toFixed(2)} ms)`);
+
+  // ---- DOCTOR ACCESS ----
+  console.log('📨 Doctor: requesting re-encryption from proxy...');
+  t = now();
+  const rekeyId = await proxyGenerateRekey(proxyEncResult.ciphertext_id, doctor.did, ['doctor']);
+  times.proxyRekey = elapsed(t);
+  console.log(`   Rekey ID: ${rekeyId}  (${times.proxyRekey.toFixed(2)} ms)`);
+
+  console.log('🔄 Proxy: re-encrypting (transform) ...');
+  t = now();
+  const transformedCtId = await proxyReencrypt(rekeyId);
+  times.proxyReencrypt = elapsed(t);
+  console.log(`   Transformed ciphertext ID: ${transformedCtId}  (${times.proxyReencrypt.toFixed(2)} ms)`);
+
+  console.log('🔓 Doctor: decrypting AES key via proxy...');
+  t = now();
+  const aesKeyB64 = await proxyDecryptAES(transformedCtId, doctor.did);
+  times.proxyDecryptAES = elapsed(t);
+  console.log(`   AES key recovered in ${times.proxyDecryptAES.toFixed(2)} ms`);
+
+  // ---- DOWNLOAD & DECRYPT EHR ----
+  console.log('⬇️  Doctor: downloading encrypted EHR from Pinata...');
+  t = now();
+  const encData = await pinataDownload(ehrCID);
+  times.pinataDownload = elapsed(t);
+  console.log(`   Downloaded in ${times.pinataDownload.toFixed(2)} ms`);
+
+  console.log('📄 Doctor: decrypting EHR with retrieved AES key...');
+  t = now();
+  const aesKeyDoctor = Buffer.from(aesKeyB64, 'base64');
+  const decryptedEHR = aesDecrypt(encData, aesKeyDoctor);
+  times.aesDecrypt = elapsed(t);
+  console.log(`   Decrypted in ${times.aesDecrypt.toFixed(2)} ms`);
+
+  const totalAccess = times.proxyRekey + times.proxyReencrypt + times.proxyDecryptAES +
+                      times.pinataDownload + times.aesDecrypt;
+  console.log(`\n⏱️  TOTAL ACCESS TIME (doctor): ${totalAccess.toFixed(2)} ms`);
+
+  // ---- REVOCATION ----
+  console.log('🚫 Health Dept: revoking doctor...');
+  t = now();
+  const revTx = await accumulator.revokeDoctor(doctor.did);
+  const revReceipt = await revTx.wait();
+  times.revokeDoctor = elapsed(t);
+  console.log(`   Revoked in ${times.revokeDoctor.toFixed(2)} ms, gas: ${revReceipt.gasUsed}`);
+
+  // ---- SAVE REPORT ----
+  const report = {
+    patientDID: patient.did,
+    doctorDID: doctor.did,
+    ehrCID,
+    times,
+    totalAccessMs: totalAccess,
+    gas: {
+      setDoctorWitness: Number(receipt.gasUsed),
+      revokeDoctor: Number(revReceipt.gasUsed),
+    }
+  };
+  fs.writeFileSync('workflow_report.json', JSON.stringify(report, null, 2));
+  fs.writeFileSync('full_workflow_report.html', generateHTML(report));
+  console.log('📊 Reports saved: workflow_report.json & full_workflow_report.html');
+}
+
+function generateHTML(report) {
+  const timeRows = Object.entries(report.times)
+    .map(([k, v]) => `<tr><td>${k}</td><td class="time">${v.toFixed(2)}</td></tr>`)
+    .join('');
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><title>MediChain Workflow</title>
+  <style>
+    body { font-family: Arial; background: #f4f6fb; margin: 2rem; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #1a5276; } th { background: #2c3e50; color: white; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { padding: 10px; border: 1px solid #ddd; }
+    .time { font-weight: bold; color: #27ae60; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 MediChain Full Workflow</h1>
+    <p>Patient: ${report.patientDID}</p>
+    <p>Doctor: ${report.doctorDID}</p>
+    <p>CID: ${report.ehrCID}</p>
+    <h2>Timings (ms)</h2>
+    <table><tr><th>Step</th><th>Time</th></tr>${timeRows}</table>
+    <h2>Total Access Time: ${report.totalAccessMs.toFixed(2)} ms</h2>
+    <h2>Gas</h2>
+    <p>setDoctorWitness: ${report.gas.setDoctorWitness} gas</p>
+    <p>revokeDoctor: ${report.gas.revokeDoctor} gas</p>
+  </div>
+</body></html>`;
+}
+
+runWorkflow().then(() => console.log('✅ Done.')).catch(e => console.error('❌', e));

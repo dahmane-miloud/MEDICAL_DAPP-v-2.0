@@ -1,0 +1,115 @@
+{
+  "testDate": "2026-05-11T08:40:19.745Z",
+  "config": {
+    "PINATA_API_KEY": "03959fc6abd1baa890bf",
+    "PINATA_API_SECRET": "226d0b2203d0fc90f1ce99a0cc0a5eb0950a777c1784e02072c835bf66c51778",
+    "PROXY_URL": "http://127.0.0.1:5000",
+    "RPC_URL": "https://ethereum-sepolia.publicnode.com",
+    "ITERATIONS_PER_SIZE": 5,
+    "WITNESS_VALIDITY_DAYS": 365,
+    "ETH_TO_DZD": 350000,
+    "PINATA_RETRIES": 3,
+    "PINATA_GATEWAYS": [
+      "https://gateway.pinata.cloud/ipfs",
+      "https://ipfs.io/ipfs",
+      "https://cloudflare-ipfs.com/ipfs"
+    ],
+    "COMPARISON_SIZES_KB": [
+      50,
+      100,
+      200,
+      400,
+      800,
+      1600
+    ],
+    "SSX_METRICS": {
+      "aesEncryptMs": 2.1,
+      "aesDecryptMs": 1.2,
+      "proxyReencryptMs": 28,
+      "pinataUploadMs": 2500,
+      "pinataDownloadMs": 12000,
+      "totalAccessMs": 15000,
+      "witnessGas": 95000,
+      "revokeGas": 48000
+    }
+  },
+  "gas": {
+    "witness": 85882,
+    "revoke": 46064,
+    "gasPriceGwei": 0.001000019,
+    "witnessCostDZD": 0.030059271115299997,
+    "revokeCostDZD": 0.0161227063256
+  },
+  "results": [
+    {
+      "sizeKB": 50,
+      "aesEncryptMs": 1.3875,
+      "aesDecryptMs": 0.17968,
+      "pinataUploadMs": 1636.6314399999999,
+      "pinataDownloadMs": 6038.3875,
+      "proxyReencryptMs": 17.60538,
+      "totalAccessMs": 6260.961980000001,
+      "iterations": 5
+    },
+    {
+      "sizeKB": 100,
+      "aesEncryptMs": 0.33668,
+      "aesDecryptMs": 0.2305,
+      "pinataUploadMs": 1343.17048,
+      "pinataDownloadMs": 5303.150299999999,
+      "proxyReencryptMs": 20.698320000000002,
+      "totalAccessMs": 5546.21022,
+      "iterations": 5
+    },
+    {
+      "sizeKB": 200,
+      "aesEncryptMs": 0.55894,
+      "aesDecryptMs": 0.5366,
+      "pinataUploadMs": 2197.3918400000002,
+      "pinataDownloadMs": 7111.30398,
+      "proxyReencryptMs": 23.97758,
+      "totalAccessMs": 7368.518979999999,
+      "iterations": 5
+    },
+    {
+      "sizeKB": 400,
+      "aesEncryptMs": 0.86948,
+      "aesDecryptMs": 0.7484,
+      "pinataUploadMs": 2174.6049,
+      "pinataDownloadMs": 6502.50438,
+      "proxyReencryptMs": 24.011559999999996,
+      "totalAccessMs": 6763.827439999999,
+      "iterations": 5
+    },
+    {
+      "sizeKB": 800,
+      "aesEncryptMs": 1.8433199999999998,
+      "aesDecryptMs": 1.57978,
+      "pinataUploadMs": 2671.29324,
+      "pinataDownloadMs": 6990.56402,
+      "proxyReencryptMs": 22.214419999999997,
+      "totalAccessMs": 7236.03148,
+      "iterations": 5
+    },
+    {
+      "sizeKB": 1600,
+      "aesEncryptMs": 2.69676,
+      "aesDecryptMs": 2.1804,
+      "pinataUploadMs": 3149.9444,
+      "pinataDownloadMs": 9581.771980000001,
+      "proxyReencryptMs": 19.8275,
+      "totalAccessMs": 9839.91314,
+      "iterations": 5
+    }
+  ],
+  "ssxMetrics": {
+    "aesEncryptMs": 2.1,
+    "aesDecryptMs": 1.2,
+    "proxyReencryptMs": 28,
+    "pinataUploadMs": 2500,
+    "pinataDownloadMs": 12000,
+    "totalAccessMs": 15000,
+    "witnessGas": 95000,
+    "revokeGas": 48000
+  }
+}
