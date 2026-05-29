@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain Performance Report | AES + TB-PRE Benchmark</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9em;
+        }
+        .content {
+            padding: 40px;
+        }
+        .section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+        .metric-label {
+            font-weight: 500;
+            color: #7f8c8d;
+        }
+        .metric-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .highlight {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+        canvas {
+            max-height: 400px;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            font-size: 0.85em;
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 1.4em; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🔬 MediChain Performance Report</h1>
+        <p>AES-256-GCM + TB-PRE Key Encapsulation Benchmark</p>
+        <div class="badge-container">
+            <div class="badge">📊 5‑attribute OR policy</div>
+            <div class="badge">⚡ 5 iterations per size</div>
+            <div class="badge">🔐 7 EHR sizes (50 KB → 49 MB)</div>
+        </div>
+    </div>
+    <div class="content">
+        <!-- Executive Summary Cards -->
+        <div class="stats-grid">
+            <div class="card">
+                <div class="card-title">⚡ Overall AES Encryption</div>
+                <div class="metric-row"><span class="metric-label">Min (50 KB):</span><span class="metric-value">0.16 ms</span></div>
+                <div class="metric-row"><span class="metric-label">Max (49 MB):</span><span class="metric-value">76.03 ms</span></div>
+                <div class="metric-row"><span class="metric-label">Average across all sizes:</span><span class="metric-value">11.41 ms</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔑 TB-PRE Encapsulation</div>
+                <div class="metric-row"><span class="metric-label">Min:</span><span class="metric-value">15.79 ms</span></div>
+                <div class="metric-row"><span class="metric-label">Max:</span><span class="metric-value">45.35 ms</span></div>
+                <div class="metric-row"><span class="metric-label">Average (all sizes):</span><span class="metric-value">21.77 ms</span></div>
+                <div class="metric-row"><span class="metric-label">Policy:</span><span class="metric-value">5‑attribute OR</span></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 Performance Insight</div>
+                <div class="metric-row"><span class="metric-label">AES scales linearly with size:</span><span class="metric-value">✔️</span></div>
+                <div class="metric-row"><span class="metric-label">TB-PRE constant time:</span><span class="metric-value">✔️ (independent of EHR size)</span></div>
+                <div class="metric-row"><span class="metric-label">Total overhead for 1 MB:</span><span class="metric-value">~23.62 ms</span></div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="section">
+            <h2 class="section-title">📈 Performance Charts</h2>
+            <div class="chart-container">
+                <canvas id="aesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="tbpreChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Detailed Results Table -->
+        <div class="section">
+            <h2 class="section-title">📋 Detailed Results per EHR Size</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr><th rowspan="2">EHR Size</th>
+                            <th colspan="4">AES-256-GCM (ms)</th>
+                            <th colspan="4">TB-PRE Encapsulation (ms)</th>
+                        </tr>
+                        <tr>
+                            <th>Min</th><th>Max</th><th>Avg</th><th>P95</th>
+                            <th>Min</th><th>Max</th><th>Avg</th><th>P95</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td><strong>50 KB</strong></td>
+                            <td>0.16</td>
+                            <td>0.66</td>
+                            <td>0.42</td>
+                            <td>0.66</td>
+                            <td>20.14</td>
+                            <td>45.35</td>
+                            <td>28.28</td>
+                            <td>45.35</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>100 KB</strong></td>
+                            <td>0.30</td>
+                            <td>0.49</td>
+                            <td>0.38</td>
+                            <td>0.49</td>
+                            <td>17.82</td>
+                            <td>24.80</td>
+                            <td>20.06</td>
+                            <td>24.80</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>200 KB</strong></td>
+                            <td>0.42</td>
+                            <td>0.90</td>
+                            <td>0.58</td>
+                            <td>0.90</td>
+                            <td>19.66</td>
+                            <td>28.28</td>
+                            <td>22.96</td>
+                            <td>28.28</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>400 KB</strong></td>
+                            <td>0.82</td>
+                            <td>1.12</td>
+                            <td>0.95</td>
+                            <td>1.12</td>
+                            <td>15.79</td>
+                            <td>23.67</td>
+                            <td>20.26</td>
+                            <td>23.67</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>800 KB</strong></td>
+                            <td>1.52</td>
+                            <td>2.01</td>
+                            <td>1.81</td>
+                            <td>2.01</td>
+                            <td>16.33</td>
+                            <td>25.42</td>
+                            <td>21.53</td>
+                            <td>25.42</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>1.6 MB</strong></td>
+                            <td>2.05</td>
+                            <td>3.55</td>
+                            <td>2.56</td>
+                            <td>3.55</td>
+                            <td>17.55</td>
+                            <td>25.49</td>
+                            <td>21.06</td>
+                            <td>25.49</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>49 MB</strong></td>
+                            <td>70.37</td>
+                            <td>76.03</td>
+                            <td>73.18</td>
+                            <td>76.03</td>
+                            <td>16.93</td>
+                            <td>19.83</td>
+                            <td>18.24</td>
+                            <td>19.83</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>Generated by MediChain Benchmark Suite | 14/05/2026, 10:27:39</p>
+        <p>TB-PRE proxy running with charm‑crypto | 5‑attribute OR policy (cardiologist, working-at-chinguvaram, attending-physician, researcher, ATTR)</p>
+    </div>
+</div>
+
+<script>
+    const labels = ["50 KB","100 KB","200 KB","400 KB","800 KB","1.6 MB","49 MB"];
+    const aesAvg = [0.42122000000000004,0.37918,0.58344,0.94992,1.8119800000000001,2.5638199999999998,73.18144000000001];
+    const aesP95 = [0.6551,0.487,0.8957,1.1189,2.0075,3.5519,76.028];
+    const tbpreAvg = [28.279859999999996,20.0593,22.96494,20.261760000000002,21.52754,21.05846,18.24124];
+    const tbpreP95 = [45.3499,24.804,28.2817,23.6694,25.4239,25.4875,19.8303];
+
+    new Chart(document.getElementById('aesChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Average AES Time (ms)', data: aesAvg, backgroundColor: 'rgba(54, 162, 235, 0.6)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1 },
+                { label: '95th Percentile', data: aesP95, backgroundColor: 'rgba(255, 99, 132, 0.6)', borderColor: 'rgba(255, 99, 132, 1)', borderWidth: 1 }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { title: { display: true, text: 'AES-256-GCM Encryption Time' } },
+            scales: { y: { title: { display: true, text: 'Time (ms)' } }, x: { title: { display: true, text: 'EHR Size' } } }
+        }
+    });
+
+    new Chart(document.getElementById('tbpreChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Average TB-PRE Time (ms)', data: tbpreAvg, backgroundColor: 'rgba(75, 192, 192, 0.6)', borderColor: 'rgba(75, 192, 192, 1)', borderWidth: 1 },
+                { label: '95th Percentile', data: tbpreP95, backgroundColor: 'rgba(153, 102, 255, 0.6)', borderColor: 'rgba(153, 102, 255, 1)', borderWidth: 1 }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { title: { display: true, text: 'TB-PRE Key Encapsulation Time' } },
+            scales: { y: { title: { display: true, text: 'Time (ms)' } }, x: { title: { display: true, text: 'EHR Size' } } }
+        }
+    });
+</script>
+</body>
+</html>

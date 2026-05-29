@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MediChain Benchmark – 100 Real FHIR Patients</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; margin: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { color: #1a1a2e; text-align: center; }
+        h2 { color: #2c3e50; margin-top: 2rem; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 1.5rem 0; }
+        th, td { padding: 12px 16px; text-align: center; }
+        th { background: #4f46e5; color: white; }
+        tr:nth-child(even) { background: #f9fafb; }
+        .chart-container { background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 2rem 0; }
+        canvas { max-width: 100%; }
+        .summary { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 1.5rem 0; }
+        .note { text-align: center; color: #555; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 MediChain Comprehensive Benchmark – 100 Real FHIR Patients</h1>
+        <p style="text-align:center">Sepolia testnet | 5‑attribute AND policy | 28/05/2026, 11:31:06</p>
+
+        <div class="summary">
+            <h2>📈 Total Access Time vs File Size</h2>
+            <div class="chart-container"><canvas id="scatterChart" width="800" height="400"></canvas></div>
+        </div>
+
+        <div class="summary">
+            <h2>⏱️ Average Time per Step (ms)</h2>
+            <div class="chart-container"><canvas id="barChart" width="800" height="400"></canvas></div>
+        </div>
+
+        <h2>📊 Aggregated Metrics (Min / Max / Average) – All 100 Runs</h2>
+        <table>
+            <tr><th>Metric</th><th>Min</th><th>Max</th><th>Average</th><th>Unit</th></tr>
+            <tr>
+            <td>Patient SSI</td>
+            <td>3.8</td>
+            <td>44.5</td>
+            <td>5.4</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Doctor SSI</td>
+            <td>3.4</td>
+            <td>7.5</td>
+            <td>4.7</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Health Dept SSI</td>
+            <td>3.5</td>
+            <td>7.6</td>
+            <td>4.8</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>AES Encrypt EHR</td>
+            <td>1.2</td>
+            <td>74.3</td>
+            <td>5.4</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Pinata Upload</td>
+            <td>2587.4</td>
+            <td>72052.7</td>
+            <td>11713.0</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Register Doctor (PRE)</td>
+            <td>18.4</td>
+            <td>41.0</td>
+            <td>24.2</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Set Witness (Blockchain)</td>
+            <td>5130.6</td>
+            <td>37180.0</td>
+            <td>13311.7</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Check Witness</td>
+            <td>114.2</td>
+            <td>3112.5</td>
+            <td>309.6</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Proxy Encrypt Key</td>
+            <td>9.5</td>
+            <td>26.6</td>
+            <td>12.7</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Proxy Rekey (share request)</td>
+            <td>4.5</td>
+            <td>15.6</td>
+            <td>6.4</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Proxy Reencrypt (share)</td>
+            <td>40.9</td>
+            <td>107.5</td>
+            <td>46.6</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Proxy Decrypt Key</td>
+            <td>6.9</td>
+            <td>21.5</td>
+            <td>8.6</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Pinata Download</td>
+            <td>11126.2</td>
+            <td>898257.6</td>
+            <td>69826.5</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>AES Decrypt EHR</td>
+            <td>0.7</td>
+            <td>47.9</td>
+            <td>4.4</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Revoke Witness</td>
+            <td>5195.4</td>
+            <td>53332.3</td>
+            <td>13871.8</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Total Share Time</td>
+            <td>53.1</td>
+            <td>142.4</td>
+            <td>61.6</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Total Access Time</td>
+            <td>11191.9</td>
+            <td>898337.4</td>
+            <td>69892.4</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Total Workflow Time</td>
+            <td>33190.9</td>
+            <td>992603.7</td>
+            <td>109155.6</td>
+            <td>ms</td>
+        </tr><tr>
+            <td>Gas Witness</td>
+            <td>85858.0</td>
+            <td>85882.0</td>
+            <td>85881.0</td>
+            <td>wei</td>
+        </tr><tr>
+            <td>Gas Revoke</td>
+            <td>46064.0</td>
+            <td>46064.0</td>
+            <td>46064.0</td>
+            <td>wei</td>
+        </tr><tr>
+            <td>Gas Total</td>
+            <td>131922.0</td>
+            <td>131946.0</td>
+            <td>131945.0</td>
+            <td>wei</td>
+        </tr><tr>
+            <td>Gas Cost (ETH)</td>
+            <td>0.002638</td>
+            <td>0.002639</td>
+            <td>0.002639</td>
+            <td>ETH</td>
+        </tr><tr>
+            <td>Gas Cost (USD)</td>
+            <td>6.596100</td>
+            <td>6.597300</td>
+            <td>6.597249</td>
+            <td>USD</td>
+        </tr><tr>
+            <td>Gas Cost (DZD)</td>
+            <td>890.473500</td>
+            <td>890.635500</td>
+            <td>890.628679</td>
+            <td>DZD</td>
+        </tr>
+        </table>
+
+        <h2>📄 Sample Individual Results (first 10)</h2>
+        <table>
+            <tr><th>File Name</th><th>Size (KB)</th><th>Total Access (ms)</th><th>Gas Used</th><th>Gas Cost (DZD)</th></tr>
+            
+        <tr>
+            <td>Alane21_Jast432_24ab3e8f-2bc6-e912-31ee-402d6195cf4e.json</td>
+            <td>3718.9</td>
+            <td>80372.5</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Alexander630_Audrey678_Johnston597_f7156596-83ef-05e6-77c2-72226febaeea.json</td>
+            <td>3650.2</td>
+            <td>81896.0</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Alexis664_Kandy733_Wunsch504_ac7b4dc4-6e11-c4ae-3c68-1309677e593c.json</td>
+            <td>3343.2</td>
+            <td>49867.7</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Alexis664_Reichel38_96f400dc-b74b-7492-71f3-058ee378da2d.json</td>
+            <td>4991.2</td>
+            <td>32531.9</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Alphonse92_Kulas532_f1ecd251-b2b4-e7a0-6ff2-e5e6c0910509.json</td>
+            <td>3770.3</td>
+            <td>25359.7</td>
+            <td>131934</td>
+            <td>890.5545</td>
+        </tr>
+    
+        <tr>
+            <td>Althea11_Missy373_Nolan344_fb169b72-c906-0fd8-7062-83cb0fd8b354.json</td>
+            <td>3680.4</td>
+            <td>30077.4</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Annice210_Ma484_Little434_6587e801-ad40-acad-76ec-38f726b00499.json</td>
+            <td>2443.8</td>
+            <td>25055.2</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Antwan357_Schinner682_bfb5a857-2711-61ce-34ea-3f302f44b546.json</td>
+            <td>1665.1</td>
+            <td>17493.7</td>
+            <td>131922</td>
+            <td>890.4735</td>
+        </tr>
+    
+        <tr>
+            <td>Azucena377_Wolff180_68e8b8e1-2be4-3ce6-5fe0-4ad1892bd88d.json</td>
+            <td>1343.5</td>
+            <td>58438.9</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        <tr>
+            <td>Belle514_Mayra756_Cole117_ae7f2bff-e8ed-7c70-330d-b08474513bc0.json</td>
+            <td>2841.2</td>
+            <td>30529.7</td>
+            <td>131946</td>
+            <td>890.6355</td>
+        </tr>
+    
+        </table>
+
+        <div class="note">
+            <p>Full per‑file metrics in <code>benchmark_full_results.json</code> · Aggregated stats in <code>benchmark_aggregated_stats.json</code></p>
+            <p>Policy: <strong>doctor AND working-at-chiguvara AND attending-physician AND researcher AND ATTR</strong></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctxScatter = document.getElementById('scatterChart').getContext('2d');
+        new Chart(ctxScatter, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Total Access Time (ms)',
+                    data: [{"x":3718.943359375,"y":80372.4694},{"x":3650.1767578125,"y":81895.9804},{"x":3343.224609375,"y":49867.691600000006},{"x":4991.185546875,"y":32531.9461},{"x":3770.265625,"y":25359.664},{"x":3680.3935546875,"y":30077.4326},{"x":2443.7841796875,"y":25055.2237},{"x":1665.146484375,"y":17493.723900000005},{"x":1343.4951171875,"y":58438.909100000004},{"x":2841.2041015625,"y":30529.744299999995},{"x":1871.552734375,"y":23785.6678},{"x":863.55078125,"y":20030.7174},{"x":2906.873046875,"y":71209.9492},{"x":1891.9833984375,"y":16091.1079},{"x":2739.2783203125,"y":22062.8509},{"x":3490.125,"y":33485.376899999996},{"x":443.64453125,"y":11191.8728},{"x":2263.140625,"y":25005.581000000002},{"x":4826.4228515625,"y":103730.9252},{"x":1202.6240234375,"y":12886.3392},{"x":1127.1328125,"y":16917.1984},{"x":1132.984375,"y":22151.5585},{"x":2720.390625,"y":40711.7285},{"x":2582.146484375,"y":29173.7432},{"x":2494.943359375,"y":24032.668799999996},{"x":1893.1708984375,"y":17153.9998},{"x":1920.6474609375,"y":19138.2438},{"x":1434.1416015625,"y":19732.2422},{"x":3191.099609375,"y":43375.1461},{"x":1101.1181640625,"y":14940.1387},{"x":2043.1015625,"y":24010.3132},{"x":895.3486328125,"y":15134.991500000002},{"x":2319.3095703125,"y":41388.5924},{"x":2252.7763671875,"y":32021.4184},{"x":25818.8896484375,"y":231379.0824},{"x":1235.2490234375,"y":15145.7795},{"x":1911.818359375,"y":21651.3179},{"x":939.6865234375,"y":13406.262999999999},{"x":52555.330078125,"y":573607.5333},{"x":3330.5703125,"y":25294.45},{"x":844.58984375,"y":12198.7313},{"x":1183.1064453125,"y":15052.7576},{"x":2126.810546875,"y":22862.855900000002},{"x":2584.2734375,"y":51955.8032},{"x":1838.0771484375,"y":21623.4001},{"x":5191.080078125,"y":66998.89050000001},{"x":770.2021484375,"y":11196.066200000001},{"x":971.3125,"y":21526.992700000003},{"x":7533.3017578125,"y":318262.42350000003},{"x":745.4892578125,"y":12347.371500000001},{"x":1891.8388671875,"y":21896.8981},{"x":861.064453125,"y":22506.1829},{"x":1069.65234375,"y":25807.813000000002},{"x":5463.7568359375,"y":106370.7836},{"x":33394.5986328125,"y":471582.2601},{"x":3214.298828125,"y":54130.21310000001},{"x":1491.744140625,"y":26732.3074},{"x":2655.384765625,"y":31079.8726},{"x":1349.2734375,"y":19344.2457},{"x":2639.005859375,"y":33484.982299999996},{"x":3574.912109375,"y":52211.1182},{"x":11162.1787109375,"y":201172.76520000002},{"x":5980.3076171875,"y":68523.8106},{"x":1795.4140625,"y":21234.586600000002},{"x":2041.01953125,"y":26659.146},{"x":1808.833984375,"y":25676.1574},{"x":2490.0712890625,"y":54829.3479},{"x":706.583984375,"y":15128.5338},{"x":1586.1123046875,"y":25647.164},{"x":612.326171875,"y":17635.216999999997},{"x":1176.0390625,"y":44405.414500000006},{"x":1118.6650390625,"y":39884.958399999996},{"x":1509.001953125,"y":88310.0493},{"x":3572.9189453125,"y":98675.1823},{"x":741.1337890625,"y":28000.7781},{"x":3935.068359375,"y":114996.24580000002},{"x":2048.4453125,"y":54718.5854},{"x":1346.4892578125,"y":28466.271},{"x":1948.6083984375,"y":101150.5062},{"x":1627.3193359375,"y":114461.29960000001},{"x":982.17578125,"y":30871.0673},{"x":885.84765625,"y":29054.1087},{"x":1628.1865234375,"y":70778.96449999999},{"x":601.126953125,"y":23115.7414},{"x":19718.849609375,"y":898337.3961},{"x":1491.9208984375,"y":48288.0465},{"x":1212.9501953125,"y":37743.222},{"x":3279.9775390625,"y":111183.75210000001},{"x":4478.9306640625,"y":120357.46680000001},{"x":2552.3427734375,"y":42876.283599999995},{"x":4861.44921875,"y":77022.3063},{"x":3284.3076171875,"y":60776.6266},{"x":3188.4853515625,"y":363413.2257},{"x":9086.099609375,"y":110515.3833},{"x":1000.873046875,"y":15225.5662}],
+                    backgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'File Size (KB)' } },
+                    y: { title: { display: true, text: 'Total Access Time (ms)' } }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => 'Size: ' + ctx.raw.x.toFixed(1) + ' KB, Time: ' + ctx.raw.y.toFixed(1) + ' ms'
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ["Patient SSI","Doctor SSI","Health Dept SSI","AES Encrypt","Pinata Upload","Register Doc","Set Witness","Check Witness","Proxy Encrypt","Rekey","Reencrypt","Decrypt Key","Pinata Download","AES Decrypt","Revoke Witness"],
+                datasets: [{
+                    label: 'Average Time (ms)',
+                    data: [5.415848421052629,4.717398947368421,4.782029473684211,5.431266315789474,11713.046795789474,24.189268421052628,13311.653250526313,309.5564021052632,12.687654736842104,6.3900189473684215,46.56828631578947,8.59401894736842,69826.47678842103,4.357505263157895,13871.760210526318],
+                    backgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Milliseconds' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

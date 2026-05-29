@@ -1,0 +1,47 @@
+$apiKey = "49286085345f19aeb47d"
+$apiSecret = "e2ffdfe400b28fa90668d65c434b029022b1b5b84d0166908ea5f510e8911939"
+
+$baseUrl = "https://api.pinata.cloud"
+$headers = @{
+    "pinata_api_key" = $apiKey
+    "pinata_secret_api_key" = $apiSecret
+}
+
+$allHashes = @()
+$pageOffset = 0
+$pageLimit = 1000
+
+do {
+    $url = "$baseUrl/data/pinList?status=pinned&pageLimit=$pageLimit&pageOffset=$pageOffset"
+    try {
+        $response = Invoke-RestMethod -Uri $url -Headers $headers
+        if ($response.rows.count -gt 0) {
+            $hashes = $response.rows.ipfs_pin_hash
+            $allHashes += $hashes
+            Write-Host "Fetched $($hashes.Count) hashes from page $pageOffset"
+            $pageOffset += $pageLimit
+        } else {
+            break
+        }
+    } catch {
+        Write-Error "Failed to fetch pin list: $_"
+        break
+    }
+} while ($response.rows.count -eq $pageLimit)
+
+Write-Host "Total pinned items to delete: $($allHashes.Count)"
+Read-Host "Press Enter to start unpinning (Ctrl+C to abort)"
+
+$count = 0
+foreach ($hash in $allHashes) {
+    $count++
+    try {
+        Invoke-RestMethod -Uri "$baseUrl/pinning/unpin/$hash" -Method Delete -Headers $headers
+        Write-Host "[$count/$($allHashes.Count)] Unpinned $hash"
+    } catch {
+        Write-Warning "Failed to unpin $hash : $_"
+    }
+    Start-Sleep -Milliseconds 200
+}
+
+Write-Host "Done! All files unpinned."

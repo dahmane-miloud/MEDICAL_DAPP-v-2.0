@@ -1,0 +1,281 @@
+Active code page: 65001
+
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe>cd electron_app
+
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app>node workflow_benchmark.js
+🚀 Starting full benchmark with 5‑attribute AND policy...
+
+💰 Wallet: 0x584359F285f378b1F303Bc069437dA9eFA870DFB  Balance: 1.091461792047047386 ETH
+📁 Found 100 existing EHR files, skipping generation.
+📊 Loaded 100 EHR files for benchmarking.
+
+
+--- File 1: Adam631_Russel238_43177f90-9b0e-dd06-be1b-04ebf7da21df.json (15207.5 KB) ---
+^C
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app>node workflow_benchmark.js
+🚀 Starting full benchmark with 5‑attribute AND policy...
+
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+Error: request timeout (code=TIMEOUT, version=6.16.0)
+    at makeError (C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app\node_modules\ethers\lib.commonjs\utils\errors.js:137:21)
+    at ClientRequest.<anonymous> (C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app\node_modules\ethers\lib.commonjs\utils\geturl.js:59:50)
+    at ClientRequest.emit (node:events:518:28)
+    at TLSSocket.emitRequestTimeout (node:_http_client:851:9)
+    at Object.onceWrapper (node:events:632:28)
+    at TLSSocket.emit (node:events:530:35)
+    at Socket._onTimeout (node:net:595:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7) {
+  code: 'TIMEOUT',
+  shortMessage: 'request timeout'
+}
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+^C
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app>node workflow_benchmark.js
+🚀 Starting full benchmark with 5‑attribute AND policy...
+
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+Error: request timeout (code=TIMEOUT, version=6.16.0)
+    at makeError (C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app\node_modules\ethers\lib.commonjs\utils\errors.js:137:21)
+    at ClientRequest.<anonymous> (C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app\node_modules\ethers\lib.commonjs\utils\geturl.js:59:50)
+    at ClientRequest.emit (node:events:518:28)
+    at TLSSocket.emitRequestTimeout (node:_http_client:851:9)
+    at Object.onceWrapper (node:events:632:28)
+    at TLSSocket.emit (node:events:530:35)
+    at Socket._onTimeout (node:net:595:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7) {
+  code: 'TIMEOUT',
+  shortMessage: 'request timeout'
+}
+JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)
+
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app>
+
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app>node workflow_benchmark.js
+🚀 Starting full benchmark with 5‑attribute AND policy...
+
+💰 Wallet: 0x584359F285f378b1F303Bc069437dA9eFA870DFB  Balance: 1.091461792047047386 ETH
+🟢 Generating 100 patients with Synthea...
+✅ Synthea generation complete.
+⚠️  Synthea generated 113 files, trimming to 100.
+📂 Copied 100 FHIR files to C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app\ehr_benchmark_data
+📊 Loaded 100 EHR files for benchmarking.
+
+
+--- File 1: Alane21_Jast432_24ab3e8f-2bc6-e912-31ee-402d6195cf4e.json (3718.9 KB) ---
+
+--- File 2: Alexander630_Audrey678_Johnston597_f7156596-83ef-05e6-77c2-72226febaeea.json (3650.2 KB) ---
+
+--- File 3: Alexis664_Kandy733_Wunsch504_ac7b4dc4-6e11-c4ae-3c68-1309677e593c.json (3343.2 KB) ---
+
+--- File 4: Alexis664_Reichel38_96f400dc-b74b-7492-71f3-058ee378da2d.json (4991.2 KB) ---
+
+--- File 5: Alphonse92_Kulas532_f1ecd251-b2b4-e7a0-6ff2-e5e6c0910509.json (3770.3 KB) ---
+
+--- File 6: Althea11_Missy373_Nolan344_fb169b72-c906-0fd8-7062-83cb0fd8b354.json (3680.4 KB) ---
+
+--- File 7: Annice210_Ma484_Little434_6587e801-ad40-acad-76ec-38f726b00499.json (2443.8 KB) ---
+
+--- File 8: Antwan357_Schinner682_bfb5a857-2711-61ce-34ea-3f302f44b546.json (1665.1 KB) ---
+
+--- File 9: Azucena377_Wolff180_68e8b8e1-2be4-3ce6-5fe0-4ad1892bd88d.json (1343.5 KB) ---
+
+--- File 10: Belle514_Mayra756_Cole117_ae7f2bff-e8ed-7c70-330d-b08474513bc0.json (2841.2 KB) ---
+
+--- File 11: Bennett146_Hirthe744_7fd99c22-0d53-b4fb-ffe1-932839cd656b.json (1871.6 KB) ---
+
+--- File 12: Bobbi508_Braun514_9e98fd5c-d75e-a13b-536b-901fa7bda9c8.json (863.6 KB) ---
+
+--- File 13: Bradford382_McGlynn426_cd78719a-348e-dbda-68c2-dfd3c05cc0dd.json (2906.9 KB) ---
+
+--- File 14: Branden904_Wintheiser220_33c4d981-8044-5679-e0ac-1583dfa99b9c.json (1892.0 KB) ---
+
+--- File 15: Brock407_Kutch271_cb9d61c8-9364-d6cc-05d3-e37e77a3e3ae.json (2739.3 KB) ---
+
+--- File 16: Cary869_Conn188_f4fe1d35-abe5-6e7b-321b-7a2c8d704417.json (3490.1 KB) ---
+
+--- File 17: Cayla360_Wisozk929_9d351fbc-2db6-a8be-48a4-478c9db3e45f.json (443.6 KB) ---
+
+--- File 18: Chin306_Schneider199_b143383a-e050-b400-b7fe-aa90c6896ebf.json (2263.1 KB) ---
+
+--- File 19: Clara183_Yong583_Beier427_e9945b3f-14a3-93be-0b12-4b1d1a2cc0fb.json (26580.4 KB) ---
+❌ Failed on Clara183_Yong583_Beier427_e9945b3f-14a3-93be-0b12-4b1d1a2cc0fb.json: Pinata download failed
+
+--- File 20: Clinton763_Mosciski958_9565fab8-852d-8453-a3b5-2cb2f92e4748.json (4826.4 KB) ---
+
+--- File 21: Darell496_Schaefer657_badf75c8-eb11-ea22-db96-5b447e24729a.json (1202.6 KB) ---
+
+--- File 22: Dario75_Langosh790_5037bc8b-f535-068f-574e-38a7cc3996be.json (1127.1 KB) ---
+
+--- File 23: Dexter530_Botsford977_ea4b48fd-1d59-5841-7333-84ffab9be3cf.json (1133.0 KB) ---
+
+--- File 24: Dorathy429_Fermina506_Langosh790_95f77059-8563-4494-ce54-e5a774afe343.json (2720.4 KB) ---
+
+--- File 25: Eleonore965_Rose199_Huels583_d0ac8112-45ba-9884-cb78-8549b6354786.json (2582.1 KB) ---
+
+--- File 26: Elfrieda676_Walter473_23d0e214-5237-bbe1-245b-94c1d660d281.json (2494.9 KB) ---
+
+--- File 27: Elina789_Boyle917_efd665a1-24ab-0858-7e9d-5a2925e196ca.json (1893.2 KB) ---
+
+--- File 28: Eliza161_Fahey393_9b49519e-4ee8-44b9-a7ae-50cc4a6bdd72.json (1920.6 KB) ---
+
+--- File 29: Elvin140_Bogisich202_0fcb1907-1b56-0e97-9ab4-d5e36530e6a4.json (1434.1 KB) ---
+
+--- File 30: Elvis145_Mayert710_3c2fa390-bee0-2337-bfee-68835d40285d.json (3191.1 KB) ---
+
+--- File 31: Evita885_Jakubowski832_d9ddfc82-55b9-475b-3a22-abe004dddc12.json (1101.1 KB) ---
+
+--- File 32: Fern75_Boyer713_a47b0a34-dc2b-1da3-af5a-0c2984cfb3d1.json (2043.1 KB) ---
+
+--- File 33: Filiberto722_Ernser583_dbdaaed0-5069-2428-a0f1-40355e4a166d.json (895.3 KB) ---
+
+--- File 34: Frank378_Nikolaus26_d50def03-ec48-7d5b-cff0-fe748f02bd50.json (2319.3 KB) ---
+
+--- File 35: Genoveva361_Legros616_b96cf0c3-3d07-d21d-e1a1-ed18b73c3d02.json (2252.8 KB) ---
+
+--- File 36: Gigi364_Tammie751_Klein929_899a98b0-cdde-cfbf-d8ac-4de259280e67.json (25818.9 KB) ---
+
+--- File 37: Hal307_Hahn503_79b3d34b-d749-8f8d-51fd-f1c15e6df192.json (1235.2 KB) ---
+
+--- File 38: Harold594_Will178_eeb9d68f-c26b-7547-d1b2-95f7c9de8898.json (1911.8 KB) ---
+
+--- File 39: Harry448_Schulist381_016d2474-c950-a00c-e2aa-319c6e6eab53.json (939.7 KB) ---
+
+--- File 40: Hollis7_Champlin946_3eef1bf1-0b6c-4411-ef40-a374136396a6.json (52555.3 KB) ---
+
+--- File 41: Homer307_Kiehn525_aff2ecfd-ac9e-ba13-4ce4-3503c562287c.json (3330.6 KB) ---
+
+--- File 42: hospitalInformation1779952969173.json (844.6 KB) ---
+
+--- File 43: Ines699_Herzog843_e29a9f21-3f3c-321a-f3cc-2a246e04f184.json (1183.1 KB) ---
+
+--- File 44: Isabela97_Ana_Luisa894_Calderón210_c0b74135-519b-eb30-f1b3-d1a76a4efedf.json (2126.8 KB) ---
+
+--- File 45: Isaura563_Howell947_15eebcc0-742a-941a-3fb8-6be5b55d88e7.json (2584.3 KB) ---
+
+--- File 46: Jackie93_Emmerich580_ccb67eb2-6943-65e5-7c79-93b45d42d319.json (1838.1 KB) ---
+
+--- File 47: Jame231_Gaylord332_2f53b0eb-f8ca-3109-3dfc-564f0df16433.json (5191.1 KB) ---
+
+--- File 48: Jean712_Hoppe518_ccb20988-749e-766f-4351-17cd0f322f42.json (770.2 KB) ---
+
+--- File 49: Jed345_Marquardt819_29cf13b2-9c1b-6493-8af7-9900ece0ad41.json (971.3 KB) ---
+
+--- File 50: Jerald662_Pouros728_4c36776b-f75c-e9ab-b3b2-98e9c76354b6.json (7533.3 KB) ---
+
+--- File 51: Jere230_Kovacek682_8d3970a6-9da3-214f-88f5-70e2e27b3d63.json (745.5 KB) ---
+
+--- File 52: Jessenia588_Kelly223_Ebert178_31ddedf0-49a2-0613-d50e-e05460e641f2.json (1891.8 KB) ---
+
+--- File 53: Jose871_Jacobson885_d12a1e87-101a-b183-5061-c9cef0289a8b.json (861.1 KB) ---
+
+--- File 54: Josef103_Ondricka197_eda3e445-e200-a3d6-8736-68bc7a7f54ac.json (1069.7 KB) ---
+
+--- File 55: Kali995_Hollis7_Haley279_69df2fef-a74a-937b-4015-b99608f67eb1.json (5463.8 KB) ---
+
+--- File 56: Kandy733_Dorthea49_Leannon79_76e85f29-136f-3435-26b2-5da703d73e45.json (33394.6 KB) ---
+
+--- File 57: Kieth891_Luettgen772_664bea74-f502-5ad9-8b4d-de8a0f5b9347.json (3214.3 KB) ---
+
+--- File 58: Kimi714_Carter549_04e05088-e871-3c33-bb5a-93cfb5cb9415.json (1491.7 KB) ---
+
+--- File 59: Lamar193_Block661_9858258b-0940-a35d-046e-7927ca746c93.json (2655.4 KB) ---
+
+--- File 60: Landon622_Moore224_8e3c0275-7f98-21a3-197a-01508c5618a4.json (1349.3 KB) ---
+
+--- File 61: Latisha994_Anglea614_Daniel959_b9cfb610-f811-d83a-9308-b4c747966e0a.json (2639.0 KB) ---
+
+--- File 62: Lino542_Kuvalis369_675b6f5f-27aa-e55c-23e2-01e0a2a18d99.json (3574.9 KB) ---
+
+--- File 63: Lisette854_Dickinson688_4d7fc761-c949-bae0-be21-14c6d5858294.json (11162.2 KB) ---
+
+--- File 64: Louella862_Keith571_Jacobs452_6096a985-9031-15df-6370-350f36c7374f.json (5980.3 KB) ---
+
+--- File 65: Luba688_Bradtke547_a2d579ab-1467-ebb0-b622-c3ade4f4aa1c.json (1795.4 KB) ---
+
+--- File 66: Luetta803_Ha329_Runolfsson901_c674d58a-4180-077e-81fd-a4d51a76e8c1.json (2041.0 KB) ---
+
+--- File 67: Lula998_Janyce124_Romaguera67_1e044953-f991-cf83-7f6b-64feadf806f9.json (1808.8 KB) ---
+
+--- File 68: Mac103_Lang846_7594602a-edfe-7723-229b-b88dfcb83f8f.json (2490.1 KB) ---
+
+--- File 69: Malcolm243_Raynor401_00a2e57f-634b-e3d5-3d76-e012f54f0bc0.json (706.6 KB) ---
+
+--- File 70: Malka46_Stiedemann542_69ae08a4-bd05-7a5f-731f-d240a29e9372.json (1586.1 KB) ---
+
+--- File 71: Marc757_Wilkinson796_e26c8473-8b8d-9d8a-f487-d32d6506b8bf.json (612.3 KB) ---
+
+--- File 72: Margot418_Simona661_Ferry570_d05f3532-a574-e650-c1f8-65717c531784.json (1176.0 KB) ---
+
+--- File 73: Maryalice613_Hodkiewicz467_cd3c3969-8292-90fe-710d-f94d5fe21696.json (1118.7 KB) ---
+
+--- File 74: Meaghan273_Lockman863_4a911981-66f5-2bc7-1d1e-e2c56505eb1d.json (1509.0 KB) ---
+
+--- File 75: Melani888_Hayes766_86ceb449-3be1-a5c9-0463-7e8a0f44d442.json (3572.9 KB) ---
+
+--- File 76: Mitzi535_Auer97_5b2f6e57-02a5-5a75-baee-9a278d8e0213.json (741.1 KB) ---
+
+--- File 77: Moises22_Jones311_a39c3270-774f-be32-02e0-7bd00f1dd6bb.json (3935.1 KB) ---
+
+--- File 78: Nakisha629_Daugherty69_439c8122-a5d4-8f1b-d378-670db6ccd72e.json (2048.4 KB) ---
+
+--- File 79: Natacha644_Streich926_92744467-485c-3e5f-0de2-e6d04c904c54.json (1346.5 KB) ---
+
+--- File 80: Normand813_Watsica258_30bc6afb-0305-c359-f048-3f80aeb8f51d.json (1948.6 KB) ---
+
+--- File 81: Piedad413_Bednar518_549d4630-eb00-684e-a40d-309413f9cf4e.json (1627.3 KB) ---
+
+--- File 82: Ping698_Senger904_243a566e-5707-4d6b-6d2f-fcc846132443.json (982.2 KB) ---
+
+--- File 83: practitionerInformation1779952969173.json (885.8 KB) ---
+
+--- File 84: Randy380_Pacocha935_2c06a0ce-2ff3-04ab-2bda-f63c8eff848e.json (1628.2 KB) ---
+
+--- File 85: Raul814_Connelly992_205d1f54-b973-f394-7ce5-81bb23ece7a8.json (601.1 KB) ---
+
+--- File 86: Raul814_Kohler843_42616b07-9cec-8aa6-0b0b-3222cc76b8c4.json (1895.1 KB) ---
+❌ Failed on Raul814_Kohler843_42616b07-9cec-8aa6-0b0b-3222cc76b8c4.json: request timeout (code=TIMEOUT, version=6.16.0)
+
+--- File 87: Richie600_Buckridge80_1e6a8f7a-8fa9-13de-5d44-cadd0757d710.json (19718.8 KB) ---
+
+--- File 88: Rocky100_Senger904_dafe8219-1a34-5a7c-5c75-1594d82a2be4.json (1491.9 KB) ---
+
+--- File 89: Ron353_Sawayn19_eaaee9c9-9f77-9216-b06c-4f0ee3a6ca30.json (1213.0 KB) ---
+
+--- File 90: Rosita520_O'Reilly797_09ed851a-b22d-b912-b3aa-7d4a87c52445.json (3280.0 KB) ---
+
+--- File 91: Sammie902_Frami345_0dd94e9e-9f82-b415-75af-309c70fcfd42.json (4478.9 KB) ---
+
+--- File 92: Seymour882_Roberts511_13dc7c4c-d8d7-7585-0e6b-61df229d3e36.json (2552.3 KB) ---
+
+--- File 93: Shantae970_Jones311_8491c79f-b1e5-7193-636d-4f4053b765c7.json (4861.4 KB) ---
+
+--- File 94: Shyla233_Wynona930_Herzog843_d110bf33-d7b4-8341-8f00-792aaa06e7a1.json (3284.3 KB) ---
+
+--- File 95: Sung603_Weissnat378_d219d8f0-cd4e-46b6-d01e-1cc2c2e3869d.json (3188.5 KB) ---
+
+--- File 96: Susie661_Lowe577_1bfb0920-698b-61c0-68f4-2c9990cb48c8.json (1207.7 KB) ---
+❌ Failed on Susie661_Lowe577_1bfb0920-698b-61c0-68f4-2c9990cb48c8.json: request timeout (code=TIMEOUT, version=6.16.0)
+
+--- File 97: Suzette512_Cremin516_c2fbca5e-cb76-9243-0046-3a265f07a4e8.json (1207.6 KB) ---
+❌ Failed on Suzette512_Cremin516_c2fbca5e-cb76-9243-0046-3a265f07a4e8.json: request timeout (code=TIMEOUT, version=6.16.0)
+
+--- File 98: Telma919_DuBuque211_296fb17e-c382-a485-6255-110cd16b251a.json (969.5 KB) ---
+❌ Failed on Telma919_DuBuque211_296fb17e-c382-a485-6255-110cd16b251a.json: getaddrinfo ENOTFOUND api.pinata.cloud
+
+--- File 99: Tenesha164_Sanjuanita786_Lang846_bc0f3c22-dbc8-f6df-9854-ccc49e776a4a.json (9086.1 KB) ---
+
+--- File 100: Teodoro374_Pulido715_41e9a86a-9bbd-1389-7f7a-7536ad16103c.json (1000.9 KB) ---
+
+✅ Benchmark complete. Reports:
+   - benchmark_full_results.json
+   - benchmark_aggregated_stats.json
+   - benchmark_report.html
+
+C:\Users\SCORPION\Desktop\final version of DAPP_MEDICAL\medical-dapp-pfe 1.1.6-we-need-to-fix-share\medical-dapp-pfe 1.1.4-we-need-to-fix-share\medical-dapp-pfe\electron_app>
