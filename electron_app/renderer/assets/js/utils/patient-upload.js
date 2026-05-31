@@ -120,7 +120,7 @@ function attachEventListeners() {
 }
 
 function handleFileSelect(file) {
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 200 * 1024 * 1024) {
         showError('File size must be less than 10MB');
         return;
     }

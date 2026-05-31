@@ -1116,8 +1116,8 @@ ipcMain.handle('uploadToPinata', async (event, { data, filename, fileType, metad
 
 
 // ==================== Pinata Configuration ====================
-const PINATA_API_KEY = '03959fc6abd1baa890bf';
-const PINATA_API_SECRET = '226d0b2203d0fc90f1ce99a0cc0a5eb0950a777c1784e02072c835bf66c51778';
+const PINATA_API_KEY = '49286085345f19aeb47d';
+const PINATA_API_SECRET = 'e2ffdfe400b28fa90668d65c434b029022b1b5b84d0166908ea5f510e8911939';
 
 // ==================== Pinata Handlers ====================
 ipcMain.handle('pinata:upload', async (event, { data, filename, fileType, metadata }) => {
@@ -1242,6 +1242,24 @@ ipcMain.handle('pinata:get', async (event, cid) => {
 
     } catch (error) {
         console.error('Pinata get error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+
+ipcMain.handle('pinata-unpin', async (event, cid) => {
+    try {
+        const response = await axios.delete(
+            `https://api.pinata.cloud/pinning/unpin/${cid}`,
+            {
+                headers: {
+                'pinata_api_key': PINATA_API_KEY,
+                'pinata_secret_api_key': PINATA_API_SECRET,
+            },
+            }
+        );
+        return { success: true, data: response.data };
+    } catch (error) {
         return { success: false, error: error.message };
     }
 });

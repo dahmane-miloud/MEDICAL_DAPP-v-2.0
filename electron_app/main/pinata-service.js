@@ -4,8 +4,8 @@ const FormData = require('form-data');
 
 class PinataService {
     constructor() {
-        this.apiKey = process.env.PINATA_API_KEY || '03959fc6abd1baa890bf';
-        this.apiSecret = process.env.PINATA_API_SECRET || '226d0b2203d0fc90f1ce99a0cc0a5eb0950a777c1784e02072c835bf66c51778';
+        this.apiKey = process.env.PINATA_API_KEY || '49286085345f19aeb47d';
+        this.apiSecret = process.env.PINATA_API_SECRET || 'e2ffdfe400b28fa90668d65c434b029022b1b5b84d0166908ea5f510e8911939';
 
         console.log('✅ Pinata service initialized');
         console.log(`   API Key: ${this.apiKey.substring(0, 10)}...`);

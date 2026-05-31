@@ -60,23 +60,23 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         if (selectedType === 'doctor') {
-            const licenseInput = document.getElementById('license');
+           
             const specializationInput = document.getElementById('specialization');
             
-            if (!licenseInput || !specializationInput) {
+            if (!specializationInput) {
                 showToast('Doctor fields not found', 'error');
                 return;
             }
             
-            const license = licenseInput.value.trim();
+           
             const specialization = specializationInput.value.trim();
 
-            if (!license || !specialization) {
+            if (!specialization) {
                 showToast('Please fill in all doctor fields', 'error');
                 return;
             }
 
-            formData.license = license;
+           
             formData.specialization = specialization;
         } else if (selectedType === 'health') {
             const departmentInput = document.getElementById('department');

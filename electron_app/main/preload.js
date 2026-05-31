@@ -67,7 +67,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     pinataGet: (cid) => ipcRenderer.invoke('pinata:get', cid),
     pinataCheck: () => ipcRenderer.invoke('pinata:check'),
     // preload.js (add to existing contextBridge)
-    getAccumulator: () => ipcRenderer.invoke('get-accumulator')
+    getAccumulator: () => ipcRenderer.invoke('get-accumulator'),
+    pinataUnpin: (cid) => ipcRenderer.invoke('pinata-unpin', cid)
 });
 
 console.log('✅ Preload script loaded successfully');
