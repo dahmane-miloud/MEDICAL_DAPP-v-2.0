@@ -356,12 +356,12 @@ window.viewDoctorDetails = async function (did) {
             <div class="doctor-detail-row"><div class="doctor-detail-label">Registered:</div><div class="doctor-detail-value">${doctor.createdAt ? new Date(doctor.createdAt).toLocaleString() : 'N/A'}</div></div></div>
             <div class="detail-section"><div class="detail-section-title">🎓 Professional Information</div>
             <div class="doctor-detail-row"><div class="doctor-detail-label">Specialization:</div><div class="doctor-detail-value">${escapeHtml(doctor.specialization || 'General Medicine')}</div></div>
-            <div class="doctor-detail-row"><div class="doctor-detail-label">License:</div><div class="doctor-detail-value">${doctor.license || 'N/A'}</div></div></div>
+           
             <div class="detail-section"><div class="detail-section-title">🔐 Witness & Status</div>
             <div class="doctor-detail-row"><div class="doctor-detail-label">Status:</div><div class="doctor-detail-value"><span class="status-badge ${statusClass}">${statusText}</span></div></div>
-            <div class="doctor-detail-row"><div class="doctor-detail-label">Witness Hash:</div><div class="doctor-detail-value"><code>${witnessHash || 'None'}</code></div></div>
+           
             <div class="doctor-detail-row"><div class="doctor-detail-label">Issued:</div><div class="doctor-detail-value">${issuedAt ? new Date(issuedAt * 1000).toLocaleString() : 'N/A'}</div></div>
-            <div class="doctor-detail-row"><div class="doctor-detail-label">Expires:</div><div class="doctor-detail-value">${expiryTime ? new Date(expiryTime * 1000).toLocaleString() : 'No expiry'}</div></div></div>
+    
             <div class="detail-section"><div class="detail-section-title">🔄 Authorizations</div>
             <div class="doctor-detail-row"><div class="doctor-detail-label">Total:</div><div class="doctor-detail-value">${doctorAccesses.length}</div></div>
             <div class="doctor-detail-row"><div class="doctor-detail-label">Active:</div><div class="doctor-detail-value">${activeAccesses.length}</div></div></div>

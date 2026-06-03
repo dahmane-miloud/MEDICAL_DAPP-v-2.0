@@ -68,7 +68,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     pinataCheck: () => ipcRenderer.invoke('pinata:check'),
     // preload.js (add to existing contextBridge)
     getAccumulator: () => ipcRenderer.invoke('get-accumulator'),
-    pinataUnpin: (cid) => ipcRenderer.invoke('pinata-unpin', cid)
+    removeFromIPFS: (cid) => ipcRenderer.invoke('remove-from-ipfs', cid),
+   pinataUnpin: (cid) => ipcRenderer.invoke('pinata-unpin', cid),
+  deleteNotification: (id) => ipcRenderer.invoke('delete-notification', id),
+deleteAuthorization: (params) => ipcRenderer.invoke('delete-authorization', params),
 });
 
 console.log('✅ Preload script loaded successfully');

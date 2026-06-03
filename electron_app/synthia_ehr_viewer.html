@@ -1,0 +1,1603 @@
+<!--
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthia FHIR · Human Readable Patient Record</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f2f5f9;
+            --card: #ffffff;
+            --text: #1a1f36;
+            --muted: #64748b;
+            --accent: #2563eb;
+            --accent-light: #eef2ff;
+            --border: #e2e8f0;
+            --green: #16a34a;
+            --green-bg: #dcfce7;
+            --amber: #d97706;
+            --amber-bg: #fef9c3;
+            --rose: #dc2626;
+            --rose-bg: #fee2e2;
+            --purple: #7c3aed;
+            --purple-bg: #ede9fe;
+            --radius: 16px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: #fff;
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .top-bar .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .top-bar .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .top-bar h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        .top-bar .subtitle {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .upload-btn {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .upload-btn:hover {
+            background: #1d4ed8;
+        }
+        #fileInput {
+            display: none;
+        }
+        .patient-name-badge {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* Main Content */
+        .main-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        .empty-state h2 {
+            font-size: 1.4rem;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+        .empty-state p {
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .card-header .icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .icon-blue {
+            background: #eef2ff;
+            color: #2563eb;
+        }
+        .icon-green {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .icon-purple {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+        .icon-amber {
+            background: #fef9c3;
+            color: #d97706;
+        }
+        .icon-rose {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .card-header .count {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        /* Demographics grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .demo-item {
+            background: #f8fafc;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #f1f5f9;
+        }
+        .demo-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .demo-value {
+            font-size: 0.88rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .demo-value.empty {
+            color: #cbd5e1;
+            font-style: italic;
+        }
+
+        /* Tables */
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 500px;
+        }
+        th {
+            text-align: left;
+            padding: 9px 10px;
+            background: #f8fafc;
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .badge-completed {
+            background: #eef2ff;
+            color: #2563eb;
+        }
+        .badge-inactive {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* Section for when no data */
+        .no-data {
+            color: var(--muted);
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+        .highlight-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .highlight-id {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 16px;
+            }
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .demo-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+  
+    <div class="top-bar">
+        <div class="logo-area">
+            <div class="logo-icon">S</div>
+            <div>
+                <h1>Synthia FHIR Viewer</h1>
+                <span class="subtitle">Your FHIR Data, Instantly Human‑Readable</span>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="patient-name-badge" id="patientNameBadge" style="display:none;"></span>
+            <label for="fileInput" class="upload-btn">📂 Open Synthia File</label>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <!-- Main View 
+    <div class="main-container" id="mainView">
+        <div class="empty-state" id="emptyState">
+            <div class="icon">📋</div>
+            <h2>Your FHIR Data, Instantly Human‑Readable</h2>
+            <p>Click <strong>"Open Synthia File"</strong> or drag & drop your Synthia JSON file here. The viewer will automatically extract the patient record, conditions, medications, encounters, and more into a beautiful clinical summary.</p>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const mainView = document.getElementById('mainView');
+        const emptyState = document.getElementById('emptyState');
+        const patientNameBadge = document.getElementById('patientNameBadge');
+
+        // ── File selection ──────────────────
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            await loadAndDisplay(file);
+        });
+
+        // ── Drag & drop ─────────────────────
+        document.body.addEventListener('dragover', (e) => e.preventDefault());
+        document.body.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) await loadAndDisplay(file);
+        });
+
+        async function loadAndDisplay(file) {
+            try {
+                const text = await file.text();
+                const json = JSON.parse(text);
+                renderBundle(json);
+                patientNameBadge.style.display = 'inline-block';
+            } catch (err) {
+                alert('Could not parse this file. Please ensure it is a valid Synthia FHIR JSON file.');
+                console.error(err);
+            }
+        }
+
+        // ── Main renderer for FHIR Bundle ───
+        function renderBundle(bundle) {
+            // Synthia data is a FHIR Bundle with an "entry" array
+            const entries = bundle.entry || [];
+            if (!entries.length) {
+                mainView.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h2>Empty Bundle</h2><p>No entries found in this file.</p></div>';
+                return;
+            }
+
+            // Extract resources by type
+            const resources = {};
+            entries.forEach(entry => {
+                const resource = entry.resource;
+                if (!resource) return;
+                const type = resource.resourceType;
+                if (!type) return;
+                if (!resources[type]) resources[type] = [];
+                resources[type].push(resource);
+            });
+
+            // Find the main Patient
+            const patients = resources['Patient'] || [];
+            const patient = patients[0] || null;
+
+            // Update the badge
+            if (patient) {
+                const name = getPatientName(patient);
+                patientNameBadge.textContent = '👤 ' + name;
+                patientNameBadge.style.display = 'inline-block';
+            }
+
+            let html = '';
+
+            // ── PATIENT CARD ──────────────────
+            if (patient) {
+                html += buildPatientCard(patient);
+            }
+
+            // ── CONDITIONS ────────────────────
+            const conditions = resources['Condition'] || [];
+            if (conditions.length) {
+                html += buildConditionCard(conditions);
+            }
+
+            // ── MEDICATION REQUESTS ───────────
+            const meds = resources['MedicationRequest'] || [];
+            if (meds.length) {
+                html += buildMedicationCard(meds);
+            }
+
+            // ── ENCOUNTERS ────────────────────
+            const encounters = resources['Encounter'] || [];
+            if (encounters.length) {
+                html += buildEncounterCard(encounters);
+            }
+
+            // ── DIAGNOSTIC REPORTS ────────────
+            const diagReports = resources['DiagnosticReport'] || [];
+            if (diagReports.length) {
+                html += buildDiagnosticCard(diagReports);
+            }
+
+            // ── CARE PLAN ─────────────────────
+            const carePlans = resources['CarePlan'] || [];
+            if (carePlans.length) {
+                html += buildCarePlanCard(carePlans);
+            }
+
+            // ── CLAIMS ────────────────────────
+            const claims = resources['Claim'] || [];
+            if (claims.length) {
+                html += buildClaimCard(claims);
+            }
+
+            // ── ANY OTHER RESOURCES ───────────
+            const knownTypes = ['Patient', 'Condition', 'MedicationRequest', 'Encounter', 'DiagnosticReport', 'CarePlan', 'Claim', 'ExplanationOfBenefit', 'DocumentReference', 'CareTeam'];
+            for (const [type, items] of Object.entries(resources)) {
+                if (!knownTypes.includes(type) && items.length > 0) {
+                    html += buildGenericCard(type, items);
+                }
+            }
+
+            // ── SUMMARY STATS ─────────────────
+            if (entries.length > 0) {
+                html += buildSummaryCard(entries.length, resources);
+            }
+
+            mainView.innerHTML = html;
+            if (emptyState) emptyState.style.display = 'none';
+        }
+
+        // ── PATIENT CARD ─────────────────────
+        function buildPatientCard(patient) {
+            const name = getPatientName(patient);
+            const id = getPatientId(patient);
+            const dob = patient.birthDate || '';
+            const gender = patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1) : '';
+            const address = patient.address?.[0];
+            const addressStr = address ? [address.line?.join(', '), address.city, address.state, address.postalCode, address.country].filter(Boolean).join(', ') : '';
+            const telecoms = patient.telecom || [];
+            const phone = telecoms.find(t => t.system === 'phone')?.value || '';
+            const email = telecoms.find(t => t.system === 'email')?.value || '';
+            const marital = patient.maritalStatus?.text || patient.maritalStatus?.coding?.[0]?.display || '';
+            const language = patient.communication?.[0]?.language?.text || patient.communication?.[0]?.language?.coding?.[0]?.display || '';
+            const identifiers = patient.identifier || [];
+            const mrn = identifiers.find(i => i.type?.coding?.[0]?.code === 'MR')?.value || identifiers[0]?.value || '';
+
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-blue">👤</div>
+                    <h3>Patient Information</h3>
+                </div>
+                <div class="demo-grid">
+                    <div class="demo-item">
+                        <div class="demo-label">Full Name</div>
+                        <div class="demo-value highlight-name">${name || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Medical Record #</div>
+                        <div class="demo-value">${mrn || id || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Date of Birth</div>
+                        <div class="demo-value">${dob || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Gender</div>
+                        <div class="demo-value">${gender || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Phone</div>
+                        <div class="demo-value">${phone || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Email</div>
+                        <div class="demo-value">${email || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Marital Status</div>
+                        <div class="demo-value">${marital || '—'}</div>
+                    </div>
+                    <div class="demo-item">
+                        <div class="demo-label">Language</div>
+                        <div class="demo-value">${language || '—'}</div>
+                    </div>
+                    <div class="demo-item" style="grid-column:1/-1;">
+                        <div class="demo-label">Address</div>
+                        <div class="demo-value">${addressStr || '—'}</div>
+                    </div>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        // ── CONDITIONS CARD ──────────────────
+        function buildConditionCard(conditions) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-rose">🩺</div>
+                    <h3>Conditions / Diagnoses <span class="count">(${conditions.length})</span></h3>
+                </div>
+                <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Condition</th>
+                            <th>Status</th>
+                            <th>Onset</th>
+                            <th>Recorded Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            conditions.forEach(c => {
+                const name = c.code?.text || c.code?.coding?.[0]?.display || c.code?.coding?.[0]?.code || 'Unknown';
+                const status = c.clinicalStatus?.text || c.clinicalStatus?.coding?.[0]?.display || c.clinicalStatus?.coding?.[0]?.code || c.verificationStatus?.coding?.[0]?.code || '';
+                const onset = c.onsetDateTime || c.onsetPeriod?.start || c.onsetString || '';
+                const recorded = c.recordedDate || c.meta?.lastUpdated || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower.includes('resolved') || statusLower.includes('remission')) badgeClass = 'badge-completed';
+                if (statusLower.includes('inactive')) badgeClass = 'badge-inactive';
+                html += `<tr>
+                    <td><strong>${name}</strong></td>
+                    <td><span class="badge ${badgeClass}">${status || '—'}</span></td>
+                    <td>${onset ? onset.split('T')[0] : '—'}</td>
+                    <td>${recorded ? recorded.split('T')[0] : '—'}</td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        // ── MEDICATIONS CARD ─────────────────
+        function buildMedicationCard(meds) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-green">💊</div>
+                    <h3>Medications <span class="count">(${meds.length})</span></h3>
+                </div>
+                <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medication</th>
+                            <th>Dosage</th>
+                            <th>Route</th>
+                            <th>Frequency</th>
+                            <th>Status</th>
+                            <th>Prescribed</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            meds.forEach(m => {
+                const name = m.medicationCodeableConcept?.text || m.medicationCodeableConcept?.coding?.[0]?.display || m.medicationReference?.display || 'Unknown';
+                const dose = m.dosageInstruction?.[0]?.text || m.dosageInstruction?.[0]?.doseAndRate?.[0]?.doseQuantity?.value + ' ' + (m.dosageInstruction?.[0]?.doseAndRate?.[0]?.doseQuantity?.unit || '') || '';
+                const route = m.dosageInstruction?.[0]?.route?.text || m.dosageInstruction?.[0]?.route?.coding?.[0]?.display || '';
+                const freq = m.dosageInstruction?.[0]?.timing?.code?.text || m.dosageInstruction?.[0]?.timing?.code?.coding?.[0]?.display || '';
+                const status = m.status || '';
+                const date = m.authoredOn || m.meta?.lastUpdated || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'completed' || statusLower === 'stopped') badgeClass = 'badge-completed';
+                if (statusLower === 'inactive') badgeClass = 'badge-inactive';
+                html += `<tr>
+                    <td><strong>${name}</strong></td>
+                    <td>${dose || '—'}</td>
+                    <td>${route || '—'}</td>
+                    <td>${freq || '—'}</td>
+                    <td><span class="badge ${badgeClass}">${status || '—'}</span></td>
+                    <td>${date ? date.split('T')[0] : '—'}</td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        // ── ENCOUNTERS CARD ──────────────────
+        function buildEncounterCard(encounters) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-purple">🏥</div>
+                    <h3>Encounters / Visits <span class="count">(${encounters.length})</span></h3>
+                </div>
+                <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            encounters.forEach(enc => {
+                const type = enc.type?.[0]?.text || enc.type?.[0]?.coding?.[0]?.display || enc.class?.display || enc.class?.code || '';
+                const period = enc.period;
+                const dateStr = period ? (period.start ? period.start.split('T')[0] : '') + (period.end ? ' → ' + period.end.split('T')[0] : '') : '';
+                const reason = enc.reasonCode?.[0]?.text || enc.reasonCode?.[0]?.coding?.[0]?.display || enc.reasonReference?.[0]?.display || '';
+                const status = enc.status || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'finished' || statusLower === 'completed') badgeClass = 'badge-completed';
+                if (statusLower === 'cancelled') badgeClass = 'badge-inactive';
+                html += `<tr>
+                    <td><strong>${type || 'Encounter'}</strong></td>
+                    <td>${dateStr || '—'}</td>
+                    <td>${reason || '—'}</td>
+                    <td><span class="badge ${badgeClass}">${status || '—'}</span></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        // ── DIAGNOSTIC REPORTS ───────────────
+        function buildDiagnosticCard(reports) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-amber">🔬</div>
+                    <h3>Diagnostic Reports <span class="count">(${reports.length})</span></h3>
+                </div>
+                <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Test</th>
+                            <th>Date</th>
+                            <th>Result</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            reports.forEach(r => {
+                const name = r.code?.text || r.code?.coding?.[0]?.display || 'Lab Test';
+                const date = r.effectiveDateTime || r.issued || '';
+                const result = r.conclusion || (r.result?.[0]?.display) || 'See report';
+                const status = r.status || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'final') badgeClass = 'badge-completed';
+                html += `<tr>
+                    <td><strong>${name}</strong></td>
+                    <td>${date ? date.split('T')[0] : '—'}</td>
+                    <td>${result || '—'}</td>
+                    <td><span class="badge ${badgeClass}">${status || '—'}</span></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        // ── CARE PLAN ────────────────────────
+        function buildCarePlanCard(plans) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-blue">📋</div>
+                    <h3>Care Plan <span class="count">(${plans.length})</span></h3>
+                </div>`;
+            plans.forEach(p => {
+                const title = p.title || p.description || 'Care Plan';
+                const status = p.status || '';
+                const period = p.period;
+                const dateStr = period ? (period.start ? period.start.split('T')[0] : '') + (period.end ? ' → ' + period.end.split('T')[0] : '') : '';
+                html += `
+                <div style="margin-bottom:12px;padding:12px;background:#f8fafc;border-radius:8px;">
+                    <strong>${title}</strong>
+                    <span class="badge badge-active" style="margin-left:8px;">${status}</span>
+                    ${dateStr ? `<span style="color:var(--muted);margin-left:8px;font-size:0.8rem;">${dateStr}</span>` : ''}
+                </div>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        // ── CLAIMS ───────────────────────────
+        function buildClaimCard(claims) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-amber">💰</div>
+                    <h3>Claims <span class="count">(${claims.length})</span></h3>
+                </div>
+                <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Provider</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            claims.forEach(c => {
+                const type = c.type?.text || c.type?.coding?.[0]?.display || 'Claim';
+                const status = c.status || '';
+                const created = c.created || '';
+                const provider = c.provider?.display || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'active') badgeClass = 'badge-active';
+                if (statusLower === 'cancelled') badgeClass = 'badge-inactive';
+                html += `<tr>
+                    <td><strong>${type}</strong></td>
+                    <td><span class="badge ${badgeClass}">${status}</span></td>
+                    <td>${created ? created.split('T')[0] : '—'}</td>
+                    <td>${provider || '—'}</td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        // ── GENERIC CARD FOR OTHER RESOURCES ─
+        function buildGenericCard(type, items) {
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-blue">📁</div>
+                    <h3>${type} <span class="count">(${items.length})</span></h3>
+                </div>
+                <div class="table-wrap">
+                <table><thead><tr><th>ID</th><th>Status</th><th>Details</th></tr></thead><tbody>`;
+            items.forEach(item => {
+                const id = item.id || '—';
+                const status = item.status || '—';
+                const detail = item.code?.text || item.code?.coding?.[0]?.display || item.description || JSON.stringify(item).substring(0, 80);
+                html += `<tr><td>${id}</td><td>${status}</td><td>${detail}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        // ── SUMMARY CARD ─────────────────────
+        function buildSummaryCard(totalEntries, resources) {
+            const resourceTypes = Object.keys(resources);
+            let html = `
+            <div class="card" style="background:#f8fafc;">
+                <div class="card-header">
+                    <div class="icon-circle icon-blue">📊</div>
+                    <h3>Bundle Summary</h3>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:16px;">
+                    <div class="demo-item" style="min-width:120px;">
+                        <div class="demo-label">Total Entries</div>
+                        <div class="demo-value" style="font-size:1.5rem;font-weight:700;">${totalEntries}</div>
+                    </div>`;
+            resourceTypes.forEach(type => {
+                html += `
+                    <div class="demo-item" style="min-width:120px;">
+                        <div class="demo-label">${type}</div>
+                        <div class="demo-value" style="font-size:1.2rem;font-weight:600;">${resources[type].length}</div>
+                    </div>`;
+            });
+            html += `</div></div>`;
+            return html;
+        }
+
+        // ── HELPERS ──────────────────────────
+        function getPatientName(patient) {
+            const nameObj = patient.name?.[0];
+            if (!nameObj) return patient.id || 'Unknown';
+            const given = (nameObj.given || []).join(' ');
+            const family = nameObj.family || '';
+            const full = `${given} ${family}`.trim();
+            return full || nameObj.text || patient.id || 'Unknown';
+        }
+
+        function getPatientId(patient) {
+            const identifiers = patient.identifier || [];
+            const mrn = identifiers.find(i => i.type?.coding?.[0]?.code === 'MR')?.value;
+            return mrn || identifiers[0]?.value || patient.id || '';
+        }
+    </script>
+</body>
+</html>
+
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthia FHIR · Doctor Print Summary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f2f5f9;
+            --card: #ffffff;
+            --text: #1a1f36;
+            --muted: #64748b;
+            --accent: #2563eb;
+            --accent-light: #eef2ff;
+            --border: #e2e8f0;
+            --green: #16a34a;
+            --green-bg: #dcfce7;
+            --amber: #d97706;
+            --amber-bg: #fef9c3;
+            --rose: #dc2626;
+            --rose-bg: #fee2e2;
+            --purple: #7c3aed;
+            --purple-bg: #ede9fe;
+            --radius: 16px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Top Bar ── */
+        .top-bar {
+            background: #fff;
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .top-bar .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .top-bar .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .top-bar h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        .top-bar .subtitle {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: none;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover {
+            background: #f8fafc;
+        }
+        #fileInput { display: none; }
+        .patient-name-badge {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        /* ── Main Container ── */
+        .main-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-state .icon { font-size: 4rem; margin-bottom: 16px; }
+        .empty-state h2 { font-size: 1.4rem; color: #334155; margin-bottom: 8px; }
+        .empty-state p { max-width: 500px; line-height: 1.6; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .icon-blue { background: #eef2ff; color: #2563eb; }
+        .icon-green { background: #dcfce7; color: #16a34a; }
+        .icon-purple { background: #ede9fe; color: #7c3aed; }
+        .icon-amber { background: #fef9c3; color: #d97706; }
+        .icon-rose { background: #fee2e2; color: #dc2626; }
+        .card-header h3 { font-size: 0.95rem; font-weight: 600; }
+        .card-header .count { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .demo-item {
+            background: #f8fafc;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #f1f5f9;
+        }
+        .demo-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .demo-value {
+            font-size: 0.88rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .demo-value.empty { color: #cbd5e1; font-style: italic; }
+
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 500px;
+        }
+        th {
+            text-align: left;
+            padding: 9px 10px;
+            background: #f8fafc;
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-active { background: #dcfce7; color: #16a34a; }
+        .badge-completed { background: #eef2ff; color: #2563eb; }
+        .badge-inactive { background: #f1f5f9; color: #64748b; }
+
+        .no-data { color: var(--muted); font-style: italic; font-size: 0.85rem; }
+        .highlight-name { font-size: 1.3rem; font-weight: 700; color: #1e293b; }
+        .highlight-id { font-size: 0.8rem; color: var(--muted); }
+
+        /* ── Print Styles ── */
+        @media print {
+            body {
+                background: white;
+            }
+            .top-bar, .btn-group, #fileInput, .patient-name-badge, .empty-state {
+                display: none !important;
+            }
+            .main-container {
+                max-width: 100%;
+                padding: 0;
+                gap: 12px;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .card-header {
+                border-bottom: 1px solid #ddd;
+            }
+            table {
+                font-size: 0.7rem;
+            }
+            th {
+                background: #f1f1f1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { padding: 16px; }
+            .top-bar { padding: 12px 16px; }
+            .demo-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="logo-area">
+            <div class="logo-icon">S</div>
+            <div>
+                <h1>Synthia FHIR Viewer</h1>
+                <span class="subtitle">Your FHIR Data, Instantly Human‑Readable</span>
+            </div>
+        </div>
+        <div class="btn-group">
+            <span class="patient-name-badge" id="patientNameBadge">👤</span>
+            <button class="btn btn-outline" id="printBtn" onclick="printSummary()" disabled>🖨️ Print Summary</button>
+            <label for="fileInput" class="btn btn-primary">📂 Open Synthia File</label>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <!-- Main View -->
+    <div class="main-container" id="mainView">
+        <div class="empty-state" id="emptyState">
+            <div class="icon">📋</div>
+            <h2>Your FHIR Data, Instantly Human‑Readable</h2>
+            <p>Click <strong>"Open Synthia File"</strong> or drag & drop your Synthia JSON file here. Then click <strong>"Print Summary"</strong> for a doctor‑friendly printout of the most important clinical data.</p>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const mainView = document.getElementById('mainView');
+        const emptyState = document.getElementById('emptyState');
+        const patientNameBadge = document.getElementById('patientNameBadge');
+        const printBtn = document.getElementById('printBtn');
+
+        // Store last loaded data for printing
+        let lastBundleData = null;
+        let lastResources = null;
+        let lastPatient = null;
+
+        // ── File selection ──────────────────
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            await loadAndDisplay(file);
+        });
+
+        // ── Drag & drop ─────────────────────
+        document.body.addEventListener('dragover', (e) => e.preventDefault());
+        document.body.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) await loadAndDisplay(file);
+        });
+
+        async function loadAndDisplay(file) {
+            try {
+                const text = await file.text();
+                const json = JSON.parse(text);
+                renderBundle(json);
+                // Enable print button
+                printBtn.disabled = false;
+            } catch (err) {
+                alert('Could not parse this file. Please ensure it is a valid Synthia FHIR JSON file.');
+                console.error(err);
+            }
+        }
+
+        // ── Main renderer ───────────────────
+        function renderBundle(bundle) {
+            lastBundleData = bundle;
+            const entries = bundle.entry || [];
+            if (!entries.length) {
+                mainView.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h2>Empty Bundle</h2><p>No entries found.</p></div>';
+                printBtn.disabled = true;
+                return;
+            }
+
+            const resources = {};
+            entries.forEach(entry => {
+                const resource = entry.resource;
+                if (!resource) return;
+                const type = resource.resourceType;
+                if (!type) return;
+                if (!resources[type]) resources[type] = [];
+                resources[type].push(resource);
+            });
+            lastResources = resources;
+
+            const patients = resources['Patient'] || [];
+            const patient = patients[0] || null;
+            lastPatient = patient;
+
+            if (patient) {
+                const name = getPatientName(patient);
+                patientNameBadge.textContent = '👤 ' + name;
+                patientNameBadge.style.display = 'inline-block';
+            } else {
+                patientNameBadge.style.display = 'none';
+            }
+
+            let html = '';
+            if (patient) html += buildPatientCard(patient);
+
+            const conditions = resources['Condition'] || [];
+            if (conditions.length) html += buildConditionCard(conditions);
+
+            const meds = resources['MedicationRequest'] || [];
+            if (meds.length) html += buildMedicationCard(meds);
+
+            const encounters = resources['Encounter'] || [];
+            if (encounters.length) html += buildEncounterCard(encounters);
+
+            const diagReports = resources['DiagnosticReport'] || [];
+            if (diagReports.length) html += buildDiagnosticCard(diagReports);
+
+            const carePlans = resources['CarePlan'] || [];
+            if (carePlans.length) html += buildCarePlanCard(carePlans);
+
+            const claims = resources['Claim'] || [];
+            if (claims.length) html += buildClaimCard(claims);
+
+            // Generic other resources
+            const knownTypes = ['Patient','Condition','MedicationRequest','Encounter','DiagnosticReport','CarePlan','Claim','ExplanationOfBenefit','DocumentReference','CareTeam'];
+            for (const [type, items] of Object.entries(resources)) {
+                if (!knownTypes.includes(type) && items.length) {
+                    html += buildGenericCard(type, items);
+                }
+            }
+
+            if (entries.length) {
+                html += buildSummaryCard(entries.length, resources);
+            }
+
+            mainView.innerHTML = html;
+            if (emptyState) emptyState.style.display = 'none';
+        }
+
+        // ── Print Summary ───────────────────
+        function printSummary() {
+            if (!lastBundleData || !lastResources) {
+                alert('Please load a patient file first.');
+                return;
+            }
+            const patient = lastPatient;
+            const resources = lastResources;
+
+            // Build a clean, minimal summary HTML
+            let summaryHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Patient Summary</title>
+                <style>
+                    body {
+                        font-family: 'Inter', sans-serif;
+                        padding: 20px;
+                        color: #1a1f36;
+                        max-width: 800px;
+                        margin: auto;
+                    }
+                    .header {
+                        border-bottom: 2px solid #2563eb;
+                        padding-bottom: 10px;
+                        margin-bottom: 20px;
+                    }
+                    .header h1 {
+                        margin: 0;
+                        font-size: 1.5rem;
+                    }
+                    .header .sub {
+                        color: #64748b;
+                        font-size: 0.8rem;
+                    }
+                    .section {
+                        margin-bottom: 20px;
+                    }
+                    .section h2 {
+                        font-size: 1rem;
+                        color: #2563eb;
+                        border-bottom: 1px solid #e2e8f0;
+                        padding-bottom: 5px;
+                        margin-bottom: 10px;
+                    }
+                    .grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                        gap: 8px;
+                    }
+                    .item {
+                        background: #f8fafc;
+                        padding: 8px;
+                        border-radius: 6px;
+                    }
+                    .label {
+                        font-size: 0.6rem;
+                        text-transform: uppercase;
+                        color: #64748b;
+                    }
+                    .value {
+                        font-weight: 500;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 0.75rem;
+                    }
+                    th {
+                        background: #f1f5f9;
+                        padding: 6px;
+                        text-align: left;
+                        font-weight: 600;
+                    }
+                    td {
+                        padding: 6px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .badge {
+                        padding: 2px 6px;
+                        border-radius: 10px;
+                        font-size: 0.65rem;
+                        font-weight: 600;
+                    }
+                    .active { background: #dcfce7; color: #16a34a; }
+                    .inactive { background: #f1f5f9; color: #64748b; }
+                    @media print {
+                        body { padding: 0; }
+                    }
+                </style>
+            </head>
+            <body>`;
+
+            // Patient
+            if (patient) {
+                const name = getPatientName(patient);
+                const id = getPatientId(patient);
+                const dob = patient.birthDate || '';
+                const gender = patient.gender || '';
+                const phone = (patient.telecom || []).find(t => t.system === 'phone')?.value || '';
+                summaryHtml += `
+                <div class="header">
+                    <h1>${name}</h1>
+                    <div class="sub">ID: ${id || '—'} | DOB: ${dob} | Gender: ${gender} | Phone: ${phone}</div>
+                </div>`;
+            }
+
+            // Conditions - only active ones first
+            const conditions = resources['Condition'] || [];
+            const activeConditions = conditions.filter(c => {
+                const status = (c.clinicalStatus?.coding?.[0]?.code || '').toLowerCase();
+                return status === 'active' || status === 'relapse';
+            });
+            if (activeConditions.length) {
+                summaryHtml += `<div class="section"><h2>Active Conditions (${activeConditions.length})</h2><table><tr><th>Condition</th><th>Onset</th></tr>`;
+                activeConditions.forEach(c => {
+                    const name = c.code?.text || c.code?.coding?.[0]?.display || 'Unknown';
+                    const onset = c.onsetDateTime || c.onsetPeriod?.start || '';
+                    summaryHtml += `<tr><td>${name}</td><td>${onset ? onset.split('T')[0] : '—'}</td></tr>`;
+                });
+                summaryHtml += `</table></div>`;
+            }
+
+            // Medications - active only
+            const meds = resources['MedicationRequest'] || [];
+            const activeMeds = meds.filter(m => m.status === 'active');
+            if (activeMeds.length) {
+                summaryHtml += `<div class="section"><h2>Current Medications (${activeMeds.length})</h2><table><tr><th>Medication</th><th>Dosage</th><th>Route</th><th>Frequency</th></tr>`;
+                activeMeds.forEach(m => {
+                    const name = m.medicationCodeableConcept?.text || m.medicationCodeableConcept?.coding?.[0]?.display || 'Unknown';
+                    const dose = m.dosageInstruction?.[0]?.text || '';
+                    const route = m.dosageInstruction?.[0]?.route?.text || '';
+                    const freq = m.dosageInstruction?.[0]?.timing?.code?.text || '';
+                    summaryHtml += `<tr><td>${name}</td><td>${dose}</td><td>${route}</td><td>${freq}</td></tr>`;
+                });
+                summaryHtml += `</table></div>`;
+            }
+
+            // Recent Encounters (last 5)
+            const encounters = resources['Encounter'] || [];
+            if (encounters.length) {
+                summaryHtml += `<div class="section"><h2>Recent Encounters (${Math.min(5, encounters.length)})</h2><table><tr><th>Type</th><th>Date</th><th>Reason</th></tr>`;
+                encounters.slice(0, 5).forEach(enc => {
+                    const type = enc.type?.[0]?.text || 'Encounter';
+                    const date = enc.period?.start ? enc.period.start.split('T')[0] : '';
+                    const reason = enc.reasonCode?.[0]?.text || '';
+                    summaryHtml += `<tr><td>${type}</td><td>${date}</td><td>${reason}</td></tr>`;
+                });
+                summaryHtml += `</table></div>`;
+            }
+
+            // Recent Diagnostic Reports
+            const diagReports = resources['DiagnosticReport'] || [];
+            if (diagReports.length) {
+                summaryHtml += `<div class="section"><h2>Recent Lab Results</h2><table><tr><th>Test</th><th>Date</th><th>Result</th></tr>`;
+                diagReports.slice(0, 5).forEach(r => {
+                    const name = r.code?.text || r.code?.coding?.[0]?.display || 'Test';
+                    const date = r.effectiveDateTime ? r.effectiveDateTime.split('T')[0] : '';
+                    const result = r.conclusion || '—';
+                    summaryHtml += `<tr><td>${name}</td><td>${date}</td><td>${result}</td></tr>`;
+                });
+                summaryHtml += `</table></div>`;
+            }
+
+            // Care Plan
+            const carePlans = resources['CarePlan'] || [];
+            if (carePlans.length) {
+                summaryHtml += `<div class="section"><h2>Care Plan</h2>`;
+                carePlans.forEach(p => {
+                    summaryHtml += `<p><strong>${p.title || 'Plan'}</strong>: ${p.description || ''} (Status: ${p.status})</p>`;
+                });
+                summaryHtml += `</div>`;
+            }
+
+            summaryHtml += `</body></html>`;
+
+            // Open a new window and print
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(summaryHtml);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            // Optional: close after print
+            // printWindow.onafterprint = () => printWindow.close();
+        }
+
+        // ── Card builders (same as before) ───
+        function buildPatientCard(patient) {
+            const name = getPatientName(patient);
+            const id = getPatientId(patient);
+            const dob = patient.birthDate || '';
+            const gender = patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1) : '';
+            const address = patient.address?.[0];
+            const addressStr = address ? [address.line?.join(', '), address.city, address.state, address.postalCode, address.country].filter(Boolean).join(', ') : '';
+            const telecoms = patient.telecom || [];
+            const phone = telecoms.find(t => t.system === 'phone')?.value || '';
+            const email = telecoms.find(t => t.system === 'email')?.value || '';
+            const marital = patient.maritalStatus?.text || patient.maritalStatus?.coding?.[0]?.display || '';
+            const language = patient.communication?.[0]?.language?.text || patient.communication?.[0]?.language?.coding?.[0]?.display || '';
+            const identifiers = patient.identifier || [];
+            const mrn = identifiers.find(i => i.type?.coding?.[0]?.code === 'MR')?.value || identifiers[0]?.value || '';
+
+            let html = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-circle icon-blue">👤</div>
+                    <h3>Patient Information</h3>
+                </div>
+                <div class="demo-grid">
+                    <div class="demo-item"><div class="demo-label">Full Name</div><div class="demo-value highlight-name">${name || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Medical Record #</div><div class="demo-value">${mrn || id || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Date of Birth</div><div class="demo-value">${dob || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Gender</div><div class="demo-value">${gender || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Phone</div><div class="demo-value">${phone || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Email</div><div class="demo-value">${email || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Marital Status</div><div class="demo-value">${marital || '—'}</div></div>
+                    <div class="demo-item"><div class="demo-label">Language</div><div class="demo-value">${language || '—'}</div></div>
+                    <div class="demo-item" style="grid-column:1/-1;"><div class="demo-label">Address</div><div class="demo-value">${addressStr || '—'}</div></div>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function buildConditionCard(conditions) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-rose">🩺</div><h3>Conditions / Diagnoses <span class="count">(${conditions.length})</span></h3></div><div class="table-wrap"><table><thead><tr><th>Condition</th><th>Status</th><th>Onset</th><th>Recorded Date</th></tr></thead><tbody>`;
+            conditions.forEach(c => {
+                const name = c.code?.text || c.code?.coding?.[0]?.display || c.code?.coding?.[0]?.code || 'Unknown';
+                const status = c.clinicalStatus?.text || c.clinicalStatus?.coding?.[0]?.display || c.clinicalStatus?.coding?.[0]?.code || '';
+                const onset = c.onsetDateTime || c.onsetPeriod?.start || '';
+                const recorded = c.recordedDate || c.meta?.lastUpdated || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower.includes('resolved') || statusLower.includes('remission')) badgeClass = 'badge-completed';
+                if (statusLower.includes('inactive')) badgeClass = 'badge-inactive';
+                html += `<tr><td><strong>${name}</strong></td><td><span class="badge ${badgeClass}">${status || '—'}</span></td><td>${onset ? onset.split('T')[0] : '—'}</td><td>${recorded ? recorded.split('T')[0] : '—'}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function buildMedicationCard(meds) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-green">💊</div><h3>Medications <span class="count">(${meds.length})</span></h3></div><div class="table-wrap"><table><thead><tr><th>Medication</th><th>Dosage</th><th>Route</th><th>Frequency</th><th>Status</th><th>Prescribed</th></tr></thead><tbody>`;
+            meds.forEach(m => {
+                const name = m.medicationCodeableConcept?.text || m.medicationCodeableConcept?.coding?.[0]?.display || m.medicationReference?.display || 'Unknown';
+                const dose = m.dosageInstruction?.[0]?.text || m.dosageInstruction?.[0]?.doseAndRate?.[0]?.doseQuantity?.value + ' ' + (m.dosageInstruction?.[0]?.doseAndRate?.[0]?.doseQuantity?.unit || '') || '';
+                const route = m.dosageInstruction?.[0]?.route?.text || '';
+                const freq = m.dosageInstruction?.[0]?.timing?.code?.text || '';
+                const status = m.status || '';
+                const date = m.authoredOn || m.meta?.lastUpdated || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'completed' || statusLower === 'stopped') badgeClass = 'badge-completed';
+                if (statusLower === 'inactive') badgeClass = 'badge-inactive';
+                html += `<tr><td><strong>${name}</strong></td><td>${dose || '—'}</td><td>${route || '—'}</td><td>${freq || '—'}</td><td><span class="badge ${badgeClass}">${status || '—'}</span></td><td>${date ? date.split('T')[0] : '—'}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function buildEncounterCard(encounters) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-purple">🏥</div><h3>Encounters / Visits <span class="count">(${encounters.length})</span></h3></div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Date</th><th>Reason</th><th>Status</th></tr></thead><tbody>`;
+            encounters.forEach(enc => {
+                const type = enc.type?.[0]?.text || enc.type?.[0]?.coding?.[0]?.display || enc.class?.display || enc.class?.code || '';
+                const period = enc.period;
+                const dateStr = period ? (period.start ? period.start.split('T')[0] : '') + (period.end ? ' → ' + period.end.split('T')[0] : '') : '';
+                const reason = enc.reasonCode?.[0]?.text || enc.reasonCode?.[0]?.coding?.[0]?.display || '';
+                const status = enc.status || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'finished' || statusLower === 'completed') badgeClass = 'badge-completed';
+                if (statusLower === 'cancelled') badgeClass = 'badge-inactive';
+                html += `<tr><td><strong>${type || 'Encounter'}</strong></td><td>${dateStr || '—'}</td><td>${reason || '—'}</td><td><span class="badge ${badgeClass}">${status || '—'}</span></td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function buildDiagnosticCard(reports) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-amber">🔬</div><h3>Diagnostic Reports <span class="count">(${reports.length})</span></h3></div><div class="table-wrap"><table><thead><tr><th>Test</th><th>Date</th><th>Result</th><th>Status</th></tr></thead><tbody>`;
+            reports.forEach(r => {
+                const name = r.code?.text || r.code?.coding?.[0]?.display || 'Lab Test';
+                const date = r.effectiveDateTime || r.issued || '';
+                const result = r.conclusion || 'See report';
+                const status = r.status || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'final') badgeClass = 'badge-completed';
+                html += `<tr><td><strong>${name}</strong></td><td>${date ? date.split('T')[0] : '—'}</td><td>${result}</td><td><span class="badge ${badgeClass}">${status || '—'}</span></td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function buildCarePlanCard(plans) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-blue">📋</div><h3>Care Plan <span class="count">(${plans.length})</span></h3></div>`;
+            plans.forEach(p => {
+                const title = p.title || p.description || 'Care Plan';
+                const status = p.status || '';
+                const period = p.period;
+                const dateStr = period ? (period.start ? period.start.split('T')[0] : '') + (period.end ? ' → ' + period.end.split('T')[0] : '') : '';
+                html += `<div style="margin-bottom:12px;padding:12px;background:#f8fafc;border-radius:8px;"><strong>${title}</strong> <span class="badge badge-active">${status}</span> ${dateStr ? `<span style="color:var(--muted);margin-left:8px;font-size:0.8rem;">${dateStr}</span>` : ''}</div>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        function buildClaimCard(claims) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-amber">💰</div><h3>Claims <span class="count">(${claims.length})</span></h3></div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Status</th><th>Created</th><th>Provider</th></tr></thead><tbody>`;
+            claims.forEach(c => {
+                const type = c.type?.text || 'Claim';
+                const status = c.status || '';
+                const created = c.created || '';
+                const provider = c.provider?.display || '';
+                const statusLower = status.toLowerCase();
+                let badgeClass = 'badge-active';
+                if (statusLower === 'cancelled') badgeClass = 'badge-inactive';
+                html += `<tr><td><strong>${type}</strong></td><td><span class="badge ${badgeClass}">${status}</span></td><td>${created ? created.split('T')[0] : '—'}</td><td>${provider || '—'}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function buildGenericCard(type, items) {
+            let html = `<div class="card"><div class="card-header"><div class="icon-circle icon-blue">📁</div><h3>${type} <span class="count">(${items.length})</span></h3></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Status</th><th>Details</th></tr></thead><tbody>`;
+            items.forEach(item => {
+                const id = item.id || '—';
+                const status = item.status || '—';
+                const detail = item.code?.text || item.code?.coding?.[0]?.display || item.description || JSON.stringify(item).substring(0, 80);
+                html += `<tr><td>${id}</td><td>${status}</td><td>${detail}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function buildSummaryCard(totalEntries, resources) {
+            const types = Object.keys(resources);
+            let html = `<div class="card" style="background:#f8fafc;"><div class="card-header"><div class="icon-circle icon-blue">📊</div><h3>Bundle Summary</h3></div><div style="display:flex;flex-wrap:wrap;gap:16px;">`;
+            html += `<div class="demo-item" style="min-width:120px;"><div class="demo-label">Total Entries</div><div class="demo-value" style="font-size:1.5rem;font-weight:700;">${totalEntries}</div></div>`;
+            types.forEach(type => {
+                html += `<div class="demo-item" style="min-width:120px;"><div class="demo-label">${type}</div><div class="demo-value" style="font-size:1.2rem;font-weight:600;">${resources[type].length}</div></div>`;
+            });
+            html += `</div></div>`;
+            return html;
+        }
+
+        // ── Helpers ──
+        function getPatientName(patient) {
+            const nameObj = patient.name?.[0];
+            if (!nameObj) return patient.id || 'Unknown';
+            const given = (nameObj.given || []).join(' ');
+            const family = nameObj.family || '';
+            const full = `${given} ${family}`.trim();
+            return full || nameObj.text || patient.id || 'Unknown';
+        }
+
+        function getPatientId(patient) {
+            const identifiers = patient.identifier || [];
+            const mrn = identifiers.find(i => i.type?.coding?.[0]?.code === 'MR')?.value;
+            return mrn || identifiers[0]?.value || patient.id || '';
+        }
+    </script>
+</body>
+</html>

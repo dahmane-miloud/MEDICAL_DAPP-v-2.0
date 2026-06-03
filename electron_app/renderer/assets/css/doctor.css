@@ -758,3 +758,27 @@ textarea.form-control {
 .toast.warning {
     background: linear-gradient(135deg, #f39c12, #e67e22);
 }
+
+.btn-delete-all {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+    transition: all 0.2s;
+}
+
+.btn-delete-all:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

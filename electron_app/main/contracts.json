@@ -1,7 +1,7 @@
 {
-  "Accumulator": "0x36e63d04025f9876ECA7Bb7Abbf9C136Dc5980aA",
+  "Accumulator": "0xDA14E21BD54582e48c97c8288F4a57e6df9e56e6",
   "rpcUrl": "https://ethereum-sepolia.publicnode.com",
   "network": "sepolia",
   "chainId": 11155111,
-  "deployedAt": "2026-05-31T20:41:01.101Z"
+  "deployedAt": "2026-06-01T13:06:59.884Z"
 }

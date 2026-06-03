@@ -1,0 +1,11 @@
+(async function() {
+    const session = await window.electronAPI.getSession();
+    const storeKey = 'doctorAccesses:' + session.did;
+    
+    await window.electronAPI.storeSet(storeKey, []);
+    
+    localStorage.clear();
+    location.reload();
+})();
+await window.electronAPI.storeSet('notifications', {});
+location.reload();

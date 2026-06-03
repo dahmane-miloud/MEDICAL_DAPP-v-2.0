@@ -1,0 +1,2399 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Workstation · Advanced FHIR Chart Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+            --slate-400: #94a3b8; --slate-600: #475569; --slate-700: #334155; --slate-900: #0f172a;
+            --primary: #0f172a; --accent: #2563eb; --accent-light: #eff6ff;
+            --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fca5a5;
+            --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+            --warning: #d97706; --warning-bg: #fffbeb; --warning-border: #fef3c7;
+            --radius-lg: 12px; --radius-md: 8px; --radius-sm: 4px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f3f4f6; color: var(--slate-900);
+            min-height: 100vh; display: flex; flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Top Navigation Bar ── */
+        .navbar {
+            background: #ffffff; padding: 14px 24px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            background: var(--primary); color: #fff; 
+            width: 36px; height: 36px; border-radius: var(--radius-md); 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand h1 { font-size: 1.05rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .brand p { font-size: 0.68rem; color: var(--slate-600); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .btn {
+            padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
+            transition: all 0.1s ease-in-out;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: white; border-color: var(--slate-200); color: var(--slate-700); }
+        .btn-secondary:hover:not(:disabled) { background: var(--slate-50); }
+        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        #fileInput { display: none; }
+
+        /* ── Professional Hospital Patient Banner (Epic/Cerner Style) ── */
+        .patient-banner {
+            background: #ffffff; border-bottom: 1px solid var(--slate-200);
+            padding: 16px 24px; display: none; gap: 24px; align-items: center;
+            flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .banner-pt-name { font-size: 1.3rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .banner-metrics { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; flex: 1; }
+        .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .banner-meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); letter-spacing: 0.03em; }
+        .banner-meta-val { font-size: 0.88rem; font-weight: 600; color: var(--slate-900); }
+        .banner-allergy-alert {
+            background: var(--danger-bg); border: 1px solid var(--danger-border);
+            color: var(--danger); padding: 6px 12px; border-radius: var(--radius-md);
+            font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ── Layout Framework ── */
+        .workspace {
+            max-width: 1600px; width: 100%; margin: 24px auto; padding: 0 24px;
+            flex: 1; display: flex; flex-direction: column; gap: 24px;
+        }
+        
+        .empty-state {
+            background: white; border-radius: var(--radius-lg); border: 2px dashed var(--slate-300);
+            padding: 100px 24px; text-align: center; color: var(--slate-700);
+            box-shadow: var(--shadow); margin: auto; max-width: 550px;
+        }
+        .empty-state svg { margin-bottom: 16px; color: var(--slate-400); }
+        .empty-state h2 { font-size: 1.25rem; font-weight: 800; color: var(--slate-900); margin-bottom: 6px; }
+        .empty-state p { font-size: 0.88rem; line-height: 1.5; color: var(--slate-600); }
+
+        /* ── Dynamic Layout Columns ── */
+        .clinical-dashboard {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 24px; width: 100%;
+        }
+        .dashboard-main { display: flex; flex-direction: column; gap: 24px; }
+        .dashboard-side { display: flex; flex-direction: column; gap: 24px; }
+
+        /* ── Widget Components ── */
+        .card {
+            background: #ffffff; border-radius: var(--radius-lg); border: 1px solid var(--slate-200);
+            box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .card-header {
+            background: var(--slate-50); padding: 14px 20px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-title { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .header-title svg { width: 18px; height: 18px; stroke-width: 2.2; }
+        .card-header h3 { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-700); }
+        .counter-badge { background: var(--slate-200); color: var(--slate-700); font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .card-body { padding: 20px; overflow-x: auto; }
+        
+        /* ── Info Matrix (Grid boxes) ── */
+        .info-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .matrix-cell { background: var(--slate-50); border: 1px solid var(--slate-200); padding: 12px 14px; border-radius: var(--radius-md); }
+        .matrix-label { font-size: 0.65rem; text-transform: uppercase; color: var(--slate-600); font-weight: 700; margin-bottom: 3px; letter-spacing: 0.03em; }
+        .matrix-value { font-size: 0.9rem; font-weight: 600; color: var(--slate-900); word-break: break-word; }
+        .value-accent { color: var(--accent); font-weight: 700; }
+
+        /* ── Status Management Tags ── */
+        .status-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+        .status-red { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+        .status-green { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+        .status-amber { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+        .status-gray { background: var(--slate-100); color: var(--slate-600); border-color: var(--slate-200); }
+
+        /* ── Tabular Matrix Viewports ── */
+        .table-matrix { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        .table-matrix th { padding: 10px 12px; background: var(--slate-50); color: var(--slate-600); font-weight: 700; border-bottom: 2px solid var(--slate-200); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .table-matrix td { padding: 12px 12px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; color: var(--slate-900); }
+        .table-matrix tr:last-child td { border-bottom: none; }
+        .table-matrix tr:hover td { background: var(--slate-50)/50; }
+
+        /* ── Vitals Component Grid ── */
+        .vitals-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .vital-box { border: 1px solid var(--slate-200); border-left: 4px solid var(--accent); border-radius: var(--radius-md); padding: 12px; background: #fff; }
+        .vital-box.alert { border-left-color: var(--danger); background: var(--danger-bg); }
+        .vital-name { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); }
+        .vital-val { font-size: 1.2rem; font-weight: 800; color: var(--slate-900); margin: 2px 0; }
+        .vital-time { font-size: 0.65rem; color: var(--slate-400); font-weight: 500; }
+
+        @media (max-width: 1100px) {
+            .clinical-dashboard { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Navigation Architecture -->
+    <div class="navbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+                <h1>Clinical Workstation</h1>
+                <p>Medical Core Data Engine</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-secondary" id="printBtn" onclick="window.print()" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Summary
+            </button>
+            <label for="fileInput" class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                Load Patient JSON
+            </label>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <!-- Persistent Hospital Patient Identity Strip -->
+    <div class="patient-banner" id="patientBanner"></div>
+
+    <!-- Active Medical Screen Workspace -->
+    <div class="workspace" id="workspace">
+        <div class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <h2>No Chart Selected</h2>
+            <p>Upload an institutional standard FHIR or Synthea JSON patient profile. The dashboard will instantly analyze and arrange fields by triage and clinical hierarchy.</p>
+        </div>
+    </div>
+
+    <script>
+        let fhirData = null;
+        const fileInput = document.getElementById('fileInput');
+        const workspace = document.getElementById('workspace');
+        const patientBanner = document.getElementById('patientBanner');
+        const printBtn = document.getElementById('printBtn');
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const bundle = JSON.parse(text);
+                parseFHIRComponents(bundle);
+            } catch (err) {
+                alert("Failed to compile chart. Ensure file formatting conforms to standard JSON configurations.");
+                console.error(err);
+            }
+        });
+
+        function parseFHIRComponents(bundle) {
+            if (!bundle || !bundle.entry) return;
+            const sortedRegistry = {};
+            bundle.entry.forEach(item => {
+                const res = item.resource;
+                if (!res || !res.resourceType) return;
+                if (!sortedRegistry[res.resourceType]) sortedRegistry[res.resourceType] = [];
+                sortedRegistry[res.resourceType].push(res);
+            });
+            fhirData = sortedRegistry;
+            buildDashboardView();
+        }
+
+        function buildDashboardView() {
+            const data = fhirData;
+            const pt = (data['Patient'] || [])[0];
+            if (!pt) { alert("Invalid Document Structure: Missing Patient index record."); return; }
+
+            printBtn.disabled = false;
+            
+            // Extract baseline items
+            const ptName = extractPatientName(pt);
+            const dob = pt.birthDate || '—';
+            const gender = pt.gender || '—';
+            const mrn = pt.id || '—';
+            const allergiesList = data['AllergyIntolerance'] || [];
+
+            // ── EXECUTING PATIENT BANNER STRIP ──
+            patientBanner.style.display = 'flex';
+            patientBanner.innerHTML = `
+                <div class="banner-pt-name">👤 ${ptName}</div>
+                <div class="banner-metrics">
+                    <div class="banner-meta-item"><div class="banner-meta-label">DOB</div><div class="banner-meta-val">${dob}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">Gender</div><div class="banner-meta-val" style="text-transform:uppercase;">${gender}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">Medical Record Number (MRN)</div><div class="banner-meta-val" style="font-family:'JetBrains Mono',monospace;">${mrn}</div></div>
+                </div>
+                ${allergiesList.length ? `
+                    <div class="banner-allergy-alert">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                        ${allergiesList.length} ACTIVE ALLERGIES RECORDED
+                    </div>
+                ` : ''}
+            `;
+
+            // Initialization of Left and Right Panels
+            let mainColumnHTML = '';
+            let sideColumnHTML = '';
+
+            // 1. DEMOGRAPHICS DETAILS WIDGET
+            const phone = pt.telecom?.find(t => t.system === 'phone')?.value || '—';
+            const email = pt.telecom?.find(t => t.system === 'email')?.value || '—';
+            const addr = pt.address?.[0] ? `${pt.address[0].line?.join(', ')}, ${pt.address[0].city}, ${pt.address[0].state} ${pt.address[0].postalCode}` : '—';
+            const marital = pt.maritalStatus?.text || '—';
+            const lang = pt.communication?.[0]?.language?.text || pt.communication?.[0]?.language?.coding?.[0]?.display || '—';
+            const race = pt.extension?.find(e => e.url?.includes('us-core-race'))?.extension?.find(e => e.url === 'text')?.valueString || '—';
+            const ethnicity = pt.extension?.find(e => e.url?.includes('us-core-ethnicity'))?.extension?.find(e => e.url === 'text')?.valueString || '—';
+            const emergencyNode = pt.contact?.[0] ? `${pt.contact[0].name?.text || 'Contact'} (${pt.contact[0].relationship?.[0]?.text || 'NK'}) - ${pt.contact[0].telecom?.[0]?.value || ''}` : '—';
+            
+            // Try matching blood group from general observations if mapped
+            const bloodObs = (data['Observation'] || []).find(o => o.code?.text?.toLowerCase().includes('blood type') || o.code?.text?.toLowerCase().includes('blood group'));
+            const bloodType = bloodObs ? (bloodObs.valueString || bloodObs.valueCodeableConcept?.text || '—') : '—';
+
+            mainColumnHTML += `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <h3>1. Patient Demographics & Master Indexes</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-matrix">
+                            <div class="matrix-cell"><div class="matrix-label">Full Profile Name</div><div class="matrix-value value-accent">${ptName}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Patient Identifier (ID)</div><div class="matrix-value">${mrn}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Date of Birth</div><div class="matrix-value">${dob}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Biological Sex</div><div class="matrix-value" style="text-transform:uppercase;">${gender}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Telephone Contact</div><div class="matrix-value">${phone}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Email Node</div><div class="matrix-value">${email}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Marital Status</div><div class="matrix-value">${marital}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Preferred Language</div><div class="matrix-value">${lang}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Blood Group Matrix</div><div class="matrix-value">${bloodType}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Race Vector</div><div class="matrix-value">${race}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Ethnicity Classification</div><div class="matrix-value">${ethnicity}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Emergency Next of Kin Contact</div><div class="matrix-value">${emergencyNode}</div></div>
+                            <div class="matrix-cell" style="grid-column: 1 / -1;"><div class="matrix-label">Primary Mailing Address</div><div class="matrix-value">${addr}</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 2. ALLERGIES & CRITICAL INTOLERANCES WIDGET
+            if (allergiesList.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                                <h3>2. Adverse Reactions & Drug Intolerances</h3>
+                            </div>
+                            <span class="counter-badge status-red">${allergiesList.length} Alerts</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Allergen Substance</th><th>Manifestation Reaction</th><th>Severity Profile</th><th>Status</th><th>Recorded</th></tr></thead>
+                                <tbody>
+                                    ${allergiesList.map(a => {
+                                        const allergen = a.code?.coding?.[0]?.display || a.code?.text || 'Unassigned substance';
+                                        const manifestation = a.reaction?.[0]?.manifestation?.[0]?.coding?.[0]?.display || 'Systemic Reaction Unspecified';
+                                        const severity = a.reaction?.[0]?.severity || 'unknown';
+                                        const status = a.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        return `<tr>
+                                            <td><strong style="color:var(--danger); font-size:0.88rem;">${allergen}</strong></td>
+                                            <td><strong>${manifestation}</strong></td>
+                                            <td><span class="status-tag ${severity === 'severe' ? 'status-red' : 'status-amber'}">${severity}</span></td>
+                                            <td><span class="status-tag status-red">${status}</span></td>
+                                            <td>${a.recordedDate ? a.recordedDate.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. VITAL SIGNS STRIP WIDGET
+            const observations = data['Observation'] || [];
+            const vitalsObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs')));
+            if (vitalsObs.length) {
+                const latestVitals = {};
+                vitalsObs.forEach(v => {
+                    const title = v.code?.coding?.[0]?.display || v.code?.text;
+                    if (!title) return;
+                    if (!latestVitals[title] || new Date(v.effectiveDateTime) > new Date(latestVitals[title].effectiveDateTime)) {
+                        latestVitals[title] = v;
+                    }
+                });
+
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <h3>3. Objective Vital Signs (Most Recent Assays)</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="vitals-strip">
+                                ${Object.entries(latestVitals).map(([name, v]) => {
+                                    let reading = '—';
+                                    if (v.valueQuantity) reading = `${parseFloat(v.valueQuantity.value).toFixed(1)} ${v.valueQuantity.unit || ''}`;
+                                    else if (v.component) reading = v.component.map(c => parseFloat(c.valueQuantity?.value || 0).toFixed(0)).join('/');
+                                    const time = v.effectiveDateTime ? v.effectiveDateTime.split('T')[0] : '—';
+                                    return `
+                                        <div class="vital-box">
+                                            <div class="vital-name">${name}</div>
+                                            <div class="vital-val">${reading}</div>
+                                            <div class="vital-time">${time}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. ACTIVE FORMULATIONS & PHARMACOLOGICAL REGIMENS
+            const medRequests = data['MedicationRequest'] || [];
+            if (medRequests.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+                                <h3>4. Active Medications & Prescriptions</h3>
+                            </div>
+                            <span class="counter-badge">${medRequests.length} Active</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Formulation Molecule Name</th><th>Dosing Strength & Route</th><th>Status</th><th>Prescribing Provider / Date</th><th>Indication Reason</th></tr></thead>
+                                <tbody>
+                                    ${medRequests.map(m => {
+                                        const name = m.medicationCodeableConcept?.coding?.[0]?.display || m.medicationCodeableConcept?.text || 'Unknown Molecule';
+                                        const dosage = m.dosageInstruction?.[0]?.text || 'As targeted by practitioner';
+                                        const status = m.status || 'active';
+                                        const provider = m.recorder?.display || 'Staff Physician';
+                                        const date = m.authoredOn ? m.authoredOn.split('T')[0] : '—';
+                                        const rationale = m.reasonCode?.[0]?.coding?.[0]?.display || m.reasonCode?.[0]?.text || 'Disease State Management';
+                                        return `<tr>
+                                            <td><strong style="color:var(--accent);">${name}</strong></td>
+                                            <td><strong>${dosage}</strong></td>
+                                            <td><span class="status-tag status-green">${status}</span></td>
+                                            <td><div>${provider}</div><div style="font-size:0.68rem; color:var(--slate-400);">${date}</div></td>
+                                            <td style="color:var(--slate-600); font-style:italic;">${rationale}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 5. ACUTE & CHRONIC CONDITIONS LIST
+            const conditions = data['Condition'] || [];
+            if (conditions.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                <h3>5. Evaluated Conditions & Problem Lists</h3>
+                            </div>
+                            <span class="counter-badge status-red">${conditions.length} Diagnoses</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Pathology / Diagnosis</th><th>Clinical Status</th><th>Verification Matrix</th><th>Onset Registered Date</th></tr></thead>
+                                <tbody>
+                                    ${conditions.map(c => {
+                                        const name = c.code?.coding?.[0]?.display || c.code?.text || 'Uncoded Pathological Finding';
+                                        const status = c.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        const verification = c.verificationStatus?.coding?.[0]?.code || 'confirmed';
+                                        const date = c.onsetDateTime ? c.onsetDateTime.split('T')[0] : '—';
+                                        return `<tr>
+                                            <td><strong style="color:var(--slate-900);">${name}</strong></td>
+                                            <td><span class="status-tag ${status === 'active' ? 'status-red' : 'status-gray'}">${status}</span></td>
+                                            <td><span class="status-tag status-gray">${verification}</span></td>
+                                            <td><strong>${date}</strong></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 6. ENCOUNTERS MATRIX
+            const encounters = data['Encounter'] || [];
+            if (encounters.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                <h3>6. Encounters & Recent Visits</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Classification</th><th>Timeline</th><th>Chief Complaint</th></tr></thead>
+                                <tbody>
+                                    ${encounters.slice(0, 6).map(e => {
+                                        const type = e.class?.code || e.class?.display || 'Outpatient';
+                                        const date = e.period?.start ? e.period.start.split('T')[0] : '—';
+                                        const complaint = e.reasonCode?.[0]?.coding?.[0]?.display || e.reasonCode?.[0]?.text || 'Routine Medical Assessment';
+                                        return `<tr>
+                                            <td><strong style="text-transform:capitalize;">${type}</strong></td>
+                                            <td>${date}</td>
+                                            <td style="color:var(--slate-600); font-size:0.78rem;">${complaint}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 7. DIAGNOSTIC LABORATORY RESULTS
+            const labObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'laboratory')));
+            if (labObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--warning);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                <h3>7. Diagnostic Laboratory Evaluations</h3>
+                            </div>
+                            <span class="counter-badge status-amber">${labObs.length} Assays</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Assay Parameter Analyte</th><th>Absolute Measured Value</th><th>Clinical Interpretation</th><th>Analysis Reporting Date</th></tr></thead>
+                                <tbody>
+                                    ${labObs.slice(0, 15).map(l => {
+                                        const name = l.code?.coding?.[0]?.display || l.code?.text || 'Lab Parameter Assay';
+                                        const val = l.valueQuantity ? `${parseFloat(l.valueQuantity.value).toFixed(2)} ${l.valueQuantity.unit || ''}` : '—';
+                                        const interpCode = l.interpretation?.[0]?.coding?.[0]?.code || 'N';
+                                        const abnormal = interpCode !== 'N';
+                                        return `<tr>
+                                            <td><strong>${name}</strong></td>
+                                            <td style="font-family:'JetBrains Mono',monospace; font-weight:700; ${abnormal ? 'color:var(--danger);' : 'color:var(--success);'}">${val}</td>
+                                            <td><span class="status-tag ${abnormal ? 'status-red' : 'status-green'}">${abnormal ? 'Critical Deviation' : 'Normal Reference'}</span></td>
+                                            <td>${l.effectiveDateTime ? l.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 8. SURGICAL PROCEDURES
+            const procedures = data['Procedure'] || [];
+            if (procedures.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+                                <h3>8. Executed Procedures & Surgical Interventions</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Operational Narrative Procedure</th><th>Status</th><th>Execution Timestamp</th><th>Anatomical Focus Target</th></tr></thead>
+                                <tbody>
+                                    ${procedures.map(p => `
+                                        <tr>
+                                            <td><strong style="color:var(--slate-900);">${p.code?.coding?.[0]?.display || p.code?.text}</strong></td>
+                                            <td><span class="status-tag status-green">${p.status}</span></td>
+                                            <td><strong>${p.performedPeriod?.start ? p.performedPeriod.start.split('T')[0] : '—'}</strong></td>
+                                            <td style="color:var(--slate-600); font-weight:600;">${p.bodySite?.[0]?.coding?.[0]?.display || 'General/Systemic'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 9. PROPHYLAXIS IMMUNIZATIONS
+            const immunizations = data['Immunization'] || [];
+            if (immunizations.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <h3>9. Prophylaxis & Immunizations</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Vaccine Formulation</th><th>Date</th></tr></thead>
+                                <tbody>
+                                    ${immunizations.map(i => `
+                                        <tr>
+                                            <td><strong>${i.vaccineCode?.coding?.[0]?.display || i.vaccineCode?.text}</strong></td>
+                                            <td>${i.occurrenceDateTime ? i.occurrenceDateTime.split('T')[0] : '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 10. ACTIVE CLINICAL CARE PLANS
+            const careplans = data['CarePlan'] || [];
+            if (careplans.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                <h3>10. Longitudinal Strategic Care Protocols</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            ${careplans.map(cp => `
+                                <div style="padding:14px; background:var(--slate-50); border:1px solid var(--slate-200); border-left:4px solid var(--accent); border-radius:var(--radius-md); margin-bottom:12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                        <strong style="font-size:0.92rem; color:var(--slate-900);">${cp.category?.[0]?.coding?.[0]?.display || 'General Strategic Protocol'}</strong>
+                                        <span class="status-tag status-green">${cp.status}</span>
+                                    </div>
+                                    <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.4;">
+                                        ${cp.activity?.map(a => `• ${a.detail?.code?.coding?.[0]?.display || a.detail?.code?.text || 'Interdisciplinary Consultation'}`).join('<br>')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 11. LIFESTYLE & SOCIAL CONTEXTS
+            const socialHistory = observations.filter(o => o.code?.coding?.[0]?.system?.includes('loinc') && (o.code?.text?.toLowerCase().includes('smoke') || o.code?.coding?.[0]?.display?.toLowerCase().includes('tobacco') || o.code?.text?.toLowerCase().includes('alcohol')));
+            if (socialHistory.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                                <h3>11. Lifestyle & Social Histories</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-matrix" style="grid-template-columns:1fr;">
+                                ${socialHistory.map(s => `
+                                    <div class="matrix-cell">
+                                        <div class="matrix-label">${s.code?.coding?.[0]?.display || 'Social Variable'}</div>
+                                        <div class="matrix-value" style="color:var(--accent); font-size:0.85rem;">${s.valueCodeableConcept?.coding?.[0]?.display || s.valueCodeableConcept?.text || 'No Parameters Logged'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 12. HEREDITARY LINEAGE HISTORY
+            const famHist = data['FamilyMemberHistory'] || [];
+            if (famHist.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <h3>12. Hereditary Vectors</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Relation</th><th>Mapped Pathology</th></tr></thead>
+                                <tbody>
+                                    ${famHist.map(f => `
+                                        <tr>
+                                            <td><strong>${f.relationship?.coding?.[0]?.display || 'Relative'}</strong></td>
+                                            <td style="color:var(--danger); font-weight:600;">${f.condition?.[0]?.code?.coding?.[0]?.display || 'Uncoded Inheritance'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 13. INSURANCE CLAIMS GENERAL LEDGER
+            const claims = data['Claim'] || [];
+            if (claims.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                                <h3>13. Insurance Claims Accounting</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Classification</th><th>Bill Gross</th></tr></thead>
+                                <tbody>
+                                    ${claims.slice(0, 4).map(c => `
+                                        <tr>
+                                            <td><strong>${c.type?.coding?.[0]?.display || 'Institutional Coverage'}</strong></td>
+                                            <td style="font-family:'JetBrains Mono'; font-weight:700;">$${parseFloat(c.total?.value || 0).toFixed(2)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 14. NARRATIVE DOCUMENT REFERENCES & CLINICAL NOTES
+            const docRefs = data['DocumentReference'] || [];
+            if (docRefs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <h3>14. Narrative Document Progress Reports</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Document Narrative Context</th><th>Date</th><th>Node Attachments</th></tr></thead>
+                                <tbody>
+                                    ${docRefs.map(d => `
+                                        <tr>
+                                            <td><strong>${d.type?.coding?.[0]?.display || 'Physician Consultation Progress Note'}</strong></td>
+                                            <td>${d.date ? d.date.split('T')[0] : '—'}</td>
+                                            <td><a href="#" style="color:var(--accent); font-weight:700; text-decoration:none;">📄 Review Encrypted Section Text Base64 Block</a></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 15. INTERDISCIPLINARY CARE TEAM ASSEMBLY
+            const careTeams = data['CareTeam'] || [];
+            if (careTeams.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <h3>15. Active Care Team Assembly</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Provider</th><th>Functional Role</th></tr></thead>
+                                <tbody>
+                                    ${careTeams.map(ct => `
+                                        <tr>
+                                            <td><strong style="color:var(--slate-900);">${ct.participant?.[0]?.member?.display || 'Attending Physician Staff'}</strong></td>
+                                            <td><span class="status-tag status-gray">${ct.participant?.[0]?.role?.[0]?.text || 'General Specialist'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 16. ALTERNATE MISCELLANEOUS STRUCTURAL OBSERVATIONS
+            const miscObs = observations.filter(o => !o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs' || cd.code === 'laboratory')));
+            if (miscObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                <h3>16. Supplemental Evaluation Metrics & Special Parameters</h3>
+                            </div>
+                            <span class="counter-badge">${miscObs.length} Items</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Evaluation Metric Matrix</th><th>Recorded Parameter Status</th><th>Date Registered</th></tr></thead>
+                                <tbody>
+                                    ${miscObs.slice(0, 8).map(m => {
+                                        const title = m.code?.coding?.[0]?.display || m.code?.text || 'Structured Survey Param';
+                                        let valuation = '—';
+                                        if (m.valueQuantity) valuation = `${parseFloat(m.valueQuantity.value).toFixed(1)} ${m.valueQuantity.unit || ''}`;
+                                        else if (m.valueCodeableConcept) valuation = m.valueCodeableConcept.text || m.valueCodeableConcept.coding?.[0]?.display;
+                                        return `<tr>
+                                            <td><strong>${title}</strong></td>
+                                            <td style="color:var(--accent); font-weight:700;">${valuation}</td>
+                                            <td>${m.effectiveDateTime ? m.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Compiling layout components inside the workspace node wrapper
+            workspace.innerHTML = `
+                <div class="clinical-dashboard">
+                    <div class="dashboard-main">${mainColumnHTML}</div>
+                    <div class="dashboard-side">${sideColumnHTML}</div>
+                </div>
+            `;
+        }
+
+        function extractPatientName(pt) {
+            const indexBlock = pt.name?.[0];
+            if (!indexBlock) return pt.id || 'Anonymous Specimen Chart';
+            return `${(indexBlock.given || []).join(' ')} ${indexBlock.family || ''}`.trim();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+<!--
+it's good but we need to add a languge fransh , english , arabic 
+******************************************
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Workstation · Pure Medical Chart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+            --slate-400: #94a3b8; --slate-600: #475569; --slate-700: #334155; --slate-900: #0f172a;
+            --primary: #0f172a; --accent: #2563eb; --accent-light: #eff6ff;
+            --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fca5a5;
+            --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+            --warning: #d97706; --warning-bg: #fffbeb; --warning-border: #fef3c7;
+            --radius-lg: 12px; --radius-md: 8px; --radius-sm: 4px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f3f4f6; color: var(--slate-900);
+            min-height: 100vh; display: flex; flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Top Navigation Bar ── */
+        .navbar {
+            background: #ffffff; padding: 14px 24px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            background: var(--primary); color: #fff; 
+            width: 36px; height: 36px; border-radius: var(--radius-md); 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand h1 { font-size: 1.05rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .brand p { font-size: 0.68rem; color: var(--slate-600); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .btn {
+            padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
+            transition: all 0.1s ease-in-out;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: white; border-color: var(--slate-200); color: var(--slate-700); }
+        .btn-secondary:hover:not(:disabled) { background: var(--slate-50); }
+        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        #fileInput { display: none; }
+
+        /* ── Patient Identity Header Banner ── */
+        .patient-banner {
+            background: #ffffff; border-bottom: 1px solid var(--slate-200);
+            padding: 16px 24px; display: none; gap: 24px; align-items: center;
+            flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .banner-pt-name { font-size: 1.3rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .banner-metrics { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; flex: 1; }
+        .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .banner-meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); letter-spacing: 0.03em; }
+        .banner-meta-val { font-size: 0.88rem; font-weight: 600; color: var(--slate-900); }
+        .banner-allergy-alert {
+            background: var(--danger-bg); border: 1px solid var(--danger-border);
+            color: var(--danger); padding: 6px 12px; border-radius: var(--radius-md);
+            font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ── Workspace Grid Layout ── */
+        .workspace {
+            max-width: 1600px; width: 100%; margin: 24px auto; padding: 0 24px;
+            flex: 1; display: flex; flex-direction: column; gap: 24px;
+        }
+        
+        .empty-state {
+            background: white; border-radius: var(--radius-lg); border: 2px dashed var(--slate-300);
+            padding: 100px 24px; text-align: center; color: var(--slate-700);
+            box-shadow: var(--shadow); margin: auto; max-width: 550px;
+        }
+        .empty-state svg { margin-bottom: 16px; color: var(--slate-400); }
+        .empty-state h2 { font-size: 1.25rem; font-weight: 800; color: var(--slate-900); margin-bottom: 6px; }
+        .empty-state p { font-size: 0.88rem; line-height: 1.5; color: var(--slate-600); }
+
+        .clinical-dashboard {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 24px; width: 100%;
+        }
+        .dashboard-main { display: flex; flex-direction: column; gap: 24px; }
+        .dashboard-side { display: flex; flex-direction: column; gap: 24px; }
+
+        /* ── Widget Cards ── */
+        .card {
+            background: #ffffff; border-radius: var(--radius-lg); border: 1px solid var(--slate-200);
+            box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .card-header {
+            background: var(--slate-50); padding: 14px 20px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-title { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .header-title svg { width: 18px; height: 18px; stroke-width: 2.2; }
+        .card-header h3 { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-700); }
+        .counter-badge { background: var(--slate-200); color: var(--slate-700); font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .card-body { padding: 20px; overflow-x: auto; }
+        
+        /* ── Grid Info Matrices ── */
+        .info-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .matrix-cell { background: var(--slate-50); border: 1px solid var(--slate-200); padding: 12px 14px; border-radius: var(--radius-md); }
+        .matrix-label { font-size: 0.65rem; text-transform: uppercase; color: var(--slate-600); font-weight: 700; margin-bottom: 3px; letter-spacing: 0.03em; }
+        .matrix-value { font-size: 0.9rem; font-weight: 600; color: var(--slate-900); word-break: break-word; }
+        .value-accent { color: var(--accent); font-weight: 700; }
+
+        /* ── Medical Badges & Tags ── */
+        .status-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+        .status-red { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+        .status-green { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+        .status-amber { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+        .status-gray { background: var(--slate-100); color: var(--slate-600); border-color: var(--slate-200); }
+
+        /* ── Clinical Data Tables ── */
+        .table-matrix { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        .table-matrix th { padding: 10px 12px; background: var(--slate-50); color: var(--slate-600); font-weight: 700; border-bottom: 2px solid var(--slate-200); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .table-matrix td { padding: 12px 12px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; color: var(--slate-900); }
+        .table-matrix tr:last-child td { border-bottom: none; }
+        .table-matrix tr:hover td { background: var(--slate-50)/50; }
+
+        /* ── Vitals Component Displays ── */
+        .vitals-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .vital-box { border: 1px solid var(--slate-200); border-left: 4px solid var(--accent); border-radius: var(--radius-md); padding: 12px; background: #fff; }
+        .vital-name { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); }
+        .vital-val { font-size: 1.2rem; font-weight: 800; color: var(--slate-900); margin: 2px 0; }
+        .vital-time { font-size: 0.65rem; color: var(--slate-400); font-weight: 500; }
+
+        @media (max-width: 1100px) {
+            .clinical-dashboard { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+                <h1>Clinical Workstation</h1>
+                <p>Physician Point-of-Care Portal</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-secondary" id="printBtn" onclick="window.print()" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Summary
+            </button>
+            <label for="fileInput" class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                Load Patient Chart
+            </label>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <!-- Active Safety Banner 
+    <div class="patient-banner" id="patientBanner"></div>
+
+    <!-- Clinical Canvas Workspace 
+    <div class="workspace" id="workspace">
+        <div class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <h2>No Active Patient Profile</h2>
+            <p>Upload a structured clinical JSON profile. The workstation parses and highlights elements vital for clinical judgment, removing administrative or non-medical noise.</p>
+        </div>
+    </div>
+
+    <script>
+        let fhirData = null;
+        const fileInput = document.getElementById('fileInput');
+        const workspace = document.getElementById('workspace');
+        const patientBanner = document.getElementById('patientBanner');
+        const printBtn = document.getElementById('printBtn');
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const bundle = JSON.parse(text);
+                parseFHIRComponents(bundle);
+            } catch (err) {
+                alert("Error loading clinical charts. Check standard format protocols.");
+                console.error(err);
+            }
+        });
+
+        function parseFHIRComponents(bundle) {
+            if (!bundle || !bundle.entry) return;
+            const sortedRegistry = {};
+            bundle.entry.forEach(item => {
+                const res = item.resource;
+                if (!res || !res.resourceType) return;
+                if (!sortedRegistry[res.resourceType]) sortedRegistry[res.resourceType] = [];
+                sortedRegistry[res.resourceType].push(res);
+            });
+            fhirData = sortedRegistry;
+            buildDashboardView();
+        }
+
+        function buildDashboardView() {
+            const data = fhirData;
+            const pt = (data['Patient'] || [])[0];
+            if (!pt) { alert("Invalid Document Structure: Missing Patient index record."); return; }
+
+            printBtn.disabled = false;
+            
+            const ptName = extractPatientName(pt);
+            const dob = pt.birthDate || '—';
+            const gender = pt.gender || '—';
+            const mrn = pt.id || '—';
+            const allergiesList = data['AllergyIntolerance'] || [];
+
+            // ── RENDER EMERGENCY IDENTITY STRIP ──
+            patientBanner.style.display = 'flex';
+            patientBanner.innerHTML = `
+                <div class="banner-pt-name">👤 ${ptName}</div>
+                <div class="banner-metrics">
+                    <div class="banner-meta-item"><div class="banner-meta-label">DOB</div><div class="banner-meta-val">${dob}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">Biological Sex</div><div class="banner-meta-val" style="text-transform:uppercase;">${gender}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">MRN Vector ID</div><div class="banner-meta-val" style="font-family:'JetBrains Mono',monospace;">${mrn}</div></div>
+                </div>
+                ${allergiesList.length ? `
+                    <div class="banner-allergy-alert">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                        ${allergiesList.length} CRITICAL ALLERGIES DETECTED
+                    </div>
+                ` : ''}
+            `;
+
+            let mainColumnHTML = '';
+            let sideColumnHTML = '';
+
+            // 1. PATHOLOGY DEMOGRAPHICS
+            const phone = pt.telecom?.find(t => t.system === 'phone')?.value || '—';
+            const marital = pt.maritalStatus?.text || '—';
+            const lang = pt.communication?.[0]?.language?.text || pt.communication?.[0]?.language?.coding?.[0]?.display || '—';
+            const emergencyNode = pt.contact?.[0] ? `${pt.contact[0].name?.text || 'Contact'} (${pt.contact[0].relationship?.[0]?.text || 'NK'}) - ${pt.contact[0].telecom?.[0]?.value || ''}` : '—';
+            const bloodObs = (data['Observation'] || []).find(o => o.code?.text?.toLowerCase().includes('blood type') || o.code?.text?.toLowerCase().includes('blood group'));
+            const bloodType = bloodObs ? (bloodObs.valueString || bloodObs.valueCodeableConcept?.text || '—') : '—';
+
+            mainColumnHTML += `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <h3>1. Patient Identifiers & Clinical Variables</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-matrix">
+                            <div class="matrix-cell"><div class="matrix-label">Full Clinical Name</div><div class="matrix-value value-accent">${ptName}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Date of Birth</div><div class="matrix-value">${dob}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Biological Gender</div><div class="matrix-value" style="text-transform:uppercase;">${gender}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Blood System Vector</div><div class="matrix-value">${bloodType}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Primary Contact Phone</div><div class="matrix-value">${phone}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Language Matrix</div><div class="matrix-value">${lang}</div></div>
+                            <div class="matrix-cell" style="grid-column: 1 / -1;"><div class="matrix-label">Emergency / Next of Kin Triage Node</div><div class="matrix-value">${emergencyNode}</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 2. ADVERSE REACTIONS & INTOLERANCES
+            if (allergiesList.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                                <h3>2. Adverse Reactions & Drug Allergies</h3>
+                            </div>
+                            <span class="counter-badge status-red">${allergiesList.length} Active</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Allergen Substance</th><th>Clinical Manifestation</th><th>Severity Profile</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    ${allergiesList.map(a => {
+                                        const allergen = a.code?.coding?.[0]?.display || a.code?.text || 'Unassigned substance';
+                                        const manifestation = a.reaction?.[0]?.manifestation?.[0]?.coding?.[0]?.display || 'Systemic Response Unspecified';
+                                        const severity = a.reaction?.[0]?.severity || 'unknown';
+                                        const status = a.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        return `<tr>
+                                            <td><strong style="color:var(--danger);">${allergen}</strong></td>
+                                            <td><strong>${manifestation}</strong></td>
+                                            <td><span class="status-tag ${severity === 'severe' ? 'status-red' : 'status-amber'}">${severity}</span></td>
+                                            <td><span class="status-tag status-red">${status}</span></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. OBJECTIVE VITALS
+            const observations = data['Observation'] || [];
+            const vitalsObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs')));
+            if (vitalsObs.length) {
+                const latestVitals = {};
+                vitalsObs.forEach(v => {
+                    const title = v.code?.coding?.[0]?.display || v.code?.text;
+                    if (!title) return;
+                    if (!latestVitals[title] || new Date(v.effectiveDateTime) > new Date(latestVitals[title].effectiveDateTime)) {
+                        latestVitals[title] = v;
+                    }
+                });
+
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <h3>3. Objective Vital Signs (Most Recent Measures)</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="vitals-strip">
+                                ${Object.entries(latestVitals).map(([name, v]) => {
+                                    let reading = '—';
+                                    if (v.valueQuantity) reading = `${parseFloat(v.valueQuantity.value).toFixed(1)} ${v.valueQuantity.unit || ''}`;
+                                    else if (v.component) reading = v.component.map(c => parseFloat(c.valueQuantity?.value || 0).toFixed(0)).join('/');
+                                    const time = v.effectiveDateTime ? v.effectiveDateTime.split('T')[0] : '—';
+                                    return `
+                                        <div class="vital-box">
+                                            <div class="vital-name">${name}</div>
+                                            <div class="vital-val">${reading}</div>
+                                            <div class="vital-time">${time}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. PHARMACOLOGICAL ACTIVE REGIMENS
+            const medRequests = data['MedicationRequest'] || [];
+            if (medRequests.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+                                <h3>4. Current Medications & Prescriptions</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Molecule / Formulation</th><th>Dosing Route & Schedule</th><th>Status</th><th>Indication Core Rationale</th></tr></thead>
+                                <tbody>
+                                    ${medRequests.map(m => {
+                                        const name = m.medicationCodeableConcept?.coding?.[0]?.display || m.medicationCodeableConcept?.text || 'Unknown Molecule';
+                                        const dosage = m.dosageInstruction?.[0]?.text || 'Directed by clinical parameters';
+                                        const status = m.status || 'active';
+                                        const rationale = m.reasonCode?.[0]?.coding?.[0]?.display || m.reasonCode?.[0]?.text || 'Targeted Disease State';
+                                        return `<tr>
+                                            <td><strong style="color:var(--accent);">${name}</strong></td>
+                                            <td><strong>${dosage}</strong></td>
+                                            <td><span class="status-tag status-green">${status}</span></td>
+                                            <td style="color:var(--slate-600); font-style:italic;">${rationale}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 5. DIAGNOSES & PROBLEM LISTS
+            const conditions = data['Condition'] || [];
+            if (conditions.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                <h3>5. Evaluated Pathologies & Clinical Problem Lists</h3>
+                            </div>
+                            <span class="counter-badge status-red">${conditions.length} Active</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Active Diagnosis</th><th>Clinical State</th><th>Onset Verification</th></tr></thead>
+                                <tbody>
+                                    ${conditions.map(c => {
+                                        const name = c.code?.coding?.[0]?.display || c.code?.text || 'Uncoded Diagnostic Finding';
+                                        const status = c.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        const verification = c.verificationStatus?.coding?.[0]?.code || 'confirmed';
+                                        return `<tr>
+                                            <td><strong style="color:var(--slate-900);">${name}</strong></td>
+                                            <td><span class="status-tag ${status === 'active' ? 'status-red' : 'status-gray'}">${status}</span></td>
+                                            <td><span class="status-tag status-gray">${verification}</span></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 6. CLINICAL TIMELINE (ENCOUNTERS)
+            const encounters = data['Encounter'] || [];
+            if (encounters.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+                                <h3>6. Encounters & Longitudinal History</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Context</th><th>Date</th><th>Presenting Reason</th></tr></thead>
+                                <tbody>
+                                    ${encounters.slice(0, 6).map(e => {
+                                        const type = e.class?.code || e.class?.display || 'Outpatient';
+                                        const date = e.period?.start ? e.period.start.split('T')[0] : '—';
+                                        const complaint = e.reasonCode?.[0]?.coding?.[0]?.display || e.reasonCode?.[0]?.text || 'Evaluation Assessment';
+                                        return `<tr>
+                                            <td><strong style="text-transform:capitalize;">${type}</strong></td>
+                                            <td>${date}</td>
+                                            <td style="color:var(--slate-600); font-size:0.78rem;">${complaint}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 7. DIAGNOSTIC LABS
+            const labObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'laboratory')));
+            if (labObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--warning);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                                <h3>7. Biometrics & Diagnostic Laboratory Assays</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Analyte Parameter</th><th>Measured Value</th><th>Clinical Interpretation</th><th>Reported</th></tr></thead>
+                                <tbody>
+                                    ${labObs.slice(0, 15).map(l => {
+                                        const name = l.code?.coding?.[0]?.display || l.code?.text || 'Lab Parameter';
+                                        const val = l.valueQuantity ? `${parseFloat(l.valueQuantity.value).toFixed(2)} ${l.valueQuantity.unit || ''}` : '—';
+                                        const interpCode = l.interpretation?.[0]?.coding?.[0]?.code || 'N';
+                                        const abnormal = interpCode !== 'N';
+                                        return `<tr>
+                                            <td><strong>${name}</strong></td>
+                                            <td style="font-family:'JetBrains Mono',monospace; font-weight:700; ${abnormal ? 'color:var(--danger);' : 'color:var(--success);'}">${val}</td>
+                                            <td><span class="status-tag ${abnormal ? 'status-red' : 'status-green'}">${abnormal ? 'Abnormal Vector' : 'Normal Reference'}</span></td>
+                                            <td>${l.effectiveDateTime ? l.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 8. PROCEDURES & SURGERIES
+            const procedures = data['Procedure'] || [];
+            if (procedures.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
+                                <h3>8. Procedural History & Surgical Interventions</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Surgical Intervention Name</th><th>Status</th><th>Timestamp</th><th>Anatomical Target Site</th></tr></thead>
+                                <tbody>
+                                    ${procedures.map(p => `
+                                        <tr>
+                                            <td><strong>${p.code?.coding?.[0]?.display || p.code?.text}</strong></td>
+                                            <td><span class="status-tag status-green">${p.status}</span></td>
+                                            <td><strong>${p.performedPeriod?.start ? p.performedPeriod.start.split('T')[0] : '—'}</strong></td>
+                                            <td style="color:var(--slate-600);">${p.bodySite?.[0]?.coding?.[0]?.display || 'Systemic Context'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 9. PROPHYLAXIS IMMUNIZATIONS
+            const immunizations = data['Immunization'] || [];
+            if (immunizations.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <h3>9. Prophylaxis & Immunization Matrix</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Vaccine Profile</th><th>Administration Date</th></tr></thead>
+                                <tbody>
+                                    ${immunizations.map(i => `
+                                        <tr>
+                                            <td><strong>${i.vaccineCode?.coding?.[0]?.display || i.vaccineCode?.text}</strong></td>
+                                            <td>${i.occurrenceDateTime ? i.occurrenceDateTime.split('T')[0] : '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 10. ACTIVE TARGET CARE PLANS
+            const careplans = data['CarePlan'] || [];
+            if (careplans.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path></svg>
+                                <h3>10. Active Strategic Care Management Plan Protocols</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            ${careplans.map(cp => `
+                                <div style="padding:14px; background:var(--slate-50); border:1px solid var(--slate-200); border-left:4px solid var(--accent); border-radius:var(--radius-md); margin-bottom:12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                        <strong style="font-size:0.92rem; color:var(--slate-900);">${cp.category?.[0]?.coding?.[0]?.display || 'Active Clinical Strategy'}</strong>
+                                        <span class="status-tag status-green">${cp.status}</span>
+                                    </div>
+                                    <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.4;">
+                                        ${cp.activity?.map(a => `• ${a.detail?.code?.coding?.[0]?.display || a.detail?.code?.text || 'Interdisciplinary Target Action'}`).join('<br>')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 11. SOCIAL ENVIRONMENT RISK FACTORS
+            const socialHistory = observations.filter(o => o.code?.coding?.[0]?.system?.includes('loinc') && (o.code?.text?.toLowerCase().includes('smoke') || o.code?.coding?.[0]?.display?.toLowerCase().includes('tobacco') || o.code?.text?.toLowerCase().includes('alcohol')));
+            if (socialHistory.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
+                                <h3>11. Behavioral Risk Factors & Social History</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-matrix" style="grid-template-columns:1fr;">
+                                ${socialHistory.map(s => `
+                                    <div class="matrix-cell">
+                                        <div class="matrix-label">${s.code?.coding?.[0]?.display || 'Behavioral Metric'}</div>
+                                        <div class="matrix-value" style="color:var(--accent); font-size:0.85rem;">${s.valueCodeableConcept?.coding?.[0]?.display || s.valueCodeableConcept?.text || 'Unassigned'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 12. HEREDITARY RISK FACTOR MATRIX
+            const famHist = data['FamilyMemberHistory'] || [];
+            if (famHist.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path></svg>
+                                <h3>12. Hereditary Genotype Factors</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Relative Connection</th><th>Inherited Pathology</th></tr></thead>
+                                <tbody>
+                                    ${famHist.map(f => `
+                                        <tr>
+                                            <td><strong>${f.relationship?.coding?.[0]?.display || 'Relative Relative'}</strong></td>
+                                            <td style="color:var(--danger); font-weight:600;">${f.condition?.[0]?.code?.coding?.[0]?.display || 'Inherited Anomaly Unspecified'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 13. CARE TEAM REPERTOIRE
+            const careTeams = data['CareTeam'] || [];
+            if (careTeams.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path></svg>
+                                <h3>13. Active Care Team Coordination</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Practitioner</th><th>Functional Focus Role</th></tr></thead>
+                                <tbody>
+                                    ${careTeams.map(ct => `
+                                        <tr>
+                                            <td><strong>${ct.participant?.[0]?.member?.display || 'Medical Staff Personnel'}</strong></td>
+                                            <td><span class="status-tag status-gray">${ct.participant?.[0]?.role?.[0]?.text || 'Specialist'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 14. PROGRESS NARRATIVES & CONSULTATION NOTES
+            const docRefs = data['DocumentReference'] || [];
+            if (docRefs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                                <h3>14. Unstructured Diagnostic Reports & Consult Notes</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Document Target Subject Context</th><th>Registered</th><th>Action</th></tr></thead>
+                                <tbody>
+                                    ${docRefs.map(d => `
+                                        <tr>
+                                            <td><strong>${d.type?.coding?.[0]?.display || 'Specialist Evaluation Note'}</strong></td>
+                                            <td>${d.date ? d.date.split('T')[0] : '—'}</td>
+                                            <td><a href="#" style="color:var(--accent); font-weight:700; text-decoration:none;">📄 Review Raw Clinical Text Payload</a></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 15. SPECIAL ASSAYS & SCORES (E.G. PAIN SCALES, DEPRESSION INDEXES)
+            const miscObs = observations.filter(o => !o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs' || cd.code === 'laboratory')));
+            if (miscObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
+                                <h3>15. Supplemental Clinical Scaling Parameters & Scores</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Diagnostic Score Index Parameter</th><th>Result Value</th><th>Date Collected</th></tr></thead>
+                                <tbody>
+                                    ${miscObs.slice(0, 8).map(m => {
+                                        const title = m.code?.coding?.[0]?.display || m.code?.text || 'Target Index Parameter';
+                                        let valuation = '—';
+                                        if (m.valueQuantity) valuation = `${parseFloat(m.valueQuantity.value).toFixed(1)} ${m.valueQuantity.unit || ''}`;
+                                        else if (m.valueCodeableConcept) valuation = m.valueCodeableConcept.text || m.valueCodeableConcept.coding?.[0]?.display;
+                                        return `<tr>
+                                            <td><strong>${title}</strong></td>
+                                            <td style="color:var(--accent); font-weight:700;">${valuation}</td>
+                                            <td>${m.effectiveDateTime ? m.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            workspace.innerHTML = `
+                <div class="clinical-dashboard">
+                    <div class="dashboard-main">${mainColumnHTML}</div>
+                    <div class="dashboard-side">${sideColumnHTML}</div>
+                </div>
+            `;
+        }
+
+        function extractPatientName(pt) {
+            const indexBlock = pt.name?.[0];
+            if (!indexBlock) return pt.id || 'Anonymous Patient Chart';
+            return `${(indexBlock.given || []).join(' ')} ${indexBlock.family || ''}`.trim();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Workstation · Multi-Language Pure Medical Chart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+            --slate-400: #94a3b8; --slate-600: #475569; --slate-700: #334155; --slate-900: #0f172a;
+            --primary: #0f172a; --accent: #2563eb; --accent-light: #eff6ff;
+            --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fca5a5;
+            --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+            --warning: #d97706; --warning-bg: #fffbeb; --warning-border: #fef3c7;
+            --radius-lg: 12px; --radius-md: 8px; --radius-sm: 4px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f3f4f6; color: var(--slate-900);
+            min-height: 100vh; display: flex; flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Arabic Typography Override */
+        body[dir="rtl"] {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* ── Top Navigation Bar ── */
+        .navbar {
+            background: #ffffff; padding: 14px 24px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            background: var(--primary); color: #fff; 
+            width: 36px; height: 36px; border-radius: var(--radius-md); 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand h1 { font-size: 1.05rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .brand p { font-size: 0.68rem; color: var(--slate-600); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        
+        /* Language Selector Dropdown */
+        .lang-select {
+            padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 600;
+            border: 1px solid var(--slate-200); background-color: white; color: var(--slate-700);
+            cursor: pointer; outline: none; transition: all 0.1s ease-in-out;
+        }
+        .lang-select:hover { border-color: var(--slate-400); }
+
+        .btn {
+            padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
+            transition: all 0.1s ease-in-out;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: white; border-color: var(--slate-200); color: var(--slate-700); }
+        .btn-secondary:hover:not(:disabled) { background: var(--slate-50); }
+        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        #fileInput { display: none; }
+
+        /* ── Patient Identity Header Banner ── */
+        .patient-banner {
+            background: #ffffff; border-bottom: 1px solid var(--slate-200);
+            padding: 16px 24px; display: none; gap: 24px; align-items: center;
+            flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .banner-pt-name { font-size: 1.3rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .banner-metrics { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; flex: 1; }
+        .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .banner-meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); letter-spacing: 0.03em; }
+        .banner-meta-val { font-size: 0.88rem; font-weight: 600; color: var(--slate-900); }
+        .banner-allergy-alert {
+            background: var(--danger-bg); border: 1px solid var(--danger-border);
+            color: var(--danger); padding: 6px 12px; border-radius: var(--radius-md);
+            font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ── Workspace Grid Layout ── */
+        .workspace {
+            max-width: 1600px; width: 100%; margin: 24px auto; padding: 0 24px;
+            flex: 1; display: flex; flex-direction: column; gap: 24px;
+        }
+        
+        .empty-state {
+            background: white; border-radius: var(--radius-lg); border: 2px dashed var(--slate-300);
+            padding: 100px 24px; text-align: center; color: var(--slate-700);
+            box-shadow: var(--shadow); margin: auto; max-width: 550px;
+        }
+        .empty-state svg { margin-bottom: 16px; color: var(--slate-400); }
+        .empty-state h2 { font-size: 1.25rem; font-weight: 800; color: var(--slate-900); margin-bottom: 6px; }
+        .empty-state p { font-size: 0.88rem; line-height: 1.5; color: var(--slate-600); }
+
+        .clinical-dashboard {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 24px; width: 100%;
+        }
+        body[dir="rtl"] .clinical-dashboard {
+            grid-template-columns: 1fr 2fr;
+        }
+        .dashboard-main { display: flex; flex-direction: column; gap: 24px; }
+        .dashboard-side { display: flex; flex-direction: column; gap: 24px; }
+
+        /* ── Widget Cards ── */
+        .card {
+            background: #ffffff; border-radius: var(--radius-lg); border: 1px solid var(--slate-200);
+            box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .card-header {
+            background: var(--slate-50); padding: 14px 20px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-title { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .header-title svg { width: 18px; height: 18px; stroke-width: 2.2; }
+        .card-header h3 { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-700); }
+        .counter-badge { background: var(--slate-200); color: var(--slate-700); font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .card-body { padding: 20px; overflow-x: auto; }
+        
+        /* ── Grid Info Matrices ── */
+        .info-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .matrix-cell { background: var(--slate-50); border: 1px solid var(--slate-200); padding: 12px 14px; border-radius: var(--radius-md); }
+        .matrix-label { font-size: 0.65rem; text-transform: uppercase; color: var(--slate-600); font-weight: 700; margin-bottom: 3px; letter-spacing: 0.03em; }
+        .matrix-value { font-size: 0.9rem; font-weight: 600; color: var(--slate-900); word-break: break-word; }
+        .value-accent { color: var(--accent); font-weight: 700; }
+
+        /* ── Medical Badges & Tags ── */
+        .status-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+        .status-red { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+        .status-green { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+        .status-amber { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+        .status-gray { background: var(--slate-100); color: var(--slate-600); border-color: var(--slate-200); }
+
+        /* ── Clinical Data Tables ── */
+        .table-matrix { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        body[dir="rtl"] .table-matrix { text-align: right; }
+        .table-matrix th { padding: 10px 12px; background: var(--slate-50); color: var(--slate-600); font-weight: 700; border-bottom: 2px solid var(--slate-200); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .table-matrix td { padding: 12px 12px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; color: var(--slate-900); }
+        .table-matrix tr:last-child td { border-bottom: none; }
+        .table-matrix tr:hover td { background: var(--slate-50)/50; }
+
+        /* ── Vitals Component Displays ── */
+        .vitals-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .vital-box { border: 1px solid var(--slate-200); border-left: 4px solid var(--accent); border-radius: var(--radius-md); padding: 12px; background: #fff; }
+        
+        body[dir="rtl"] .vital-box {
+            border-left: none;
+            border-right: 4px solid var(--accent);
+        }
+        
+        .vital-name { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); }
+        .vital-val { font-size: 1.2rem; font-weight: 800; color: var(--slate-900); margin: 2px 0; }
+        .vital-time { font-size: 0.65rem; color: var(--slate-400); font-weight: 500; }
+
+        @media (max-width: 1100px) {
+            .clinical-dashboard { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+                <h1 id="txt-nav-title">Clinical Workstation</h1>
+                <p id="txt-nav-subtitle">Physician Point-of-Care Portal</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <!-- Language Picker Switch 
+            <select class="lang-select" id="langSelector" onchange="changeLanguage(this.value)">
+                <option value="en" selected>English</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+            </select>
+
+            <button class="btn btn-secondary" id="printBtn" onclick="window.print()" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span id="txt-btn-print">Print Summary</span>
+            </button>
+            <label for="fileInput" class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                <span id="txt-btn-load">Load Patient Chart</span>
+            </label>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <!-- Active Safety Banner 
+    <div class="patient-banner" id="patientBanner"></div>
+
+    <!-- Clinical Canvas Workspace 
+    <div class="workspace" id="workspace"></div>
+
+    <script>
+        let fhirData = null;
+        let currentLang = 'en';
+
+        // ── Comprehensive Translation Matrix ──
+        const dict = {
+            en: {
+                navTitle: "Clinical Workstation", navSubtitle: "Physician Point-of-Care Portal",
+                btnPrint: "Print Summary", btnLoad: "Load Patient Chart",
+                emptyTitle: "No Active Patient Profile",
+                emptyDesc: "Upload a structured clinical JSON profile. The workstation parses and highlights elements vital for clinical judgment, removing administrative or non-medical noise.",
+                labelDob: "DOB", labelSex: "Biological Sex", labelMrn: "MRN Vector ID", labelAllergyAlert: "CRITICAL ALLERGIES DETECTED",
+                h1: "1. Patient Identifiers & Clinical Variables", fName: "Full Clinical Name", fDob: "Date of Birth", fSex: "Biological Gender", fBlood: "Blood System Vector", fPhone: "Primary Contact Phone", fLang: "Language Matrix", fNok: "Emergency / Next of Kin Triage Node",
+                h2: "2. Adverse Reactions & Drug Allergies", tSubstance: "Allergen Substance", tManifest: "Clinical Manifestation", tSeverity: "Severity Profile", tStatus: "Status",
+                h3: "3. Objective Vital Signs (Most Recent Measures)",
+                h4: "4. Current Medications & Prescriptions", tMolecule: "Molecule / Formulation", tSchedule: "Dosing Route & Schedule", tRationale: "Indication Core Rationale",
+                h5: "5. Evaluated Pathologies & Clinical Problem Lists", tDiagnosis: "Active Diagnosis", tState: "Clinical State", tOnset: "Onset Verification",
+                h6: "6. Encounters & Longitudinal History", tContext: "Context", tDate: "Date", tComplaint: "Presenting Reason",
+                h7: "7. Biometrics & Diagnostic Laboratory Assays", tAnalyte: "Analyte Parameter", tValue: "Measured Value", tInterp: "Clinical Interpretation", tReported: "Reported",
+                h8: "8. Procedural History & Surgical Interventions", tSurg: "Surgical Intervention Name", tTime: "Timestamp", tSite: "Anatomical Target Site",
+                h9: "9. Prophylaxis & Immunization Matrix", tVaccine: "Vaccine Profile", tVacDate: "Administration Date",
+                h10: "10. Active Strategic Care Management Plan Protocols",
+                h11: "11. Behavioral Risk Factors & Social History",
+                h12: "12. Hereditary Genotype Factors", tRelation: "Relative Connection", tPathology: "Inherited Pathology",
+                h13: "13. Active Care Team Coordination", tStaff: "Practitioner", tRole: "Functional Focus Role",
+                h14: "14. Unstructured Diagnostic Reports & Consult Notes", tDoc: "Document Target Subject Context", tAction: "Action", reviewRaw: "Review Raw Clinical Text Payload",
+                h15: "15. Supplemental Clinical Scaling Parameters & Scores", tIndex: "Diagnostic Score Index Parameter", tResult: "Result Value", tColl: "Date Collected"
+            },
+            fr: {
+                navTitle: "Poste de Travail Clinique", navSubtitle: "Portail d'Évaluation Médicale Directe",
+                btnPrint: "Imprimer le Résumé", btnLoad: "Charger le Dossier",
+                emptyTitle: "Aucun Profil Patient Actif",
+                emptyDesc: "Veuillez charger un fichier JSON structuré. Le poste analyse et met en évidence uniquement les données nécessaires à la décision médicale, sans lourdeurs administratives.",
+                labelDob: "Date Naiss.", labelSex: "Sexe Biologique", labelMrn: "ID Vecteur MRN", labelAllergyAlert: "ALLERGIES CRITIQUES DÉTECTÉES",
+                h1: "1. Identifiants du Patient & Variables Cliniques", fName: "Nom Clinique Complet", fDob: "Date de Naissance", fSex: "Sexe Biologique", fBlood: "Système Sanguin", fPhone: "Téléphone Principal", fLang: "Matrice des Langues", fNok: "Contact d'Urgence / Proche Parent",
+                h2: "2. Réactions Indésirables & Allergies Médicamenteuses", tSubstance: "Substance Allergène", tManifest: "Manifestation Clinique", tSeverity: "Profil de Sévérité", tStatus: "Statut",
+                h3: "3. Signes Vitaux Objectifs (Mesures Récentes)",
+                h4: "4. Médicaments Actuels & Prescriptions", tMolecule: "Molécule / Formulation", tSchedule: "Voie & Programme de Dosage", tRationale: "Justification Clinique Fondamentale",
+                h5: "5. Pathologies Évaluées & Listes de Problèmes", tDiagnosis: "Diagnostic Actif", tState: "État Clinique", tOnset: "Vérification du Début",
+                h6: "6. Consultations & Historique Longitudinal", tContext: "Contexte", tDate: "Date", tComplaint: "Motif de Consultation",
+                h7: "7. Biométrie & Analyses de Laboratoire", tAnalyte: "Paramètre Analysé", tValue: "Valeur Mesurée", tInterp: "Interprétation Clinique", tReported: "Rapporté Le",
+                h8: "8. Historique des Procédures & Interventions Chirurgicales", tSurg: "Nom de l'Intervention", tTime: "Horodatage", tSite: "Site Anatomique Cible",
+                h9: "9. Prophylaxie & Matrice d'Immunisation", tVaccine: "Profil du Vaccin", tVacDate: "Date d'Administration",
+                h10: "10. Protocoles de Plan de Soins Actifs",
+                h11: "11. Facteurs de Risque Comportementaux & Histoire Sociale",
+                h12: "12. Facteurs Génotypiques Héréditaires", tRelation: "Lien de Parenté", tPathology: "Pathologie Héritée",
+                h13: "13. Coordination Active de l'Équipe de Soins", tStaff: "Praticien", tRole: "Rôle / Spécialité",
+                h14: "14. Rapports Cliniques Non Structurés & Notes", tDoc: "Contexte du Document", tAction: "Action", reviewRaw: "Examiner le Texte Brut",
+                h15: "15. Paramètres et Scores Cliniques Supplémentaires", tIndex: "Paramètre du Score", tResult: "Valeur", tColl: "Date Collecte"
+            },
+            ar: {
+                navTitle: "محطة العمل السريرية", navSubtitle: "بوابة الطبيب لنقاط الرعاية الطبية",
+                btnPrint: "طباعة الملخص", btnLoad: "تحميل ملف المريض",
+                emptyTitle: "لا يوجد ملف مريض نشط حالياً",
+                emptyDesc: "الرجاء رفع ملف JSON الطبي المنظم. تقوم المحطة بتحليل وإبراز العناصر الحيوية للتقييم الطبي مع استبعاد المعاملات الإدارية.",
+                labelDob: "تاريخ الميلاد", labelSex: "الجنس البيولوجي", labelMrn: "معرف السجل الطبي MRN", labelAllergyAlert: "تم اكتشاف حساسية خطيرة",
+                h1: "1. معرفات المريض والمتغيرات السريرية", fName: "الاسم السريري الكامل", fDob: "تاريخ الميلاد", fSex: "الجنس البيولوجي", fBlood: "فصيلة الدم", fPhone: "الهاتف الرئيسي", fLang: "مصفوفة اللغات", fNok: "جهة اتصال الطوارئ / الأقرباء",
+                h2: "2. التفاعلات العكسية وحساسية الأدوية", tSubstance: "المادة المسببة للحساسية", tManifest: "المظاهر السريرية", tSeverity: "درجة الخطورة", tStatus: "الحالة",
+                h3: "3. العلامات الحيوية الموضوعية (أحدث القياسات)",
+                h4: "4. الأدوية الحالية والوصفات الطبية", tMolecule: "التركيبة الدوائية / الجرعة", tSchedule: "طريقة وجدول الاستخدام", tRationale: "السبب السريري الأساسي للمؤشر",
+                h5: "5. الأمراض المقيّمة وقوائم المشاكل السريرية", tDiagnosis: "التشخيص النشط", tState: "الحالة السريرية", tOnset: "التحقق من البداية",
+                h6: "6. الفحوصات الطبية والتاريخ الطبي الممتد", tContext: "سياق الزيارة", tDate: "التاريخ", tComplaint: "السبب الرئيس للمراجعة",
+                h7: "7. القياسات الحيوية وتحاليل المختبر التشخيصية", tAnalyte: "المؤشر المخبري", tValue: "القيمة المقاسة", tInterp: "التفسير السريري", tReported: "تاريخ التقرير",
+                h8: "8. تاريخ الإجراءات والتدخلات الجراحية", tSurg: "اسم التدخل الجراحي", tTime: "التوقيت", tSite: "الموقع التشريحي المستهدف",
+                h9: "9. الوقاية ومصفوفة التطعيمات", tVaccine: "نوع اللقاح", tVacDate: "تاريخ التطعيم",
+                h10: "10. بروتوكولات خطة إدارة الرعاية الطبية النشطة",
+                h11: "11. عوامل الخطر السلوكية والتاريخ الاجتماعي",
+                h12: "12. العوامل الوراثية الجينية للأسرة", tRelation: "صلة القرابة", tPathology: "المرض الوراثي",
+                h13: "13. التنسيق النشط لفريق الرعاية الطبية", tStaff: "الممارس الصحي", tRole: "الدور الوظيفي والتخصص",
+                h14: "14. التقارير التشخيصية غير المنسقة وملاحظات الاستشارة", tDoc: "سياق مستند التقييم", tAction: "إجراء", reviewRaw: "مراجعة النص الطبي الخام للمستند",
+                h15: "15. مقاييس ودرجات التقييم السريري الإضافية", tIndex: "مؤشر التقييم السريري", tResult: "النتيجة", tColl: "تاريخ الجمع"
+            }
+        };
+
+        const fileInput = document.getElementById('fileInput');
+        const workspace = document.getElementById('workspace');
+        const patientBanner = document.getElementById('patientBanner');
+        const printBtn = document.getElementById('printBtn');
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.body.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            
+            // Translate Static Nav Items
+            document.getElementById('txt-nav-title').textContent = dict[lang].navTitle;
+            document.getElementById('txt-nav-subtitle').textContent = dict[lang].navSubtitle;
+            document.getElementById('txt-btn-print').textContent = dict[lang].btnPrint;
+            document.getElementById('txt-btn-load').textContent = dict[lang].btnLoad;
+
+            if (fhirData) {
+                buildDashboardView();
+            } else {
+                renderEmptyState();
+            }
+        }
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const bundle = JSON.parse(text);
+                parseFHIRComponents(bundle);
+            } catch (err) {
+                alert("Error loading clinical charts. Check standard format protocols.");
+                console.error(err);
+            }
+        });
+
+        function parseFHIRComponents(bundle) {
+            if (!bundle || !bundle.entry) return;
+            const sortedRegistry = {};
+            bundle.entry.forEach(item => {
+                const res = item.resource;
+                if (!res || !res.resourceType) return;
+                if (!sortedRegistry[res.resourceType]) sortedRegistry[res.resourceType] = [];
+                sortedRegistry[res.resourceType].push(res);
+            });
+            fhirData = sortedRegistry;
+            buildDashboardView();
+        }
+
+        function renderEmptyState() {
+            const l = dict[currentLang];
+            patientBanner.style.display = 'none';
+            printBtn.disabled = true;
+            workspace.innerHTML = `
+                <div class="empty-state">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    <h2>${l.emptyTitle}</h2>
+                    <p>${l.emptyDesc}</p>
+                </div>
+            `;
+        }
+
+        function buildDashboardView() {
+            const l = dict[currentLang];
+            const data = fhirData;
+            const pt = (data['Patient'] || [])[0];
+            if (!pt) { alert("Invalid Document Structure: Missing Patient index record."); return; }
+
+            printBtn.disabled = false;
+            
+            const ptName = extractPatientName(pt);
+            const dob = pt.birthDate || '—';
+            const gender = pt.gender || '—';
+            const mrn = pt.id || '—';
+            const allergiesList = data['AllergyIntolerance'] || [];
+
+            // ── RENDER IDENTITY STRIP ──
+            patientBanner.style.display = 'flex';
+            patientBanner.innerHTML = `
+                <div class="banner-pt-name">👤 ${ptName}</div>
+                <div class="banner-metrics">
+                    <div class="banner-meta-item"><div class="banner-meta-label">${l.labelDob}</div><div class="banner-meta-val">${dob}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">${l.labelSex}</div><div class="banner-meta-val" style="text-transform:uppercase;">${gender}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">${l.labelMrn}</div><div class="banner-meta-val" style="font-family:'JetBrains Mono',monospace;">${mrn}</div></div>
+                </div>
+                ${allergiesList.length ? `
+                    <div class="banner-allergy-alert">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                        ${allergiesList.length} ${l.labelAllergyAlert}
+                    </div>
+                ` : ''}
+            `;
+
+            let mainColumnHTML = '';
+            let sideColumnHTML = '';
+
+            // 1. PATHOLOGY DEMOGRAPHICS
+            const phone = pt.telecom?.find(t => t.system === 'phone')?.value || '—';
+            const lang = pt.communication?.[0]?.language?.text || pt.communication?.[0]?.language?.coding?.[0]?.display || '—';
+            const emergencyNode = pt.contact?.[0] ? `${pt.contact[0].name?.text || 'Contact'} (${pt.contact[0].relationship?.[0]?.text || 'NK'}) - ${pt.contact[0].telecom?.[0]?.value || ''}` : '—';
+            const bloodObs = (data['Observation'] || []).find(o => o.code?.text?.toLowerCase().includes('blood type') || o.code?.text?.toLowerCase().includes('blood group'));
+            const bloodType = bloodObs ? (bloodObs.valueString || bloodObs.valueCodeableConcept?.text || '—') : '—';
+
+            mainColumnHTML += `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <h3>${l.h1}</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-matrix">
+                            <div class="matrix-cell"><div class="matrix-label">${l.fName}</div><div class="matrix-value value-accent">${ptName}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">${l.fDob}</div><div class="matrix-value">${dob}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">${l.fSex}</div><div class="matrix-value" style="text-transform:uppercase;">${gender}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">${l.fBlood}</div><div class="matrix-value">${bloodType}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">${l.fPhone}</div><div class="matrix-value">${phone}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">${l.fLang}</div><div class="matrix-value">${lang}</div></div>
+                            <div class="matrix-cell" style="grid-column: 1 / -1;"><div class="matrix-label">${l.fNok}</div><div class="matrix-value">${emergencyNode}</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 2. ADVERSE REACTIONS
+            if (allergiesList.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                                <h3>${l.h2}</h3>
+                            </div>
+                            <span class="counter-badge status-red">${allergiesList.length}</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tSubstance}</th><th>${l.tManifest}</th><th>${l.tSeverity}</th><th>${l.tStatus}</th></tr></thead>
+                                <tbody>
+                                    ${allergiesList.map(a => {
+                                        const allergen = a.code?.coding?.[0]?.display || a.code?.text || '—';
+                                        const manifestation = a.reaction?.[0]?.manifestation?.[0]?.coding?.[0]?.display || '—';
+                                        const severity = a.reaction?.[0]?.severity || 'unknown';
+                                        const status = a.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        return `<tr>
+                                            <td><strong style="color:var(--danger);">${allergen}</strong></td>
+                                            <td><strong>${manifestation}</strong></td>
+                                            <td><span class="status-tag ${severity === 'severe' ? 'status-red' : 'status-amber'}">${severity}</span></td>
+                                            <td><span class="status-tag status-red">${status}</span></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. OBJECTIVE VITALS
+            const observations = data['Observation'] || [];
+            const vitalsObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs')));
+            if (vitalsObs.length) {
+                const latestVitals = {};
+                vitalsObs.forEach(v => {
+                    const title = v.code?.coding?.[0]?.display || v.code?.text;
+                    if (!title) return;
+                    if (!latestVitals[title] || new Date(v.effectiveDateTime) > new Date(latestVitals[title].effectiveDateTime)) {
+                        latestVitals[title] = v;
+                    }
+                });
+
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <h3>${l.h3}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="vitals-strip">
+                                ${Object.entries(latestVitals).map(([name, v]) => {
+                                    let reading = '—';
+                                    if (v.valueQuantity) reading = `${parseFloat(v.valueQuantity.value).toFixed(1)} ${v.valueQuantity.unit || ''}`;
+                                    else if (v.component) reading = v.component.map(c => parseFloat(c.valueQuantity?.value || 0).toFixed(0)).join('/');
+                                    const time = v.effectiveDateTime ? v.effectiveDateTime.split('T')[0] : '—';
+                                    return `
+                                        <div class="vital-box">
+                                            <div class="vital-name">${name}</div>
+                                            <div class="vital-val">${reading}</div>
+                                            <div class="vital-time">${time}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. PHARMACOLOGICAL ACTIVE REGIMENS
+            const medRequests = data['MedicationRequest'] || [];
+            if (medRequests.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+                                <h3>${l.h4}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tMolecule}</th><th>${l.tSchedule}</th><th>${l.tStatus}</th><th>${l.tRationale}</th></tr></thead>
+                                <tbody>
+                                    ${medRequests.map(m => {
+                                        const name = m.medicationCodeableConcept?.coding?.[0]?.display || m.medicationCodeableConcept?.text || '—';
+                                        const dosage = m.dosageInstruction?.[0]?.text || '—';
+                                        const status = m.status || 'active';
+                                        const rationale = m.reasonCode?.[0]?.coding?.[0]?.display || m.reasonCode?.[0]?.text || '—';
+                                        return `<tr>
+                                            <td><strong style="color:var(--accent);">${name}</strong></td>
+                                            <td><strong>${dosage}</strong></td>
+                                            <td><span class="status-tag status-green">${status}</span></td>
+                                            <td style="color:var(--slate-600); font-style:italic;">${rationale}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 5. DIAGNOSES
+            const conditions = data['Condition'] || [];
+            if (conditions.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                <h3>${l.h5}</h3>
+                            </div>
+                            <span class="counter-badge status-red">${conditions.length}</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tDiagnosis}</th><th>${l.tState}</th><th>${l.tOnset}</th></tr></thead>
+                                <tbody>
+                                    ${conditions.map(c => {
+                                        const name = c.code?.coding?.[0]?.display || c.code?.text || '—';
+                                        const status = c.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        const verification = c.verificationStatus?.coding?.[0]?.code || 'confirmed';
+                                        return `<tr>
+                                            <td><strong style="color:var(--slate-900);">${name}</strong></td>
+                                            <td><span class="status-tag ${status === 'active' ? 'status-red' : 'status-gray'}">${status}</span></td>
+                                            <td><span class="status-tag status-gray">${verification}</span></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 6. CLINICAL TIMELINE
+            const encounters = data['Encounter'] || [];
+            if (encounters.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+                                <h3>${l.h6}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tContext}</th><th>${l.tDate}</th><th>${l.tComplaint}</th></tr></thead>
+                                <tbody>
+                                    ${encounters.slice(0, 6).map(e => {
+                                        const type = e.class?.code || e.class?.display || 'Outpatient';
+                                        const date = e.period?.start ? e.period.start.split('T')[0] : '—';
+                                        const complaint = e.reasonCode?.[0]?.coding?.[0]?.display || e.reasonCode?.[0]?.text || '—';
+                                        return `<tr>
+                                            <td><strong style="text-transform:capitalize;">${type}</strong></td>
+                                            <td>${date}</td>
+                                            <td style="color:var(--slate-600); font-size:0.78rem;">${complaint}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 7. DIAGNOSTIC LABS
+            const labObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'laboratory')));
+            if (labObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--warning);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                                <h3>${l.h7}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tAnalyte}</th><th>${l.tValue}</th><th>${l.tInterp}</th><th>${l.tReported}</th></tr></thead>
+                                <tbody>
+                                    ${labObs.slice(0, 15).map(lObj => {
+                                        const name = lObj.code?.coding?.[0]?.display || lObj.code?.text || '—';
+                                        const val = lObj.valueQuantity ? `${parseFloat(lObj.valueQuantity.value).toFixed(2)} ${lObj.valueQuantity.unit || ''}` : '—';
+                                        const interpCode = lObj.interpretation?.[0]?.coding?.[0]?.code || 'N';
+                                        const abnormal = interpCode !== 'N';
+                                        return `<tr>
+                                            <td><strong>${name}</strong></td>
+                                            <td style="font-family:'JetBrains Mono',monospace; font-weight:700; ${abnormal ? 'color:var(--danger);' : 'color:var(--success);'}">${val}</td>
+                                            <td><span class="status-tag ${abnormal ? 'status-red' : 'status-green'}">${abnormal ? 'Abnormal' : 'Normal'}</span></td>
+                                            <td>${lObj.effectiveDateTime ? lObj.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 8. PROCEDURES
+            const procedures = data['Procedure'] || [];
+            if (procedures.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
+                                <h3>${l.h8}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tSurg}</th><th>${l.tStatus}</th><th>${l.tTime}</th><th>${l.tSite}</th></tr></thead>
+                                <tbody>
+                                    ${procedures.map(p => `
+                                        <tr>
+                                            <td><strong>${p.code?.coding?.[0]?.display || p.code?.text}</strong></td>
+                                            <td><span class="status-tag status-green">${p.status}</span></td>
+                                            <td><strong>${p.performedPeriod?.start ? p.performedPeriod.start.split('T')[0] : '—'}</strong></td>
+                                            <td style="color:var(--slate-600);">${p.bodySite?.[0]?.coding?.[0]?.display || '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 9. IMMUNIZATIONS
+            const immunizations = data['Immunization'] || [];
+            if (immunizations.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <h3>${l.h9}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tVaccine}</th><th>${l.tVacDate}</th></tr></thead>
+                                <tbody>
+                                    ${immunizations.map(i => `
+                                        <tr>
+                                            <td><strong>${i.vaccineCode?.coding?.[0]?.display || i.vaccineCode?.text}</strong></td>
+                                            <td>${i.occurrenceDateTime ? i.occurrenceDateTime.split('T')[0] : '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 10. CARE PLANS
+            const careplans = data['CarePlan'] || [];
+            if (careplans.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path></svg>
+                                <h3>${l.h10}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            ${careplans.map(cp => `
+                                <div style="padding:14px; background:var(--slate-50); border:1px solid var(--slate-200); ${currentLang === 'ar' ? 'border-right:4px solid var(--accent);' : 'border-left:4px solid var(--accent);'} border-radius:var(--radius-md); margin-bottom:12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                        <strong style="font-size:0.92rem; color:var(--slate-900);">${cp.category?.[0]?.coding?.[0]?.display || '—'}</strong>
+                                        <span class="status-tag status-green">${cp.status}</span>
+                                    </div>
+                                    <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.4;">
+                                        ${cp.activity?.map(a => `• ${a.detail?.code?.coding?.[0]?.display || a.detail?.code?.text || '—'}`).join('<br>')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 11. BEHAVIORAL RISK FACTORS
+            const socialHistory = observations.filter(o => o.code?.coding?.[0]?.system?.includes('loinc') && (o.code?.text?.toLowerCase().includes('smoke') || o.code?.coding?.[0]?.display?.toLowerCase().includes('tobacco') || o.code?.text?.toLowerCase().includes('alcohol')));
+            if (socialHistory.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
+                                <h3>${l.h11}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-matrix" style="grid-template-columns:1fr;">
+                                ${socialHistory.map(s => `
+                                    <div class="matrix-cell">
+                                        <div class="matrix-label">${s.code?.coding?.[0]?.display || '—'}</div>
+                                        <div class="matrix-value" style="color:var(--accent); font-size:0.85rem;">${s.valueCodeableConcept?.coding?.[0]?.display || s.valueCodeableConcept?.text || '—'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 12. HEREDITARY RISK FACTORS
+            const famHist = data['FamilyMemberHistory'] || [];
+            if (famHist.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path></svg>
+                                <h3>${l.h12}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tRelation}</th><th>${l.tPathology}</th></tr></thead>
+                                <tbody>
+                                    ${famHist.map(f => `
+                                        <tr>
+                                            <td><strong>${f.relationship?.coding?.[0]?.display || '—'}</strong></td>
+                                            <td style="color:var(--danger); font-weight:600;">${f.condition?.[0]?.code?.coding?.[0]?.display || '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 13. CARE TEAM
+            const careTeams = data['CareTeam'] || [];
+            if (careTeams.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path></svg>
+                                <h3>${l.h13}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tStaff}</th><th>${l.tRole}</th></tr></thead>
+                                <tbody>
+                                    ${careTeams.map(ct => `
+                                        <tr>
+                                            <td><strong>${ct.participant?.[0]?.member?.display || '—'}</strong></td>
+                                            <td><span class="status-tag status-gray">${ct.participant?.[0]?.role?.[0]?.text || '—'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 14. PROGRESS NARRATIVES
+            const docRefs = data['DocumentReference'] || [];
+            if (docRefs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                                <h3>${l.h14}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tDoc}</th><th>${l.tDate}</th><th>${l.tAction}</th></tr></thead>
+                                <tbody>
+                                    ${docRefs.map(d => `
+                                        <tr>
+                                            <td><strong>${d.type?.coding?.[0]?.display || '—'}</strong></td>
+                                            <td>${d.date ? d.date.split('T')[0] : '—'}</td>
+                                            <td><a href="#" style="color:var(--accent); font-weight:700; text-decoration:none;">📄 ${l.reviewRaw}</a></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 15. SPECIAL ASSAYS & SCORES
+            const miscObs = observations.filter(o => !o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs' || cd.code === 'laboratory')));
+            if (miscObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
+                                <h3>${l.h15}</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>${l.tIndex}</th><th>${l.tResult}</th><th>${l.tColl}</th></tr></thead>
+                                <tbody>
+                                    ${miscObs.slice(0, 8).map(m => {
+                                        const title = m.code?.coding?.[0]?.display || m.code?.text || '—';
+                                        let valuation = '—';
+                                        if (m.valueQuantity) valuation = `${parseFloat(m.valueQuantity.value).toFixed(1)} ${m.valueQuantity.unit || ''}`;
+                                        else if (m.valueCodeableConcept) valuation = m.valueCodeableConcept.text || m.valueCodeableConcept.coding?.[0]?.display;
+                                        return `<tr>
+                                            <td><strong>${title}</strong></td>
+                                            <td style="color:var(--accent); font-weight:700;">${valuation}</td>
+                                            <td>${m.effectiveDateTime ? m.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            workspace.innerHTML = `
+                <div class="clinical-dashboard">
+                    <div class="dashboard-main">${mainColumnHTML}</div>
+                    <div class="dashboard-side">${sideColumnHTML}</div>
+                </div>
+            `;
+        }
+
+        function extractPatientName(pt) {
+            const indexBlock = pt.name?.[0];
+            if (!indexBlock) return pt.id || 'Anonymous Patient Chart';
+            return `${(indexBlock.given || []).join(' ')} ${indexBlock.family || ''}`.trim();
+        }
+
+        // Initialize view text
+        changeLanguage('en');
+    </script>
+</body>
+</html>
+
+-->

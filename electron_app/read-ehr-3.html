@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Summary · Patient Chart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+            --slate-400: #94a3b8; --slate-600: #475569; --slate-700: #334155; --slate-900: #0f172a;
+            --primary: #0f172a; --accent: #2563eb; --accent-light: #eff6ff;
+            --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fca5a5;
+            --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+            --warning: #d97706; --warning-bg: #fffbeb; --warning-border: #fef3c7;
+            --radius-lg: 12px; --radius-md: 8px; --radius-sm: 4px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f3f4f6; color: var(--slate-900);
+            min-height: 100vh; display: flex; flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            background: #ffffff; padding: 14px 24px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            background: var(--primary); color: #fff;
+            width: 36px; height: 36px; border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand h1 { font-size: 1.05rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .brand p { font-size: 0.68rem; color: var(--slate-600); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .btn {
+            padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
+            transition: all 0.1s ease-in-out;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: white; border-color: var(--slate-200); color: var(--slate-700); }
+        .btn-secondary:hover:not(:disabled) { background: var(--slate-50); }
+        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        #fileInput { display: none; }
+
+        .patient-banner {
+            background: #ffffff; border-bottom: 1px solid var(--slate-200);
+            padding: 16px 24px; display: none; gap: 24px; align-items: center;
+            flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .banner-pt-name { font-size: 1.3rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .banner-metrics { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; flex: 1; }
+        .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .banner-meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); letter-spacing: 0.03em; }
+        .banner-meta-val { font-size: 0.88rem; font-weight: 600; color: var(--slate-900); }
+        .banner-allergy-alert {
+            background: var(--danger-bg); border: 1px solid var(--danger-border);
+            color: var(--danger); padding: 6px 12px; border-radius: var(--radius-md);
+            font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+        }
+
+        .workspace {
+            max-width: 1600px; width: 100%; margin: 24px auto; padding: 0 24px;
+            flex: 1; display: flex; flex-direction: column; gap: 24px;
+        }
+
+        .empty-state {
+            background: white; border-radius: var(--radius-lg); border: 2px dashed var(--slate-300);
+            padding: 100px 24px; text-align: center; color: var(--slate-700);
+            box-shadow: var(--shadow); margin: auto; max-width: 550px;
+        }
+        .empty-state svg { margin-bottom: 16px; color: var(--slate-400); }
+        .empty-state h2 { font-size: 1.25rem; font-weight: 800; color: var(--slate-900); margin-bottom: 6px; }
+        .empty-state p { font-size: 0.88rem; line-height: 1.5; color: var(--slate-600); }
+
+        .clinical-dashboard {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 24px; width: 100%;
+        }
+        .dashboard-main { display: flex; flex-direction: column; gap: 24px; }
+        .dashboard-side { display: flex; flex-direction: column; gap: 24px; }
+
+        .card {
+            background: #ffffff; border-radius: var(--radius-lg); border: 1px solid var(--slate-200);
+            box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .card-header {
+            background: var(--slate-50); padding: 14px 20px;
+            border-bottom: 1px solid var(--slate-200);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-title { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .header-title svg { width: 18px; height: 18px; stroke-width: 2.2; }
+        .card-header h3 { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-700); }
+        .counter-badge { background: var(--slate-200); color: var(--slate-700); font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+        .card-body { padding: 20px; overflow-x: auto; }
+
+        .info-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .matrix-cell { background: var(--slate-50); border: 1px solid var(--slate-200); padding: 12px 14px; border-radius: var(--radius-md); }
+        .matrix-label { font-size: 0.65rem; text-transform: uppercase; color: var(--slate-600); font-weight: 700; margin-bottom: 3px; letter-spacing: 0.03em; }
+        .matrix-value { font-size: 0.9rem; font-weight: 600; color: var(--slate-900); word-break: break-word; }
+        .value-accent { color: var(--accent); font-weight: 700; }
+
+        .status-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+        .status-red { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+        .status-green { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+        .status-amber { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+        .status-gray { background: var(--slate-100); color: var(--slate-600); border-color: var(--slate-200); }
+
+        .table-matrix { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        .table-matrix th { padding: 10px 12px; background: var(--slate-50); color: var(--slate-600); font-weight: 700; border-bottom: 2px solid var(--slate-200); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .table-matrix td { padding: 12px 12px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; color: var(--slate-900); }
+        .table-matrix tr:last-child td { border-bottom: none; }
+        .table-matrix tr:hover td { background: rgba(248, 250, 252, 0.5); }
+
+        .vitals-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .vital-box { border: 1px solid var(--slate-200); border-left: 4px solid var(--accent); border-radius: var(--radius-md); padding: 12px; background: #fff; }
+        .vital-box.alert { border-left-color: var(--danger); background: var(--danger-bg); }
+        .vital-name { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--slate-600); }
+        .vital-val { font-size: 1.2rem; font-weight: 800; color: var(--slate-900); margin: 2px 0; }
+        .vital-time { font-size: 0.65rem; color: var(--slate-400); font-weight: 500; }
+
+        @media (max-width: 1100px) {
+            .clinical-dashboard { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+                <h1>Patient Chart</h1>
+                <p>Synthia FHIR Reader</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-secondary" id="printBtn" onclick="window.print()" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Chart
+            </button>
+            <label for="fileInput" class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                Open Patient File
+            </label>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <!-- Patient Banner Strip (simplified, doctor-friendly) -->
+    <div class="patient-banner" id="patientBanner"></div>
+
+    <!-- Main Clinical Workspace -->
+    <div class="workspace" id="workspace">
+        <div class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <h2>No Patient Chart Loaded</h2>
+            <p>Open a Synthia FHIR JSON file to view the complete patient record in a clean, doctor‑friendly layout.</p>
+        </div>
+    </div>
+
+    <script>
+        let fhirData = null;
+        const fileInput = document.getElementById('fileInput');
+        const workspace = document.getElementById('workspace');
+        const patientBanner = document.getElementById('patientBanner');
+        const printBtn = document.getElementById('printBtn');
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const bundle = JSON.parse(text);
+                parseFHIRComponents(bundle);
+            } catch (err) {
+                alert("Unable to read file. Ensure it is a valid Synthia FHIR JSON export.");
+                console.error(err);
+            }
+        });
+
+        function parseFHIRComponents(bundle) {
+            if (!bundle || !bundle.entry) return;
+            const registry = {};
+            bundle.entry.forEach(item => {
+                const res = item.resource;
+                if (!res || !res.resourceType) return;
+                if (!registry[res.resourceType]) registry[res.resourceType] = [];
+                registry[res.resourceType].push(res);
+            });
+            fhirData = registry;
+            buildDashboardView();
+        }
+
+        function buildDashboardView() {
+            const data = fhirData;
+            const patient = (data['Patient'] || [])[0];
+            if (!patient) {
+                alert("No patient found in this file.");
+                return;
+            }
+
+            printBtn.disabled = false;
+
+            const ptName = extractPatientName(patient);
+            const dob = patient.birthDate || '—';
+            const gender = patient.gender || '—';
+            const mrn = patient.id || '—';
+            const allergiesList = data['AllergyIntolerance'] || [];
+
+            // ── Simplified Patient Banner ──
+            patientBanner.style.display = 'flex';
+            patientBanner.innerHTML = `
+                <div class="banner-pt-name">${ptName}</div>
+                <div class="banner-metrics">
+                    <div class="banner-meta-item"><div class="banner-meta-label">DOB</div><div class="banner-meta-val">${dob}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">Gender</div><div class="banner-meta-val" style="text-transform:uppercase;">${gender}</div></div>
+                    <div class="banner-meta-item"><div class="banner-meta-label">MRN</div><div class="banner-meta-val" style="font-family:'JetBrains Mono',monospace;">${mrn}</div></div>
+                </div>
+                ${allergiesList.length ? `
+                    <div class="banner-allergy-alert">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                        ${allergiesList.length} Known Allergies
+                    </div>
+                ` : ''}
+            `;
+
+            let mainColumnHTML = '';
+            let sideColumnHTML = '';
+
+            // ── Helper to extract values ──
+            const phone = patient.telecom?.find(t => t.system === 'phone')?.value || '—';
+            const email = patient.telecom?.find(t => t.system === 'email')?.value || '—';
+            const addr = patient.address?.[0] ? `${patient.address[0].line?.join(', ')}, ${patient.address[0].city}, ${patient.address[0].state} ${patient.address[0].postalCode}` : '—';
+            const marital = patient.maritalStatus?.text || '—';
+            const lang = patient.communication?.[0]?.language?.text || patient.communication?.[0]?.language?.coding?.[0]?.display || '—';
+            const race = patient.extension?.find(e => e.url?.includes('us-core-race'))?.extension?.find(e => e.url === 'text')?.valueString || '—';
+            const ethnicity = patient.extension?.find(e => e.url?.includes('us-core-ethnicity'))?.extension?.find(e => e.url === 'text')?.valueString || '—';
+            const emergencyNode = patient.contact?.[0] ? `${patient.contact[0].name?.text || 'Contact'} (${patient.contact[0].relationship?.[0]?.text || 'N/K'}) - ${patient.contact[0].telecom?.[0]?.value || ''}` : '—';
+            const bloodObs = (data['Observation'] || []).find(o => o.code?.text?.toLowerCase().includes('blood type') || o.code?.text?.toLowerCase().includes('blood group'));
+            const bloodType = bloodObs ? (bloodObs.valueString || bloodObs.valueCodeableConcept?.text || '—') : '—';
+
+            // ── 1. Patient Demographics ──
+            mainColumnHTML += `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <h3>Patient Demographics</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-matrix">
+                            <div class="matrix-cell"><div class="matrix-label">Full Name</div><div class="matrix-value value-accent">${ptName}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Patient ID</div><div class="matrix-value">${mrn}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Date of Birth</div><div class="matrix-value">${dob}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Gender</div><div class="matrix-value" style="text-transform:uppercase;">${gender}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Phone</div><div class="matrix-value">${phone}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Email</div><div class="matrix-value">${email}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Marital Status</div><div class="matrix-value">${marital}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Preferred Language</div><div class="matrix-value">${lang}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Blood Group</div><div class="matrix-value">${bloodType}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Race</div><div class="matrix-value">${race}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Ethnicity</div><div class="matrix-value">${ethnicity}</div></div>
+                            <div class="matrix-cell"><div class="matrix-label">Emergency Contact</div><div class="matrix-value">${emergencyNode}</div></div>
+                            <div class="matrix-cell" style="grid-column: 1 / -1;"><div class="matrix-label">Address</div><div class="matrix-value">${addr}</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ── 2. Allergies ──
+            if (allergiesList.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                                <h3>Allergies & Adverse Reactions</h3>
+                            </div>
+                            <span class="counter-badge status-red">${allergiesList.length} Alerts</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Allergen</th><th>Reaction</th><th>Severity</th><th>Status</th><th>Recorded</th></tr></thead>
+                                <tbody>
+                                    ${allergiesList.map(a => {
+                                        const allergen = a.code?.coding?.[0]?.display || a.code?.text || 'Unknown';
+                                        const reaction = a.reaction?.[0]?.manifestation?.[0]?.coding?.[0]?.display || 'Not specified';
+                                        const severity = a.reaction?.[0]?.severity || 'unknown';
+                                        const status = a.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        return `<tr>
+                                            <td><strong style="color:var(--danger);">${allergen}</strong></td>
+                                            <td>${reaction}</td>
+                                            <td><span class="status-tag ${severity === 'severe' ? 'status-red' : 'status-amber'}">${severity}</span></td>
+                                            <td><span class="status-tag status-red">${status}</span></td>
+                                            <td>${a.recordedDate ? a.recordedDate.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 3. Vital Signs ──
+            const observations = data['Observation'] || [];
+            const vitalsObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs')));
+            if (vitalsObs.length) {
+                const latestVitals = {};
+                vitalsObs.forEach(v => {
+                    const title = v.code?.coding?.[0]?.display || v.code?.text;
+                    if (!title) return;
+                    if (!latestVitals[title] || new Date(v.effectiveDateTime) > new Date(latestVitals[title].effectiveDateTime)) {
+                        latestVitals[title] = v;
+                    }
+                });
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <h3>Vital Signs (Most Recent)</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="vitals-strip">
+                                ${Object.entries(latestVitals).map(([name, v]) => {
+                                    let reading = '—';
+                                    if (v.valueQuantity) reading = `${parseFloat(v.valueQuantity.value).toFixed(1)} ${v.valueQuantity.unit || ''}`;
+                                    else if (v.component) reading = v.component.map(c => parseFloat(c.valueQuantity?.value || 0).toFixed(0)).join('/');
+                                    const time = v.effectiveDateTime ? v.effectiveDateTime.split('T')[0] : '—';
+                                    return `
+                                        <div class="vital-box">
+                                            <div class="vital-name">${name}</div>
+                                            <div class="vital-val">${reading}</div>
+                                            <div class="vital-time">${time}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 4. Medications ──
+            const medRequests = data['MedicationRequest'] || [];
+            if (medRequests.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+                                <h3>Current Medications</h3>
+                            </div>
+                            <span class="counter-badge">${medRequests.length} Rx</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Medication</th><th>Dose & Route</th><th>Status</th><th>Prescribed By / Date</th><th>Indication</th></tr></thead>
+                                <tbody>
+                                    ${medRequests.map(m => {
+                                        const name = m.medicationCodeableConcept?.coding?.[0]?.display || m.medicationCodeableConcept?.text || 'Unknown';
+                                        const dosage = m.dosageInstruction?.[0]?.text || 'As directed';
+                                        const status = m.status || 'active';
+                                        const provider = m.recorder?.display || 'Staff Physician';
+                                        const date = m.authoredOn ? m.authoredOn.split('T')[0] : '—';
+                                        const reason = m.reasonCode?.[0]?.coding?.[0]?.display || m.reasonCode?.[0]?.text || '—';
+                                        return `<tr>
+                                            <td><strong style="color:var(--accent);">${name}</strong></td>
+                                            <td><strong>${dosage}</strong></td>
+                                            <td><span class="status-tag status-green">${status}</span></td>
+                                            <td><div>${provider}</div><div style="font-size:0.68rem; color:var(--slate-400);">${date}</div></td>
+                                            <td style="color:var(--slate-600);">${reason}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 5. Conditions / Problem List ──
+            const conditions = data['Condition'] || [];
+            if (conditions.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--danger);"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                <h3>Conditions / Problem List</h3>
+                            </div>
+                            <span class="counter-badge status-red">${conditions.length} Diagnoses</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Condition</th><th>Status</th><th>Verified</th><th>Onset</th></tr></thead>
+                                <tbody>
+                                    ${conditions.map(c => {
+                                        const name = c.code?.coding?.[0]?.display || c.code?.text || 'Unknown';
+                                        const status = c.clinicalStatus?.coding?.[0]?.code || 'active';
+                                        const verification = c.verificationStatus?.coding?.[0]?.code || 'confirmed';
+                                        const date = c.onsetDateTime ? c.onsetDateTime.split('T')[0] : '—';
+                                        return `<tr>
+                                            <td><strong style="color:var(--slate-900);">${name}</strong></td>
+                                            <td><span class="status-tag ${status === 'active' ? 'status-red' : 'status-gray'}">${status}</span></td>
+                                            <td><span class="status-tag status-gray">${verification}</span></td>
+                                            <td><strong>${date}</strong></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 6. Encounters / Visits ──
+            const encounters = data['Encounter'] || [];
+            if (encounters.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                <h3>Recent Encounters</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Type</th><th>Date</th><th>Reason</th></tr></thead>
+                                <tbody>
+                                    ${encounters.slice(0, 6).map(e => {
+                                        const type = e.class?.code || e.class?.display || 'Outpatient';
+                                        const date = e.period?.start ? e.period.start.split('T')[0] : '—';
+                                        const reason = e.reasonCode?.[0]?.coding?.[0]?.display || e.reasonCode?.[0]?.text || 'Routine visit';
+                                        return `<tr>
+                                            <td><strong style="text-transform:capitalize;">${type}</strong></td>
+                                            <td>${date}</td>
+                                            <td style="color:var(--slate-600); font-size:0.78rem;">${reason}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 7. Lab Results ──
+            const labObs = observations.filter(o => o.category?.some(c => c.coding?.some(cd => cd.code === 'laboratory')));
+            if (labObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--warning);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <h3>Laboratory Results</h3>
+                            </div>
+                            <span class="counter-badge status-amber">${labObs.length} Tests</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Test</th><th>Result</th><th>Flag</th><th>Date</th></tr></thead>
+                                <tbody>
+                                    ${labObs.slice(0, 15).map(l => {
+                                        const name = l.code?.coding?.[0]?.display || l.code?.text || 'Lab Test';
+                                        const val = l.valueQuantity ? `${parseFloat(l.valueQuantity.value).toFixed(2)} ${l.valueQuantity.unit || ''}` : '—';
+                                        const interpCode = l.interpretation?.[0]?.coding?.[0]?.code || 'N';
+                                        const abnormal = interpCode !== 'N';
+                                        return `<tr>
+                                            <td><strong>${name}</strong></td>
+                                            <td style="font-family:'JetBrains Mono',monospace; font-weight:700; ${abnormal ? 'color:var(--danger);' : 'color:var(--success);'}">${val}</td>
+                                            <td><span class="status-tag ${abnormal ? 'status-red' : 'status-green'}">${abnormal ? 'Abnormal' : 'Normal'}</span></td>
+                                            <td>${l.effectiveDateTime ? l.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 8. Procedures / Surgeries ──
+            const procedures = data['Procedure'] || [];
+            if (procedures.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+                                <h3>Procedures / Surgeries</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Procedure</th><th>Status</th><th>Date</th><th>Body Site</th></tr></thead>
+                                <tbody>
+                                    ${procedures.map(p => `
+                                        <tr>
+                                            <td><strong>${p.code?.coding?.[0]?.display || p.code?.text || 'Unnamed procedure'}</strong></td>
+                                            <td><span class="status-tag status-green">${p.status}</span></td>
+                                            <td><strong>${p.performedPeriod?.start ? p.performedPeriod.start.split('T')[0] : '—'}</strong></td>
+                                            <td style="color:var(--slate-600); font-weight:600;">${p.bodySite?.[0]?.coding?.[0]?.display || '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 9. Immunizations ──
+            const immunizations = data['Immunization'] || [];
+            if (immunizations.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <h3>Immunizations</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Vaccine</th><th>Date</th></tr></thead>
+                                <tbody>
+                                    ${immunizations.map(i => `
+                                        <tr>
+                                            <td><strong>${i.vaccineCode?.coding?.[0]?.display || i.vaccineCode?.text || 'Unknown'}</strong></td>
+                                            <td>${i.occurrenceDateTime ? i.occurrenceDateTime.split('T')[0] : '—'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 10. Care Plan ──
+            const careplans = data['CarePlan'] || [];
+            if (careplans.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                <h3>Care Plan</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            ${careplans.map(cp => `
+                                <div style="padding:14px; background:var(--slate-50); border:1px solid var(--slate-200); border-left:4px solid var(--accent); border-radius:var(--radius-md); margin-bottom:12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                        <strong style="font-size:0.92rem; color:var(--slate-900);">${cp.category?.[0]?.coding?.[0]?.display || 'General Plan'}</strong>
+                                        <span class="status-tag status-green">${cp.status}</span>
+                                    </div>
+                                    <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.4;">
+                                        ${cp.activity?.map(a => `• ${a.detail?.code?.coding?.[0]?.display || a.detail?.code?.text || 'Intervention'}`).join('<br>') || 'No activities listed.'}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 11. Lifestyle & Social History ──
+            const socialObs = observations.filter(o => o.code?.text?.toLowerCase().includes('tobacco') || o.code?.text?.toLowerCase().includes('alcohol') || o.code?.text?.toLowerCase().includes('drug'));
+            if (socialObs.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                                <h3>Lifestyle & Social History</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-matrix" style="grid-template-columns:1fr;">
+                                ${socialObs.map(s => {
+                                    const label = s.code?.coding?.[0]?.display || s.code?.text || 'Social factor';
+                                    const value = s.valueCodeableConcept?.text || s.valueCodeableConcept?.coding?.[0]?.display || 'Not recorded';
+                                    return `<div class="matrix-cell"><div class="matrix-label">${label}</div><div class="matrix-value" style="font-size:0.85rem;">${value}</div></div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 12. Family History ──
+            const famHist = data['FamilyMemberHistory'] || [];
+            if (famHist.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <h3>Family History</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Relative</th><th>Condition</th></tr></thead>
+                                <tbody>
+                                    ${famHist.map(f => `
+                                        <tr>
+                                            <td><strong>${f.relationship?.coding?.[0]?.display || 'Relative'}</strong></td>
+                                            <td style="color:var(--danger); font-weight:600;">${f.condition?.[0]?.code?.coding?.[0]?.display || 'Unknown'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 13. Claims / Billing ──
+            const claims = data['Claim'] || [];
+            if (claims.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--success);"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                                <h3>Claims / Billing</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Type</th><th>Amount</th></tr></thead>
+                                <tbody>
+                                    ${claims.slice(0, 4).map(c => `
+                                        <tr>
+                                            <td><strong>${c.type?.coding?.[0]?.display || 'Claim'}</strong></td>
+                                            <td style="font-family:'JetBrains Mono'; font-weight:700;">$${parseFloat(c.total?.value || 0).toFixed(2)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 14. Clinical Notes / Documents ──
+            const docRefs = data['DocumentReference'] || [];
+            if (docRefs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <h3>Clinical Notes & Documents</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Document Type</th><th>Date</th><th>Reference</th></tr></thead>
+                                <tbody>
+                                    ${docRefs.map(d => `
+                                        <tr>
+                                            <td><strong>${d.type?.coding?.[0]?.display || 'Progress Note'}</strong></td>
+                                            <td>${d.date ? d.date.split('T')[0] : '—'}</td>
+                                            <td><a href="#" style="color:var(--accent); font-weight:700; text-decoration:none;">View Document</a></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 15. Care Team ──
+            const careTeams = data['CareTeam'] || [];
+            if (careTeams.length) {
+                sideColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <h3>Care Team</h3>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Provider</th><th>Role</th></tr></thead>
+                                <tbody>
+                                    ${careTeams.map(ct => `
+                                        <tr>
+                                            <td><strong>${ct.participant?.[0]?.member?.display || 'Staff'}</strong></td>
+                                            <td><span class="status-tag status-gray">${ct.participant?.[0]?.role?.[0]?.text || 'Specialist'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ── 16. Other Observations ──
+            const miscObs = observations.filter(o => !o.category?.some(c => c.coding?.some(cd => cd.code === 'vital-signs' || cd.code === 'laboratory')));
+            if (miscObs.length) {
+                mainColumnHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                <h3>Additional Observations</h3>
+                            </div>
+                            <span class="counter-badge">${miscObs.length} Items</span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <table class="table-matrix">
+                                <thead><tr><th>Observation</th><th>Value</th><th>Date</th></tr></thead>
+                                <tbody>
+                                    ${miscObs.slice(0, 8).map(m => {
+                                        const title = m.code?.coding?.[0]?.display || m.code?.text || 'Observation';
+                                        let valuation = '—';
+                                        if (m.valueQuantity) valuation = `${parseFloat(m.valueQuantity.value).toFixed(1)} ${m.valueQuantity.unit || ''}`;
+                                        else if (m.valueCodeableConcept) valuation = m.valueCodeableConcept.text || m.valueCodeableConcept.coding?.[0]?.display || '—';
+                                        return `<tr>
+                                            <td><strong>${title}</strong></td>
+                                            <td style="color:var(--accent); font-weight:700;">${valuation}</td>
+                                            <td>${m.effectiveDateTime ? m.effectiveDateTime.split('T')[0] : '—'}</td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Finalize the layout
+            workspace.innerHTML = `
+                <div class="clinical-dashboard">
+                    <div class="dashboard-main">${mainColumnHTML}</div>
+                    <div class="dashboard-side">${sideColumnHTML}</div>
+                </div>
+            `;
+        }
+
+        function extractPatientName(pt) {
+            const nameObj = pt.name?.[0];
+            if (!nameObj) return pt.id || 'Unknown Patient';
+            return `${(nameObj.given || []).join(' ')} ${nameObj.family || ''}`.trim();
+        }
+    </script>
+</body>
+</html>
