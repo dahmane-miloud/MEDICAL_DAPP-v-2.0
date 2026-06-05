@@ -1,0 +1,1788 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:73caadf6-2af3-4664-b90a-31e48fd95fbf",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "55ffc8df-629d-407f-be30-a0d3314f458e",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200001",
+              "display": "Metformin 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-02-01T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:5593fce4-f093-4a84-82c8-21269ef10a80",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "23ae6a12-f395-476b-b1f9-a3e06115866f",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300002",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.090Z",
+        "valueQuantity": {
+          "value": 174.5,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:7d53cb2a-b8ae-47f3-ab91-c16c341b2e45",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "a270cc7a-5c3b-4d33-a968-b94ccf1afa37",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100003",
+              "display": "Major depressive disorder"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2023-04-03T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:041fa0bf-19cb-4c46-8e45-ad1742923f02",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "2ddb2f79-134d-411c-8e46-25c81e41c48d",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200004",
+              "display": "Acetaminophen 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-05-04T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:0fcd9541-83be-4a9e-b4f7-e6765dc8d785",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "1c4f7a63-6403-459b-b9af-82e9640a7d1d",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300005",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.090Z",
+        "valueQuantity": {
+          "value": 37.1,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:81565fc4-2d59-4b3a-a738-0aa8cb1cb091",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "4e631ad9-f508-4dd2-8a1a-31cba5900127",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100006",
+              "display": "Chronic kidney disease"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2022-07-06T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:47485bf9-4402-405e-b16e-2947c7611f07",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "fe2ad304-d637-4b5e-b4d9-218a48003eaa",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200007",
+              "display": "Omeprazole 20mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-08-07T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9132d3bb-c93f-4ad8-b34c-329347ca76eb",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "bebaa386-81ab-4466-990c-0f009c936a83",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300008",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.090Z",
+        "valueQuantity": {
+          "value": 149.1,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:de690143-6c12-43c5-813b-7047698649eb",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "c97608dd-aac9-49c3-918d-233f341d4816",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100009",
+              "display": "Rheumatoid arthritis"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2021-10-09T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d29fb772-3973-45e9-bb14-49b6255360a8",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "ec6fa90f-f5ad-466e-8c7c-31dd44dd865e",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200010",
+              "display": "Amlodipine 5mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-11-10T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:dae3015f-05df-4b56-9212-f0df37eeabd7",
+      "resource": {
+        "resourceType": "ClinicalImpression",
+        "id": "c0292425-b226-4103-bcf0-a9fb2b6c7740",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "summary": "Clinical assessment 10: Patient presents with multiple chronic conditions requiring ongoing management. Current treatment plan includes medication management and lifestyle modifications. Follow-up scheduled in 3 months to reassess treatment efficacy and adjust as needed. Additional diagnostic tests may be required depending on clinical presentation. Patient education provided regarding medication adherence and symptom monitoring."
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:da656e7e-90c6-40b1-bba9-9797a96bb049",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "ee17f03b-1c67-42cc-9414-8a975ed371fd",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300011",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.090Z",
+        "valueQuantity": {
+          "value": 37.1,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9ea4a35f-8c76-4235-90e5-d65d443f1d6b",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "e14ce5bb-a401-42ae-8c92-104673612bfd",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100012",
+              "display": "Essential hypertension"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2020-01-12T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f68d6707-515a-496d-9d32-e6627371975c",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "1555ad5c-dc2f-4492-9033-9ddeb8f9cf6e",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200013",
+              "display": "Metformin 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-02-13T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:25fa6788-ca6d-419d-bcc7-318dcd088bf6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "37cfd782-3356-4bca-9d7f-4982d98ad286",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300014",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.090Z",
+        "valueQuantity": {
+          "value": 109.4,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:2cf2da9a-6b64-4f0a-a88e-6c1421a1c12a",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "c61fdcf5-4141-40db-8451-c095e81dd64d",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100015",
+              "display": "Major depressive disorder"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2023-04-15T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f9c6c1e9-eb1f-4390-8355-d903e214f33e",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "ac78da15-4a00-4964-b96a-5bb3c353be0a",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200016",
+              "display": "Acetaminophen 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-05-16T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9b02017f-f4f4-4c1d-af08-1e87613f101b",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "aef64a80-3dff-46ca-9670-79e7ef02c51d",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300017",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.091Z",
+        "valueQuantity": {
+          "value": 38.7,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:3a333014-b415-4796-8c5d-7e826e77ad48",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "416bdf11-ab86-424c-ba56-be1ddc743d33",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100018",
+              "display": "Chronic kidney disease"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2022-07-18T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:1216ac2e-8c49-4160-8cdd-c9b6343c654d",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "c4de7beb-3242-4f18-b61f-0ac22ce4f01b",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200019",
+              "display": "Omeprazole 20mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-08-19T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:10eb64f9-7532-4e7d-9fa6-f28235864431",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "7391aa25-6ef5-439c-b663-52cfacd63d93",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300020",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.091Z",
+        "valueQuantity": {
+          "value": 165.5,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:2479dc1e-c0ec-4499-b61c-a745afa84973",
+      "resource": {
+        "resourceType": "ClinicalImpression",
+        "id": "bb70cb88-ebbf-41e3-991a-911a465f04e2",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "summary": "Clinical assessment 20: Patient presents with multiple chronic conditions requiring ongoing management. Current treatment plan includes medication management and lifestyle modifications. Follow-up scheduled in 3 months to reassess treatment efficacy and adjust as needed. Additional diagnostic tests may be required depending on clinical presentation. Patient education provided regarding medication adherence and symptom monitoring."
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fb38d09c-d555-43fe-8172-aba1c26f1294",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "74b9716e-6177-4cb8-82fe-df94277ad6c9",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100021",
+              "display": "Rheumatoid arthritis"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2021-10-21T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d62849ff-b112-4bee-87de-4e567a4fac22",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "82c2a6a8-7b11-4e13-9e11-3b2250cc37db",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200022",
+              "display": "Amlodipine 5mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-11-22T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:964cb338-28ca-46b4-aa9a-53dbc3ea037b",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "542499e1-22d9-4e80-a700-88410efe39c6",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300023",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.092Z",
+        "valueQuantity": {
+          "value": 37.5,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f92075a0-079e-4e22-a778-b480915daabf",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "dcf60994-adda-4a4f-aea3-0fbcb3e5444b",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100024",
+              "display": "Essential hypertension"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2020-01-24T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f9c99711-eee4-4c5b-9064-db116bbc579d",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "d499bf8f-4f2f-4c30-96c4-5bd2264cc85b",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200025",
+              "display": "Metformin 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-02-25T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:c4aad5e3-bae1-458f-9444-3d777bc49608",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "4b20ef33-ccf1-4a78-ace4-3e1cc72b64c1",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300026",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.092Z",
+        "valueQuantity": {
+          "value": 74,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:4bf5e5cc-441e-4389-a583-8a77d4f9f50f",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "075f18c8-df22-4e6f-946d-81e4ff8fb9ad",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100027",
+              "display": "Major depressive disorder"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2023-04-27T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f8bbddd7-3fb1-491a-9f5f-eb8df3280de6",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "93279aed-37d0-4741-a732-6119f82df437",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200028",
+              "display": "Acetaminophen 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-04-30T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6dd1fd6a-8d8a-41a7-832f-0d949d777ec2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "564f9d08-f677-4afb-b30d-af49c6286af1",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300029",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.092Z",
+        "valueQuantity": {
+          "value": 38,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e1db0a31-59b6-4970-9c63-235ff28818f0",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "bcce8473-515e-45f3-a1b9-65db650dd30a",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100030",
+              "display": "Chronic kidney disease"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2022-07-02T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9c7992a2-9b30-4c83-b71d-34c9b93f76f4",
+      "resource": {
+        "resourceType": "ClinicalImpression",
+        "id": "233cf537-0e4f-4645-ac23-4e6c0cf2bade",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "summary": "Clinical assessment 30: Patient presents with multiple chronic conditions requiring ongoing management. Current treatment plan includes medication management and lifestyle modifications. Follow-up scheduled in 3 months to reassess treatment efficacy and adjust as needed. Additional diagnostic tests may be required depending on clinical presentation. Patient education provided regarding medication adherence and symptom monitoring."
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ce6601cd-1bc2-4d31-bb49-f548175af20c",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "9fcf3f5f-9067-4323-baa6-6c4689064f3d",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200031",
+              "display": "Omeprazole 20mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-08-03T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:59fb0a5e-7878-4d76-af1d-631a0cffcaab",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "1020fe49-16e6-4c71-a440-e3f91335c9e5",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300032",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.093Z",
+        "valueQuantity": {
+          "value": 114.7,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:8b828d25-21dc-4f25-9c60-1c646748ab68",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "2ed5c422-2f22-4360-9847-29c7eb3e190f",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100033",
+              "display": "Rheumatoid arthritis"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2021-10-05T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d749e81f-bafb-4219-95e2-9c949a0df326",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "a4e3dddd-8b7b-4985-866f-fdce8f66df38",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200034",
+              "display": "Amlodipine 5mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-11-06T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fdeb2a67-dfce-4d69-b7f7-f35fd823b0eb",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "a6c82b83-caba-4432-873f-21625e3fa750",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300035",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.093Z",
+        "valueQuantity": {
+          "value": 37,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b7b613fc-b876-4506-9cef-9901d0f0df40",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "a0f817cb-afc7-4683-816a-62c3733fb414",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100036",
+              "display": "Essential hypertension"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2020-01-08T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d88b1179-b828-4ff0-9a08-90ace9741043",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "bbc66cac-8a37-4599-8362-5a7f08d26cb3",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200037",
+              "display": "Metformin 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-02-09T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9902f268-d1d4-4457-a825-62a537338c7f",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "c4a34bbc-fd5b-441d-8bc6-4afb9ff0e963",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300038",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.093Z",
+        "valueQuantity": {
+          "value": 189,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f75748fd-0fc4-44fd-aa34-ce54df1cd850",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "8bcfec41-25f1-487d-889a-725dd17457cd",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100039",
+              "display": "Major depressive disorder"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2023-04-11T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b5f18a69-a272-4ef6-8aaf-df15bff866b4",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "17aa650e-cd34-4a3b-be21-6be0b10b206b",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200040",
+              "display": "Acetaminophen 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-05-12T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:15baf267-a67c-4758-9f4e-97cef78dc53e",
+      "resource": {
+        "resourceType": "ClinicalImpression",
+        "id": "8c09ee2b-909a-4603-83d2-9cf3f7aa4ecb",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "summary": "Clinical assessment 40: Patient presents with multiple chronic conditions requiring ongoing management. Current treatment plan includes medication management and lifestyle modifications. Follow-up scheduled in 3 months to reassess treatment efficacy and adjust as needed. Additional diagnostic tests may be required depending on clinical presentation. Patient education provided regarding medication adherence and symptom monitoring."
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b7243f91-2806-4250-9e3f-d1112c5b1736",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "8707dd73-0ccf-46ab-a0be-0ca97c4caf18",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300041",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.094Z",
+        "valueQuantity": {
+          "value": 38.8,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b486eec7-cf0e-47ad-a735-6ca39ab456b2",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "5237e46b-06be-4883-87da-4c10f2aa2c1e",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100042",
+              "display": "Chronic kidney disease"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2022-07-14T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:3fc3add1-8bd5-4c42-89c4-5024894aebac",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "c9c06b50-fb00-490d-8248-a1f9bc13163e",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200043",
+              "display": "Omeprazole 20mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-08-15T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b6262c18-254e-4b07-9b41-f8c48fa40e6f",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "12c86b91-50ce-4a07-adda-a704828fdb17",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300044",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.094Z",
+        "valueQuantity": {
+          "value": 182.4,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6f2ce15d-d377-449b-97e9-da76ffe01197",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "2bbcfd44-747e-4476-83b4-4985bd17020a",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100045",
+              "display": "Rheumatoid arthritis"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2021-10-17T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:23c9feff-8f1c-49bc-882c-e7bca4880b2d",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "68d6a720-8e68-49fc-96c6-8674aa6a0f6e",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200046",
+              "display": "Amlodipine 5mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-11-18T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:37be4b54-5fbc-4c72-8064-11d7ee5f10c1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "f69930ce-34a2-4d8b-9c85-ba4e16c6083d",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300047",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.095Z",
+        "valueQuantity": {
+          "value": 37.1,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e9c9eb3b-1f26-4d8d-8233-47e740135d47",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "278e6412-ccd8-4eef-adf5-5f715fd8a1d3",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100048",
+              "display": "Essential hypertension"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2020-01-20T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:c051f184-b82f-4c75-81b8-34125b313ea8",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "d342dcdf-6fe8-411c-ab60-590bd698f6db",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200049",
+              "display": "Metformin 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-02-21T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b1d27ab1-7880-4ec2-9c09-20fce65248d7",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "9f15b2db-a169-45b2-b346-0bee2973253f",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300050",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.095Z",
+        "valueQuantity": {
+          "value": 190.1,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:a4ef7173-0451-4ee0-b7b6-5afb493a59de",
+      "resource": {
+        "resourceType": "ClinicalImpression",
+        "id": "abb2712d-e542-4ed3-b653-27677002908c",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "summary": "Clinical assessment 50: Patient presents with multiple chronic conditions requiring ongoing management. Current treatment plan includes medication management and lifestyle modifications. Follow-up scheduled in 3 months to reassess treatment efficacy and adjust as needed. Additional diagnostic tests may be required depending on clinical presentation. Patient education provided regarding medication adherence and symptom monitoring."
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:8a9c61a5-482a-47af-b26c-e5d4230a0a62",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "bb9715c0-6458-4221-a642-9f515adc40d9",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100051",
+              "display": "Major depressive disorder"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2023-04-23T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:327d5b75-4d79-4e5f-a97b-3ae8543acb40",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "21464090-de28-4b5e-90e7-0debe3831bcf",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200052",
+              "display": "Acetaminophen 500mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-05-24T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:3a2bd4f3-7e36-4ebc-b387-1c2b1cbcb7b7",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "416dcd9a-e1d0-41b0-b9af-2b45788ebcdf",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300053",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.096Z",
+        "valueQuantity": {
+          "value": 37.7,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:58ad009d-518f-4d76-a857-b5509790bbad",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "07b1712b-6f91-48aa-83d7-0fd66cf04c78",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100054",
+              "display": "Chronic kidney disease"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2022-07-26T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:bfe4ddef-ebac-4fbc-b55d-0d748e667188",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "b848e8cc-ba0a-418f-b6c1-ee7042784b53",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200055",
+              "display": "Omeprazole 20mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-08-27T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:03bf6331-70bd-4383-86f4-4b86eab89d49",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "fb9bcddc-05ff-416a-9e65-88b8f21aac92",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300056",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.096Z",
+        "valueQuantity": {
+          "value": 146.1,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d7a07ac5-95f9-4868-a701-7a9f8246bd8e",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "7d65a425-f29d-40b1-a935-7709e5fe9d33",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100057",
+              "display": "Rheumatoid arthritis"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2021-10-01T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:013977cc-52c8-4616-97ec-8fb338be9e4f",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "75e32d3e-7c66-40fa-8f61-376f7c170648",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200058",
+              "display": "Amlodipine 5mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-11-02T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:1247807c-1403-4cb7-b16e-476eaadaa561",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "8f96d0ff-a787-4823-b759-69ed1998b18f",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300059",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.097Z",
+        "valueQuantity": {
+          "value": 38.7,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:66cf1866-683e-4f44-8e0b-6c6a471f2dd8",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "c1a25cf0-9a7a-4160-becb-9e1e55efd011",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100060",
+              "display": "Essential hypertension"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2020-01-04T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ae5fa48b-ee0e-4231-a7db-138e9d8a8b59",
+      "resource": {
+        "resourceType": "ClinicalImpression",
+        "id": "e85905af-bace-48ff-8ff4-cfd7d9f0b2b9",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "summary": "Clinical assessment 60: Patient presents with multiple chronic conditions requiring ongoing management. Current treatment plan includes medication management and lifestyle modifications. Follow-up scheduled in 3 months to reassess treatment efficacy and adjust as needed. Additional diagnostic tests may be required depending on clinical presentation. Patient education provided regarding medication adherence and symptom monitoring."
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:8e42a684-fc2c-441e-85e8-60aeda64d9ea",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "c3e1a431-cba9-40a7-9d9d-f6e490e2ae0"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:b5d7c0e6-5ae9-4c7a-a7a8-ad0078971217",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "502d6d5a-128e-40b6-8710-46cb6b4ec42b",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300101",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.107Z",
+        "valueQuantity": {
+          "value": 38.7,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:5309fb4d-61d6-4675-99fa-37f3293cf6c7",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "297433a4-1009-40f1-9d91-398a59140e49",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100102",
+              "display": "Chronic kidney disease"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2022-07-18T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f86405ed-0f1b-40e6-adc8-d7c2491a8f4e",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "29c3a304-ee6e-4ca4-8401-9fab9d590e1b",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200103",
+              "display": "Omeprazole 20mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-08-19T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ee67ebad-078a-46ef-9e42-0570d73f8cad",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "45c49b3a-7846-4084-9053-19e8698c53c2",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300104",
+              "display": "Blood Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.108Z",
+        "valueQuantity": {
+          "value": 108.7,
+          "unit": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e57fc484-f72b-41a6-b582-d183f403c164",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "e2e06cef-384c-4cc8-921a-0ff8cd0e0d04",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100105",
+              "display": "Rheumatoid arthritis"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2021-10-21T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:3ff951cf-eee0-4119-b7b5-821ac1bdfbaa",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "c7977b79-00c1-4919-8bc6-be6d83b9736f",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "200106",
+              "display": "Amlodipine 5mg"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "authoredOn": "2023-11-22T23:00:00.000Z"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:be85b936-4029-429a-a95b-aed54eef3891",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "7cf3fb33-9130-4e35-bcef-ab85fdb5c903",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "300107",
+              "display": "Temperature"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "effectiveDateTime": "2026-06-05T00:17:34.113Z",
+        "valueQuantity": {
+          "value": 36.2,
+          "unit": "°C"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:67711517-cf92-47f4-be5b-1cd928c4c0bc",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "bf807463-dcd2-4300-af96-865fe80bf247",
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "100108",
+              "display": "Essential hypertension"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "onsetDateTime": "2020-01-24T23:00:00.000Z"
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@ let currentUser = null;
 let contractManager = null;
 let proxyManager = null;
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     await checkSession();
     contractManager = new ContractManager();
     await loadDoctors();
@@ -61,7 +61,7 @@ function displayDoctors(doctors) {
             <tr>
                 <td>${shortenDid(doc.did)}</td>
                 <td>${escapeHtml(doc.name)}</td>
-                <td>${escapeHtml(doc.license)}</td>
+                
                 <td>${escapeHtml(doc.specialization)}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : 'N/A'}</td>
@@ -79,11 +79,10 @@ function filterDoctors() {
     const statusFilter = statusFilterEl ? statusFilterEl.value : 'all';
     const filtered = allDoctors.filter(doc => {
         const matchesSearch = (doc.name?.toLowerCase().includes(searchTerm) ||
-                              doc.did?.toLowerCase().includes(searchTerm) ||
-                              doc.license?.toLowerCase().includes(searchTerm));
+            doc.did?.toLowerCase().includes(searchTerm));
         const matchesStatus = (statusFilter === 'all') ||
-                              (statusFilter === 'active' && !doc.isRevoked) ||
-                              (statusFilter === 'revoked' && doc.isRevoked);
+            (statusFilter === 'active' && !doc.isRevoked) ||
+            (statusFilter === 'revoked' && doc.isRevoked);
         return matchesSearch && matchesStatus;
     });
     displayDoctors(filtered);
@@ -107,21 +106,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function registerDoctor(e) {
     e.preventDefault();
     const name = document.getElementById('doctorName').value.trim();
-    const license = document.getElementById('licenseNumber').value.trim();
+
     const specialization = document.getElementById('specialization').value;
 
     showLoading('Inscription médecin...');
     try {
         // 1. Création locale (DID, clés)
         const signupResult = await window.electronAPI.signup({
-            name, type: 'doctor', license, specialization
+            name, type: 'doctor', specialization
         });
         if (!signupResult.success) throw new Error(signupResult.error);
         const newUser = signupResult.user;
 
         // 2. Enregistrement sur la blockchain
         const regResult = await contractManager.registerDoctor(
-            newUser.did, newUser.publicKey, newUser.name, license, specialization
+            newUser.did, newUser.publicKey, newUser.name, specialization
         );
         if (!regResult.success) throw new Error(regResult.error);
 
@@ -149,7 +148,7 @@ async function registerDoctor(e) {
         hideLoading();
     }
 }
-window.revokeDoctor = async function(did) {
+window.revokeDoctor = async function (did) {
     if (!confirm('Revoke this doctor?')) return;
     showLoading();
     try {
@@ -165,10 +164,10 @@ window.closeRegisterModal = closeRegisterModal;
 
 async function handleLogout(e) { e.preventDefault(); await window.electronAPI.logout(); window.location.href = '../login.html'; }
 
-function shortenDid(did) { if (!did) return ''; if (did.length <= 20) return did; return did.substring(0,10)+'...'+did.substring(did.length-10); }
+function shortenDid(did) { if (!did) return ''; if (did.length <= 20) return did; return did.substring(0, 10) + '...' + did.substring(did.length - 10); }
 function escapeHtml(text) { if (!text) return ''; var div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-function showLoading(m) { hideLoading(); var overlay = document.createElement('div'); overlay.className='loading-overlay'; overlay.id='health-loading'; overlay.innerHTML=`<div class="spinner"></div><p>${m||'Loading...'}</p>`; document.body.appendChild(overlay); }
-function hideLoading() { var overlay = document.getElementById('health-loading'); if(overlay) overlay.remove(); }
-function showError(m) { showToast(m,'error'); }
-function showSuccess(m) { showToast(m,'success'); }
-function showToast(m,t) { /* same as before */ }
+function showLoading(m) { hideLoading(); var overlay = document.createElement('div'); overlay.className = 'loading-overlay'; overlay.id = 'health-loading'; overlay.innerHTML = `<div class="spinner"></div><p>${m || 'Loading...'}</p>`; document.body.appendChild(overlay); }
+function hideLoading() { var overlay = document.getElementById('health-loading'); if (overlay) overlay.remove(); }
+function showError(m) { showToast(m, 'error'); }
+function showSuccess(m) { showToast(m, 'success'); }
+function showToast(m, t) { /* same as before */ }

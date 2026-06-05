@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain Professional Benchmark Report - 100 EHRs</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 1rem auto;
+            line-height: 1.6;
+        }
+        .header .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            margin: 0.5rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+        .warning-banner {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #92400e;
+            padding: 1rem 2rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .content {
+            padding: 2rem;
+        }
+        .section {
+            margin-bottom: 3rem;
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+        .section h2 {
+            color: #1e3a8a;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #3b82f6;
+            display: inline-block;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chart-container.small {
+            height: 350px;
+        }
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+        .chart-row.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stats-table th {
+            background: #1e3a8a;
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .stats-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .stats-table tr:hover {
+            background: #f0f9ff;
+        }
+        .highlight {
+            background: #dbeafe;
+            font-weight: 600;
+        }
+        .footer {
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .key-findings {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .key-findings h3 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+        .key-findings li {
+            margin: 0.5rem 0;
+            color: #78350f;
+        }
+        .no-data-note {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        .stat-card .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .chart-row, .chart-row.three-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 MediChain Professional Benchmark Report</h1>
+            <p class="subtitle">
+                Comprehensive performance analysis of 100 Electronic Health Records (EHRs)
+                across 6 size categories using Proxy Re-Encryption with 5-attribute AND policy
+            </p>
+            <div>
+                <span class="badge">📊 100 Total EHRs</span>
+                <span class="badge">📏 6 Size Categories</span>
+                <span class="badge">🔐 5-Attribute AND Policy</span>
+                <span class="badge">⛓️ Sepolia Testnet</span>
+                <span class="badge">📈 100 Successful Tests</span>
+            </div>
+        </div>
+
+        
+        <div class="warning-banner">
+            ⚠️ <strong>Note:</strong> SSX-EHR comparison data has not been configured. 
+            This report shows MediChain results only. To enable comparison, populate the 
+            <code>CONFIG.SSX_BENCHMARKS</code> object with actual values from the SSX-EHR article.
+        </div>
+        
+
+        <div class="content">
+            <!-- Summary Statistics Cards -->
+            <div class="section">
+                <h2>📋 Executive Summary</h2>
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">100</div>
+                        <div class="stat-label">Total EHR Files</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">6</div>
+                        <div class="stat-label">Size Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">9388</div>
+                        <div class="stat-label">Avg Access Time (ms)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">6</div>
+                        <div class="stat-label">Categories Tested</div>
+                    </div>
+                </div>
+                <div class="key-findings">
+                    <h3>🔑 Key Findings from 100 EHR Benchmark</h3>
+                    <ul>
+                        <li><strong>Scalability Confirmed:</strong> Performance scales predictably across 50KB to 1600KB file sizes</li>
+                        <li><strong>Consistent Blockchain Costs:</strong> Gas fees remain constant regardless of EHR size</li>
+                        <li><strong>Efficient Encryption:</strong> 5-attribute AND policy shows minimal overhead</li>
+                        <li><strong>Reliable IPFS Storage:</strong> Pinata IPFS demonstrates consistent upload/download times</li>
+                        
+                    </ul>
+                </div>
+            </div>
+
+            <!-- File Size Distribution Pie Chart -->
+            <div class="section">
+                <h2>📊 Dataset Distribution</h2>
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    Distribution of 100 EHR files across 6 size categories (50KB - 1600KB).
+                </p>
+                <div class="chart-row">
+                    <div class="chart-container small">
+                        <canvas id="distributionPie"></canvas>
+                    </div>
+                    <div class="chart-container small">
+                        <canvas id="distributionBar"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Access Time vs File Size -->
+            <div class="section">
+                <h2>⏱️ Total Access Time vs File Size</h2>
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    Average end-to-end access time (share + download + decrypt) across file sizes.
+                    
+                </p>
+                
+                <div class="chart-container">
+                    <canvas id="totalAccessChart"></canvas>
+                </div>
+                <table class="stats-table">
+                    <tr>
+                        <th>File Size</th>
+                        <th>Samples</th>
+                        <th>Avg Access Time (ms)</th>
+                        <th>Min (ms)</th>
+                        <th>Max (ms)</th>
+                        
+                    </tr>
+                    
+                    <tr class="">
+                        <td>50 KB</td>
+                        <td>16</td>
+                        <td>5598.1 ± 960.8</td>
+                        <td>4678.0</td>
+                        <td>7901.4</td>
+                        
+                    </tr>
+                    <tr class="">
+                        <td>100 KB</td>
+                        <td>16</td>
+                        <td>6828.4 ± 1134.8</td>
+                        <td>4933.6</td>
+                        <td>9053.0</td>
+                        
+                    </tr>
+                    <tr class="">
+                        <td>200 KB</td>
+                        <td>16</td>
+                        <td>7819.0 ± 1233.2</td>
+                        <td>5527.9</td>
+                        <td>9553.8</td>
+                        
+                    </tr>
+                    <tr class="">
+                        <td>400 KB</td>
+                        <td>16</td>
+                        <td>9618.0 ± 2512.0</td>
+                        <td>6494.9</td>
+                        <td>16431.9</td>
+                        
+                    </tr>
+                    <tr class="">
+                        <td>800 KB</td>
+                        <td>16</td>
+                        <td>10813.1 ± 1953.8</td>
+                        <td>8059.7</td>
+                        <td>15047.2</td>
+                        
+                    </tr>
+                    <tr class="highlight">
+                        <td>1600 KB</td>
+                        <td>20</td>
+                        <td>14397.5 ± 1861.1</td>
+                        <td>10606.5</td>
+                        <td>17985.8</td>
+                        
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Access Time Distribution Histogram -->
+            <div class="section">
+                <h2>📊 Access Time Distribution Histogram</h2>
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    Frequency distribution of total access times across all 100 test runs,
+                    demonstrating system consistency across 100 EHR files.
+                </p>
+                <div class="chart-container">
+                    <canvas id="histogramChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Operation Breakdown -->
+            <div class="section">
+                <h2>🔍 Detailed Operation Breakdown by File Size</h2>
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    Individual operation performance across file sizes.
+                    MediChain performance analysis.
+                </p>
+                
+                <div class="chart-row">
+                    
+                    <div class="chart-container small">
+                        <canvas id="operation0Chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container small">
+                        <canvas id="operation1Chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container small">
+                        <canvas id="operation2Chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container small">
+                        <canvas id="operation3Chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container small">
+                        <canvas id="operation4Chart"></canvas>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Comprehensive Statistics Table -->
+            <div class="section">
+                <h2>📈 Comprehensive Statistical Analysis</h2>
+                <p style="color: #64748b; margin-bottom: 1rem;">
+                    Complete statistics (mean ± standard deviation) for all metrics across 6 size categories.
+                </p>
+                <table class="stats-table">
+                    <tr>
+                        <th>Metric</th>
+                        <th>50 KB<br><small>(16 samples)</small></th><th>100 KB<br><small>(16 samples)</small></th><th>200 KB<br><small>(16 samples)</small></th><th>400 KB<br><small>(16 samples)</small></th><th>800 KB<br><small>(16 samples)</small></th><th>1600 KB<br><small>(20 samples)</small></th>
+                    </tr>
+                    <tr>
+                        <td><strong>AES Encryption (ms)</strong></td>
+                        <td>0.3 ± 0.7</td><td>0.2 ± 0.1</td><td>0.3 ± 0.1</td><td>0.6 ± 0.2</td><td>1.2 ± 0.3</td><td>2.2 ± 0.1</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IPFS Upload (ms)</strong></td>
+                        <td>3404.8 ± 547.1</td><td>3397.3 ± 1184.2</td><td>3678.0 ± 1154.5</td><td>3463.3 ± 907.2</td><td>4858.6 ± 1335.1</td><td>4794.2 ± 1078.6</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Proxy Encryption (ms)</strong></td>
+                        <td>12.3 ± 0.9</td><td>11.4 ± 0.7</td><td>12.0 ± 1.3</td><td>12.8 ± 3.5</td><td>11.4 ± 0.9</td><td>12.0 ± 1.3</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Share Operation (ms)</strong></td>
+                        <td>62.8 ± 2.9</td><td>62.3 ± 3.8</td><td>60.0 ± 3.9</td><td>63.8 ± 4.5</td><td>60.2 ± 2.8</td><td>65.8 ± 9.8</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IPFS Download (ms)</strong></td>
+                        <td>5535.2 ± 960.2</td><td>6766.0 ± 1135.0</td><td>7758.8 ± 1235.3</td><td>9553.9 ± 2510.5</td><td>10752.0 ± 1954.6</td><td>14330.1 ± 1857.3</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AES Decryption (ms)</strong></td>
+                        <td>0.1 ± 0.1</td><td>0.2 ± 0.0</td><td>0.2 ± 0.1</td><td>0.4 ± 0.1</td><td>0.9 ± 0.2</td><td>1.6 ± 0.1</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td><strong>Total Access Time (ms)</strong></td>
+                        <td>5598.1 ± 960.8</td><td>6828.4 ± 1134.8</td><td>7819.0 ± 1233.2</td><td>9618.0 ± 2512.0</td><td>10813.1 ± 1953.8</td><td>14397.5 ± 1861.1</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Workflow (ms)</strong></td>
+                        <td>28575.5 ± 6509.9</td><td>32674.2 ± 6911.8</td><td>37206.2 ± 7933.6</td><td>38249.3 ± 7070.3</td><td>38710.8 ± 5811.7</td><td>40883.2 ± 9522.3</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gas Cost (DZD)</strong></td>
+                        <td>890.6355</td><td>890.6203</td><td>890.6254</td><td>890.6203</td><td>890.6203</td><td>890.6234</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>MediChain Healthcare Data Sharing Platform | Professional Benchmark Report</p>
+            <p>Generated: 05/06/2026, 02:26:23 | Policy: doctor AND working-at-chiguvara AND attending-physician AND researcher AND ATTR</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+                Sepolia Testnet | 100 Total EHRs | 100 files processed
+                 | SSX-EHR comparison: DISABLED
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Distribution Pie Chart
+        const ctxPie = document.getElementById('distributionPie').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: [{
+                    data: [16,16,16,16,16,20],
+                    backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#2563eb', '#1d4ed8', '#1e3a8a'],
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'EHR File Size Distribution',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15 }
+                    }
+                }
+            }
+        });
+
+        // Distribution Bar Chart
+        const ctxBar = document.getElementById('distributionBar').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: [{
+                    label: 'Number of EHR Files',
+                    data: [16,16,16,16,16,20],
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#1d4ed8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Samples per Size Category',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Count' },
+                        ticks: { stepSize: 2 }
+                    }
+                }
+            }
+        });
+
+        // Total Access Time Chart
+        const ctx1 = document.getElementById('totalAccessChart').getContext('2d');
+        const totalDatasets = [{
+            label: 'MediChain Total Access Time',
+            data: [5598.088831250001,6828.440025,7819.0401437499995,9618.033075,10813.139443750002,14397.460870000004],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 3,
+            pointBackgroundColor: '#1d4ed8',
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            tension: 0.3,
+            fill: true
+        }];
+        
+        
+        
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: totalDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Total Access Time vs File Size (100 EHR Benchmark)',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 20, font: { size: 13 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (milliseconds)', font: { size: 14, weight: 'bold' } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'EHR File Size', font: { size: 14, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+
+        // Histogram
+        const ctxHist = document.getElementById('histogramChart').getContext('2d');
+        new Chart(ctxHist, {
+            type: 'bar',
+            data: {
+                labels: ["4678-5343","5343-6009","6009-6674","6674-7340","7340-8005","8005-8670","8670-9336","9336-10001","10001-10666","10666-11332","11332-11997","11997-12663","12663-13328","13328-13993","13993-14659","14659-15324","15324-15990","15990-16655","16655-17320","17320-17986"],
+                datasets: [{
+                    label: 'Number of Tests',
+                    data: [9,8,11,7,4,12,8,8,4,2,4,1,4,3,2,6,3,1,1,2],
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#1d4ed8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Distribution of Total Access Times (All 100 EHRs)',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Frequency', font: { size: 14, weight: 'bold' } },
+                        ticks: { stepSize: 1 },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Access Time Range (ms)', font: { size: 14, weight: 'bold' } }
+                    }
+                }
+            }
+        });
+
+        // Operation Charts
+        
+        const ctx2 = document.getElementById('operation0Chart').getContext('2d');
+        const opDatasets0 = [{
+            label: 'MediChain',
+            data: [0.33143125,0.21779374999999998,0.33803125,0.6397187500000001,1.2498812499999998,2.17772],
+            backgroundColor: '#3b82f6',
+            borderColor: '#1d4ed8',
+            borderWidth: 1
+        }];
+        
+        
+        
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: opDatasets0
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'AES Encryption Performance',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'bottom',
+                        labels: { usePointStyle: true, font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (ms)', font: { size: 11 } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'File Size', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        const ctx3 = document.getElementById('operation1Chart').getContext('2d');
+        const opDatasets1 = [{
+            label: 'MediChain',
+            data: [12.2986125,11.381337499999999,11.962987499999999,12.7651625,11.440012500000002,11.957420000000003],
+            backgroundColor: '#3b82f6',
+            borderColor: '#1d4ed8',
+            borderWidth: 1
+        }];
+        
+        
+        
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: opDatasets1
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Proxy Encryption Performance',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'bottom',
+                        labels: { usePointStyle: true, font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (ms)', font: { size: 11 } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'File Size', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        const ctx4 = document.getElementById('operation2Chart').getContext('2d');
+        const opDatasets2 = [{
+            label: 'MediChain',
+            data: [62.767318749999994,62.2754875,60.018431250000006,63.797706250000005,60.22644375,65.793035],
+            backgroundColor: '#3b82f6',
+            borderColor: '#1d4ed8',
+            borderWidth: 1
+        }];
+        
+        
+        
+        new Chart(ctx4, {
+            type: 'bar',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: opDatasets2
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Share Operation Performance',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'bottom',
+                        labels: { usePointStyle: true, font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (ms)', font: { size: 11 } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'File Size', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        const ctx5 = document.getElementById('operation3Chart').getContext('2d');
+        const opDatasets3 = [{
+            label: 'MediChain',
+            data: [5535.172818750001,6766.00695,7758.793568750001,9553.853356249998,10751.991468749999,14330.072665],
+            backgroundColor: '#3b82f6',
+            borderColor: '#1d4ed8',
+            borderWidth: 1
+        }];
+        
+        
+        
+        new Chart(ctx5, {
+            type: 'bar',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: opDatasets3
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'IPFS Download Performance',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'bottom',
+                        labels: { usePointStyle: true, font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (ms)', font: { size: 11 } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'File Size', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        const ctx6 = document.getElementById('operation4Chart').getContext('2d');
+        const opDatasets4 = [{
+            label: 'MediChain',
+            data: [0.14869375,0.1575875,0.22814375,0.38201250000000003,0.92153125,1.5951700000000002],
+            backgroundColor: '#3b82f6',
+            borderColor: '#1d4ed8',
+            borderWidth: 1
+        }];
+        
+        
+        
+        new Chart(ctx6, {
+            type: 'bar',
+            data: {
+                labels: ["50 KB","100 KB","200 KB","400 KB","800 KB","1600 KB"],
+                datasets: opDatasets4
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'AES Decryption Performance',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'bottom',
+                        labels: { usePointStyle: true, font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Time (ms)', font: { size: 11 } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'File Size', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+    </script>
+</body>
+</html>

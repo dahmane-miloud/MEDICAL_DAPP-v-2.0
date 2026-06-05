@@ -1,0 +1,39 @@
+so give me a secript that do all workflow 
+1 create a 3 users (doctor,patient,healthDepartments)
+2 login with this users ( doctor,patient,healthDepartments)
+3 create a random data for ehr of patient 
+4 encrypt ehr with AES-256 GCM and upload to ipfs (pinata )
+5  creat a witness ( form test net sepolia ) for a doctor to make him acitve
+6 send request from the doctor to patient to share ehr
+7 patient accept the request 
+8 the patient share the encrypted EHR with doctor using 
+ proxy re encrytion based on time with attributes 
+ and send it to doctor 
+
+8 doctor download the encrypted ehr for ipfs ( pinata )
+9 doctor decrypt the ehr and display it 
+
+
+reel work flow ///////////////
+1 patient create identifiant ssi 
+2 le patient chiffre son EHR avec AES-256 GCM 
+3 le patient upload le EHR chiffré sur pinata (ipfs)
+4 le patient recait cid 
+5 le doctor genere ou create son ssi credentials
+6 le doctors autentifier ou pres du health-department 
+7 le doctor abtiend son witness 
+8 le health-department calcule la nouvelle valeur de l' accumulator 
+9 le health department met a jour la valeur dans la bloch-chain 
+10 le doctor demande l'access ou patient 
+11 le doctor fornir son witness ou patient 
+12 le patient consulte la la block-chain et accede a la valuer actuellle de l'accumulator .
+13 le patient verifie are witness + value accumulator que le meecin n est pas ewvoque 
+14 le patient attribue des cles d'ttribut ou doctor 
+15 le patient envoie son cid ou medecin 
+16  le patient envoie ou proxy un domande d'acces order ou medecin ( avec le did )+ le temps 
+d'acces ( 1 jour , 1 moin , 1 annees ) + cle AES encrpted 
+17 le medecin demand l'access 
+18 le proxy lui envoie la cle re-encryption anec ses ckes d' attributes 
+19 le medcin decrypt la cle AES 
+20 le doctor telecharge EHR depuis IPFS ( pinata )
+21 le doctor dechiffre le EHR

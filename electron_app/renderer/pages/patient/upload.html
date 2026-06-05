@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -86,3 +87,117 @@
 </body>
 
 </html>
+
+
+
+
+<!--
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain | Upload Medical Record</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/patient-upload.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <h2>MediChain</h2>
+                </div>
+                <p>Patient Portal</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+                <a href="upload.html" class="nav-item active">
+                    <i class="fas fa-upload"></i><span>Upload Records</span>
+                </a>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar"><i class="fas fa-user-circle"></i></div>
+                    <div class="user-details">
+                        <p class="user-name" id="userName">Loading...</p>
+                        <p class="user-did" id="userDid"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1><i class="fas fa-cloud-upload-alt"></i> Upload Medical Record</h1>
+                <p>Securely encrypt and store your medical records on IPFS</p>
+            </header>
+
+            <div class="upload-card">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar"></i> Record Date</label>
+                    <input type="date" id="recordDate" class="form-control">
+                </div>
+
+                
+                <div class="form-group">
+                    <label><i class="fas fa-user-shield"></i> Access Policy (Choose Authorized Specialties)</label>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: -5px; margin-bottom: 8px;">
+                        Hold down <b>Ctrl</b> (Windows) or <b>Command</b> (Mac) to select multiple specialties.
+                    </p>
+                    <select id="policySelect" class="form-control" multiple style="height: 150px; padding: 8px; border-radius: 6px; width: 100%; box-sizing: border-box;">
+                        <option value="doctor" selected>👨‍⚕️ Doctor (General)</option>
+                        <option value="cardiologist">❤️ Cardiologist</option>
+                        <option value="pediatrician">👶 Pediatrician</option>
+                        <option value="surgeon">🔪 Surgeon</option>
+                        <option value="radiologist">📷 Radiologist</option>
+                        <option value="ophthalmologist">👁️ Ophthalmologist</option>
+                    </select>
+                </div>
+
+                
+
+                <div class="form-group">
+                    <label><i class="fas fa-file"></i> Select File</label>
+                    <div class="file-zone" id="fileZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click or drag and drop to upload</p>
+                        <small>click to select a file or drag and drop a file here</small>
+                    </div>
+                    
+                    <input type="file" id="fileInput" style="display: none;">
+
+                    <div id="fileInfo" class="file-info" style="display: none; margin-top: 12px; align-items: center; gap: 10px;">
+                        <i class="fas fa-file-medical" style="font-size: 1.2rem; color: #2563eb;"></i>
+                        <span id="fileName" style="font-weight: 500;"></span>
+                        <small id="fileSize" style="color: #64748b;"></small>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 25px;">
+                    <button class="btn-primary pinata" id="uploadPinataBtn" disabled>
+                        <i class="fas fa-cloud-upload-alt"></i> Upload a Record
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../assets/js/utils/MediChainCrypto.js"></script>
+    <script src="../../assets/js/utils/patient-upload.js"></script>
+</body>
+
+</html>
+
+
+-->

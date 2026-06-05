@@ -15,27 +15,27 @@ class ContractManager {
     async initialize() {
         // Connect to Hardhat local network
         this.provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
-        
+
         // Load contract addresses from deployment
         const deployment = await this.loadDeployment();
         this.contractAddresses = deployment;
-        
+
         // Get contract ABIs
         const doctorRegistryABI = await this.getDoctorRegistryABI();
         const accessControlABI = await this.getAccessControlABI();
-        
+
         this.doctorRegistry = new ethers.Contract(
             this.contractAddresses.doctorRegistry,
             doctorRegistryABI,
             this.provider
         );
-        
+
         this.accessControl = new ethers.Contract(
             this.contractAddresses.accessControl,
             accessControlABI,
             this.provider
         );
-        
+
         return true;
     }
 
@@ -45,7 +45,7 @@ class ContractManager {
         if (deployment) {
             return JSON.parse(deployment);
         }
-        
+
         // Default addresses after deployment (update these after running deploy.js)
         return {
             doctorRegistry: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
@@ -91,7 +91,7 @@ class ContractManager {
             doctorData.witness,
             doctorData.publicKey,
             doctorData.name,
-            doctorData.license,
+
             doctorData.specialization
         );
         await tx.wait();

@@ -1523,30 +1523,30 @@ function attachEventListeners() {
 
     const deleteAllBtn = document.getElementById('deleteAllBtn');
 
-if (deleteAllBtn) {
-    deleteAllBtn.addEventListener('click', async () => {
-        const confirmed = confirm('⚠️ Delete ALL shared records permanently?\n\nThis action cannot be undone.');
-        if (!confirmed) return;
-        
-        try {
-            const session = window.currentUser || await window.electronAPI.getSession();
-            if (!session || !session.did) {
-                showError('No session found');
-                return;
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', async () => {
+            const confirmed = confirm('⚠️ Delete ALL shared records permanently?\n\nThis action cannot be undone.');
+            if (!confirmed) return;
+
+            try {
+                const session = window.currentUser || await window.electronAPI.getSession();
+                if (!session || !session.did) {
+                    showError('No session found');
+                    return;
+                }
+
+                await window.electronAPI.storeSet('doctorAccesses:' + session.did, []);
+                localStorage.clear();
+                showSuccess('All records deleted successfully!');
+
+                // Reload after short delay
+                setTimeout(() => location.reload(), 500);
+            } catch (err) {
+                console.error('Delete error:', err);
+                showError('Failed to delete records: ' + err.message);
             }
-            
-            await window.electronAPI.storeSet('doctorAccesses:' + session.did, []);
-            localStorage.clear();
-            showSuccess('All records deleted successfully!');
-            
-            // Reload after short delay
-            setTimeout(() => location.reload(), 500);
-        } catch (err) {
-            console.error('Delete error:', err);
-            showError('Failed to delete records: ' + err.message);
-        }
-    });
-}
+        });
+    }
 }
 
 async function loadDashboardData() {
@@ -1603,7 +1603,9 @@ async function sendAccessRequest() {
     try {
         const result = await window.electronAPI.sendNotification({
             toDid: patientDid,
-            message: message || `Dr. ${window.currentUser.name} requests access to your medical records`,
+            //message: message || `Dr. ${window.currentUser.name} requests access to your medical records`,
+            //message: message || `Dr. ${window.currentUser.name} (DID: ${window.currentUser.did}) requests access to your medical records`,
+            message: message || `Dr. ${window.currentUser.name} (${window.currentUser.did}) requests access to your medical records`,
             doctorName: window.currentUser.name,
             doctorDid: window.currentUser.did,
             type: 'access_request',
@@ -1691,6 +1693,9 @@ async function loadSharedRecords() {
         container.innerHTML = '<div class="no-data">Error loading records: ' + err.message + '</div>';
     }
 }
+
+
+
 
 
 // ========== PREVIEW RECORD VIA PINATA (WORKING VERSION) ==========
@@ -1797,7 +1802,7 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
         const blob = new Blob([decryptedData]);
         const fileType = fileResult.data.fileType || 'application/octet-stream';
         const fileName = fileResult.data.filename?.replace('.enc', '') || 'medical_record.json';
-        
+
         const url = URL.createObjectURL(blob);
         const previewModal = document.getElementById('previewModal');
         const previewContent = document.getElementById('previewContent');
@@ -1829,7 +1834,7 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
             previewContent.appendChild(iframe);
         }
         // Handle Text/Structured JSON Electronic Health Records (FHIR Engine Integration)
-       // =======================================================================
+        // =======================================================================
         // DYNAMIC PREVIEW ENGINE (Handles standard files vs. widescreen EHR data)
         // =======================================================================
         // =======================================================================
@@ -1842,12 +1847,12 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
             const text = await blob.text();
             const modalWindow = document.getElementById('previewModal');
             const modalContentBox = modalWindow ? (modalWindow.querySelector('.modal-content') || previewContent.parentElement) : null;
-            
+
             try {
                 const fhirBundle = JSON.parse(text);
-                
+
                 if (fhirBundle.resourceType === "Bundle" && Array.isArray(fhirBundle.entry)) {
-                    
+
                     // Expand modal frame into a sprawling high-resolution dashboard
                     if (modalContentBox) {
                         modalContentBox.style.setProperty('width', '98%', 'important');
@@ -1856,7 +1861,7 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
                         modalContentBox.style.setProperty('border-radius', '16px', 'important');
                         modalContentBox.style.setProperty('transition', 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 'important');
                     }
-                    
+
                     previewContent.style.overflowY = 'auto';
                     previewContent.style.maxHeight = '84vh';
                     previewContent.style.width = '100%';
@@ -1869,7 +1874,7 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
                         MedicationRequest: [], Encounter: [], Procedure: [], Immunization: [],
                         CarePlan: [], DocumentReference: [], CareTeam: [], Claim: []
                     };
-                    
+
                     fhirBundle.entry.forEach(e => {
                         if (e.resource && data[e.resource.resourceType]) {
                             data[e.resource.resourceType].push(e.resource);
@@ -1883,14 +1888,14 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
                     const dob = patient.birthDate || '—';
                     const gender = patient.gender ? patient.gender.toUpperCase() : '—';
                     const mrn = patient.id || '—';
-                    
+
                     const phone = patient.telecom?.find(t => t.system === 'phone')?.value || '—';
                     const email = patient.telecom?.find(t => t.system === 'email')?.value || '—';
                     const marital = patient.maritalStatus?.text || '—';
                     const lang = patient.communication?.[0]?.language?.text || '—';
                     const addrObj = patient.address?.[0] || {};
                     const addressStr = `${addrObj.line ? addrObj.line.join(', ') : ''} ${addrObj.city || ''} ${addrObj.state || ''} ${addrObj.postalCode || ''}`.trim() || '—';
-                    
+
                     const bloodObs = data.Observation.find(o => o.code?.text?.toLowerCase().includes('blood type') || o.code?.text?.toLowerCase().includes('blood group'));
                     const bloodType = bloodObs ? (bloodObs.valueString || bloodObs.valueCodeableConcept?.text || '—') : '—';
 
@@ -2097,19 +2102,19 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
                                         <div class="card-panel-body">
                                             <div class="vitals-grid-layout">
                                                 ${vitalsObs.slice(0, 12).map(v => {
-                                                    const name = v.code?.coding?.[0]?.display || v.code?.text || 'Vital Metric';
-                                                    let reading = '—';
-                                                    if (v.valueQuantity) reading = `${parseFloat(v.valueQuantity.value).toFixed(1)} ${v.valueQuantity.unit || ''}`;
-                                                    else if (v.component) reading = v.component.map(c => parseFloat(c.valueQuantity?.value || 0).toFixed(0)).join('/');
-                                                    
-                                                    return `
+                        const name = v.code?.coding?.[0]?.display || v.code?.text || 'Vital Metric';
+                        let reading = '—';
+                        if (v.valueQuantity) reading = `${parseFloat(v.valueQuantity.value).toFixed(1)} ${v.valueQuantity.unit || ''}`;
+                        else if (v.component) reading = v.component.map(c => parseFloat(c.valueQuantity?.value || 0).toFixed(0)).join('/');
+
+                        return `
                                                         <div class="vital-widget-box">
                                                             <div class="vital-widget-lbl">${name}</div>
                                                             <div class="vital-widget-val">${reading}</div>
                                                             <div class="vital-widget-time">${v.effectiveDateTime ? v.effectiveDateTime.split('T')[0] : '—'}</div>
                                                         </div>
                                                     `;
-                                                }).join('')}
+                    }).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -2128,17 +2133,17 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
                                                 <thead><tr><th>Diagnostic Evaluation </th><th>Observed Quant </th><th>Evaluation Flag </th><th>Timestamp </th></tr></thead>
                                                 <tbody>
                                                     ${labObs.slice(0, 10).map(l => {
-                                                        const name = l.code?.coding?.[0]?.display || l.code?.text || 'Lab Metric';
-                                                        const val = l.valueQuantity ? `${parseFloat(l.valueQuantity.value).toFixed(2)} ${l.valueQuantity.unit || ''}` : '—';
-                                                        const interp = l.interpretation?.[0]?.coding?.[0]?.code || 'N';
-                                                        const isAbnormal = interp !== 'N';
-                                                        return `<tr>
+                        const name = l.code?.coding?.[0]?.display || l.code?.text || 'Lab Metric';
+                        const val = l.valueQuantity ? `${parseFloat(l.valueQuantity.value).toFixed(2)} ${l.valueQuantity.unit || ''}` : '—';
+                        const interp = l.interpretation?.[0]?.coding?.[0]?.code || 'N';
+                        const isAbnormal = interp !== 'N';
+                        return `<tr>
                                                             <td><strong>${name}</strong></td>
                                                             <td style="font-weight:700; ${isAbnormal ? 'color:#dc2626;' : 'color:#16a34a;'}">${val}</td>
                                                             <td><span class="clinical-status-tag ${isAbnormal ? 'tag-danger' : 'tag-success'}">${isAbnormal ? 'Abnormal' : 'Normal'}</span></td>
                                                             <td>${l.effectiveDateTime ? l.effectiveDateTime.split('T')[0] : '—'}</td>
                                                         </tr>`;
-                                                    }).join('')}
+                    }).join('')}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -2271,7 +2276,7 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
                     modalContentBox.style.setProperty('max-width', '90%', 'important');
                     modalContentBox.style.setProperty('margin', '4rem auto', 'important');
                 }
-                
+
                 const pre = document.createElement('pre');
                 pre.textContent = text;
                 pre.style.cssText = "max-height:60vh; overflow:auto; background:#1e293b; color:#38bdf8; padding:16px; border-radius:8px; text-align:left; font-family:monospace; font-size:0.85rem;";
@@ -2280,7 +2285,7 @@ window.previewRecordViaPinata = async function (documentCid, encryptedCid) {
         }
         // Show layout workspace modal container
         previewModal.style.display = 'flex';
-        
+
         const closeBtn = document.getElementById('closePreviewModalBtn');
         const closeFooterBtn = document.getElementById('closePreviewFooterBtn');
 

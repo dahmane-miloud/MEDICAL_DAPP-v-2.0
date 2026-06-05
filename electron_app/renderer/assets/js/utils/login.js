@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Check if already logged in
     checkExistingSession();
 
@@ -23,14 +23,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // User type selection
     for (let i = 0; i < typeBtns.length; i++) {
         const btn = typeBtns[i];
-        btn.addEventListener('click', function(e) {
+        btn.addEventListener('click', function (e) {
             const clickedBtn = e.currentTarget;
-            
+
             // Remove active class from all buttons
             for (let j = 0; j < typeBtns.length; j++) {
                 typeBtns[j].classList.remove('active');
             }
-            
+
             clickedBtn.classList.add('active');
             currentUserType = clickedBtn.dataset.type;
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Toggle between login and signup
     if (showSignup) {
-        showSignup.addEventListener('click', function(e) {
+        showSignup.addEventListener('click', function (e) {
             e.preventDefault();
             if (loginForm && signupForm) {
                 loginForm.style.display = 'none';
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (showLogin) {
-        showLogin.addEventListener('click', function(e) {
+        showLogin.addEventListener('click', function (e) {
             e.preventDefault();
             if (signupForm && loginForm) {
                 signupForm.style.display = 'none';
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Handle login
-    loginFormElement.addEventListener('submit', async function(e) {
+    loginFormElement.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const didInput = document.getElementById('did');
@@ -96,17 +96,17 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Attempting login for DID:', did);
             console.log('Private key length:', privateKey.length);
-            
+
             // Vérifier que electronAPI est disponible
             if (!window.electronAPI || typeof window.electronAPI.login !== 'function') {
                 throw new Error('Electron API not available');
             }
-            
-            const result = await window.electronAPI.login({ 
-                did: did, 
-                privateKey: privateKey 
+
+            const result = await window.electronAPI.login({
+                did: did,
+                privateKey: privateKey
             });
-            
+
             console.log('Login result:', result);
 
             if (result && result.success === true) {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Redirect based on user type
-                setTimeout(function() {
+                setTimeout(function () {
                     if (result.user && result.user.type) {
                         redirectToDashboard(result.user.type);
                     } else {
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const errorMsg = (result && result.error) ? result.error : 'Login failed';
                 console.error('Login failed:', errorMsg);
                 showToast(errorMsg, 'error');
-                
+
                 // Clear the private key field for security
                 privateKeyInput.value = '';
             }
@@ -147,12 +147,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle signup
-    signupFormElement.addEventListener('submit', async function(e) {
+    signupFormElement.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const nameInput = document.getElementById('fullName');
-       // const emailInput = document.getElementById('email');
-        const licenseInput = document.getElementById('license');
+        // const emailInput = document.getElementById('email');
+
         const specializationInput = document.getElementById('specialization');
 
         if (!nameInput) {
@@ -169,12 +169,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Safely get license and specialization values
-        let license = '';
-        let specialization = '';
 
-        if (licenseInput) {
-            license = licenseInput.value.trim();
-        }
+        let specialization = '';
 
         if (specializationInput) {
             specialization = specializationInput.value.trim();
@@ -191,22 +187,22 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             if (currentUserType === 'doctor') {
-                if (!license || !specialization) {
+                if (!specialization) {
                     showToast('Please fill in all doctor fields', 'error');
                     hideLoading();
                     return;
                 }
-                signupData.license = license;
+
                 signupData.specialization = specialization;
             }
 
             console.log('Sending signup data:', signupData);
-            
+
             // Vérifier que electronAPI est disponible
             if (!window.electronAPI || typeof window.electronAPI.signup !== 'function') {
                 throw new Error('Electron API not available');
             }
-            
+
             const result = await window.electronAPI.signup(signupData);
             console.log('Signup result:', result);
 
@@ -253,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('getSession function not available');
                 return;
             }
-            
+
             const session = await window.electronAPI.getSession();
             if (session && session.type) {
                 console.log('Existing session found, redirecting to:', session.type);
@@ -266,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function redirectToDashboard(userType) {
         console.log('Redirecting to dashboard for:', userType);
-        
+
         let dashboardUrl = 'login.html';
         if (userType === 'patient') {
             dashboardUrl = 'patient/dashboard.html';
@@ -275,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (userType === 'health') {
             dashboardUrl = 'health-dept/dashboard.html';
         }
-        
+
         console.log('Redirecting to:', dashboardUrl);
         window.location.href = dashboardUrl;
     }
@@ -297,7 +293,7 @@ function showCredentials(user) {
     didDisplay.textContent = user.did || 'N/A';
     publicKeyDisplay.textContent = user.publicKey || 'N/A';
     privateKeyDisplay.textContent = user.privateKey || 'N/A';
-    
+
     // Afficher aussi l'adresse Ethereum si disponible
     if (user.ethAddress) {
         const ethDisplay = document.getElementById('displayEthAddress');
@@ -305,7 +301,7 @@ function showCredentials(user) {
             ethDisplay.textContent = user.ethAddress;
         }
     }
-    
+
     modal.style.display = 'flex';
 }
 
@@ -324,12 +320,12 @@ function copyToClipboard(elementId) {
     }
 
     const text = element.textContent;
-    
+
     // Utiliser l'API Clipboard moderne avec fallback
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function() {
+        navigator.clipboard.writeText(text).then(function () {
             showToast('Copied to clipboard!', 'success');
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.error('Copy failed:', err);
             // Fallback
             fallbackCopy(text);
@@ -347,7 +343,7 @@ function fallbackCopy(text) {
     textarea.style.opacity = '0';
     document.body.appendChild(textarea);
     textarea.select();
-    
+
     try {
         document.execCommand('copy');
         showToast('Copied to clipboard!', 'success');
@@ -355,13 +351,13 @@ function fallbackCopy(text) {
         console.error('Fallback copy failed:', err);
         showToast('Failed to copy', 'error');
     }
-    
+
     document.body.removeChild(textarea);
 }
 
 function showLoading(message) {
     if (!message) message = 'Loading...';
-    
+
     // Remove any existing overlay
     hideLoading();
 
@@ -384,7 +380,7 @@ function hideLoading() {
 
 function showToast(message, type) {
     if (!type) type = 'info';
-    
+
     // Remove any existing toasts if too many
     const existingToasts = document.querySelectorAll('.toast');
     if (existingToasts.length > 5) {
@@ -408,10 +404,10 @@ function showToast(message, type) {
     document.body.appendChild(toast);
 
     // Remove toast after 3 seconds
-    setTimeout(function() {
+    setTimeout(function () {
         if (toast && toast.parentNode) {
             toast.style.animation = 'fadeOut 0.3s ease';
-            setTimeout(function() {
+            setTimeout(function () {
                 if (toast && toast.parentNode) {
                     toast.remove();
                 }

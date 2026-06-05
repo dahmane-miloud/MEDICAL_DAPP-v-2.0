@@ -37,7 +37,7 @@ function setupNavigation() {
                 loadDoctors();
             } else if (pageName === 'witnesses') {
                 document.getElementById('witnessesPage').classList.add('active');
-                if (pageTitle) pageTitle.innerText = 'Witness Log';
+                if (pageTitle) pageTitle.innerText = 'Doctors Log';
                 loadDoctorsTable();
             } else if (pageName === 'settings') {
                 document.getElementById('settingsPage').classList.add('active');
@@ -201,7 +201,7 @@ async function loadDoctorsTable() {
                 else if (isActive) { statusClass = 'active'; statusText = 'Active'; }
                 const issuedDate = issuedAt ? new Date(issuedAt * 1000).toLocaleDateString() : 'N/A';
                 const issuedTime = issuedAt ? new Date(issuedAt * 1000).toLocaleTimeString() : '';
-                html += `<tr><td>${escapeHtml(user.name)}</td><td class="did-cell">${shortenDid(did)}</td><td>${escapeHtml(user.specialization || 'General Medicine')}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td><td><code>${witnessHash ? witnessHash.substring(0, 20) + '...' : 'None'}</code></td><td>${issuedDate}<br><small>${issuedTime}</small></td><td>${!isRevoked ? (isActive ? `<button class="btn-icon revoke-btn" onclick="revokeDoctor('${did}')"><i class="fas fa-ban"></i> Revoke</button>` : `<button class="btn-icon activate-btn" onclick="issueWitnessForDoctor('${did}')"><i class="fas fa-certificate"></i> Activate</button>`) : `<button class="btn-icon activate-btn" onclick="reactivateDoctor('${did}')"><i class="fas fa-certificate"></i> Reactivate</button>`}</td></tr>`;
+                html += `<tr><td>${escapeHtml(user.name)}</td><td class="did-cell">${shortenDid(did)}</td><td>${escapeHtml(user.specialization || 'General Medicine')}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td><!--<td><code>${witnessHash ? witnessHash.substring(0, 20) + '...' : 'None'}</code></td> --> <td>${issuedDate}<br><small>${issuedTime}</small></td><td>${!isRevoked ? (isActive ? `<button class="btn-icon revoke-btn" onclick="revokeDoctor('${did}')"><i class="fas fa-ban"></i> Revoke</button>` : `<button class="btn-icon activate-btn" onclick="issueWitnessForDoctor('${did}')"><i class="fas fa-certificate"></i> Activate</button>`) : `<button class="btn-icon activate-btn" onclick="reactivateDoctor('${did}')"><i class="fas fa-certificate"></i> Reactivate</button>`}</td></tr>`;
             }
         }
         tbody.innerHTML = html || '<tr><td colspan="7" class="no-data">No doctors found</td></tr>';
@@ -242,7 +242,7 @@ async function loadStats() {
         document.getElementById('totalDoctors').textContent = total;
         document.getElementById('activeDoctors').textContent = active;
         document.getElementById('revokedDoctors').textContent = revoked.length;
-        document.getElementById('witnessCount').textContent = active;
+
     } catch (e) { console.error(e); }
 }
 
@@ -360,7 +360,7 @@ window.viewDoctorDetails = async function (did) {
             <div class="detail-section"><div class="detail-section-title">🔐 Witness & Status</div>
             <div class="doctor-detail-row"><div class="doctor-detail-label">Status:</div><div class="doctor-detail-value"><span class="status-badge ${statusClass}">${statusText}</span></div></div>
            
-            <div class="doctor-detail-row"><div class="doctor-detail-label">Issued:</div><div class="doctor-detail-value">${issuedAt ? new Date(issuedAt * 1000).toLocaleString() : 'N/A'}</div></div>
+           
     
             <div class="detail-section"><div class="detail-section-title">🔄 Authorizations</div>
             <div class="doctor-detail-row"><div class="doctor-detail-label">Total:</div><div class="doctor-detail-value">${doctorAccesses.length}</div></div>

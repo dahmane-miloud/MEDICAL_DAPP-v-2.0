@@ -1,0 +1,43 @@
+patient tt-----------------------
+did  : did:key:zwP49OaEO6dCGaLHoGUj9U6jiYPjjppGF4QecRVp6P8Y=
+privat_key : V30bkIEUu5ICmAKtQdXKQYoDlgn2horwZK8YHaCpPN/A/j05oQ7p0IZosegZSP1TqOJg+OOmkYXhB5xFWno/xg==
+
+patient ikram ------------------------------
+did : did:key:zJwqyZbeP5r6uin9/q1u1daGdKWdW546524caSUMMoyI=
+privat_key : VNfWgnR7ILutW18T9xXhQ2UcfEiS5r76bJaIQCjX57cnCrJlt4/mvq6Kf3+rW7V1oZ0pZ1bnjrnbhxpJQwyjIg==
+
+
+---------------------------------------------------
+doctors-------------------------------------    
+dr.abdala : 
+did : did:key:zD/wMzPIfBTSqa0nCCYuWqcxEJZnPYzkta3rvMMZCpdU=
+privat_key : 0+2bfR4nKZkC8c+TcbBcNB/Ib55OLWwyVEAbaBbJrfkP/AzM8h8FNKprScIJi5apzEQlmc9jOS1reu8wxkKl1Q==
+-----------------------------------------
+dr.kamal 
+did : did:key:zsX93nI/4NaUg8kKbst5v0ua9OkPJqz7Ybvu6GngmSGg=
+privat_key : ZrpGP3wQ7Xhqi/awVL7dfysQ7sgOQGR3oghRnYtvfi2xf3ecj/g1pSDyQpuy3m/S5r06Q8mrPthu+7oaeCZIaA==
+-------------------------------------------------------
+nome moi 
+did : did:key:z2+GTSfoFtU1nhlI39W9Qu1hhVGx8JrbEcKjaBLGfHLE=
+privat_key : zpT5tsD24RAk/gWpKgfVf8fdxR50k0aQ2/cdb2Nuxznb4ZNJ+gW1TWeGUjf1b1C7WGFUbHwmtsRwqNoEsZ8csQ==
+------------------------------------------
+nome : dahamane
+did : did:key:ze/S39RFxI8GHatOUPe4aUt/t1HrjX409PTu3P7rcI80=
+privat_key : Yi01MInNVsnHFr0UXxFq4TynkEtsJYUVxaBKVRRapc579Lf1EXEjwYdq05Q97hpS3+3UeuNfjT09O7c/utwjzQ==
+health-department -------------------------
+did : did:key:zUC5jUvPJdgddfPDn1Ju6Jqo9wcBq9BFyjLJsW7BzgMM=
+privat_key : HEbSiCF0fTmNF1DbgPuhErB79LDuW45FGxhdxheNjJpQLmNS88l2B1188OfUm7omqj3BwGr0EXKMsmxbsHOAww==
+
+-------------------------------------------
+
+ Upload Successful
+×
+Encrypted CID: QmREeBQ69rdK8YPntnVPb2o3exs3Q8qxzg6tgEEKY2LMHh
+
+AES-256 Key (Base64): A+SCZ3n73krVVzq80sDlltk1Socqikw0qvU0QefL8/E=
+
+Save this key – you will need it to share the record with a doctor.
+
+Copy CID
+Copy Key
+Upload Another Go to Dashboard

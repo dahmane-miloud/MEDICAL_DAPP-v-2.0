@@ -1253,9 +1253,9 @@ ipcMain.handle('pinata-unpin', async (event, cid) => {
             `https://api.pinata.cloud/pinning/unpin/${cid}`,
             {
                 headers: {
-                'pinata_api_key': PINATA_API_KEY,
-                'pinata_secret_api_key': PINATA_API_SECRET,
-            },
+                    'pinata_api_key': PINATA_API_KEY,
+                    'pinata_secret_api_key': PINATA_API_SECRET,
+                },
             }
         );
         return { success: true, data: response.data };

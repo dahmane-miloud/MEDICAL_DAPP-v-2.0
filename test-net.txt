@@ -36,3 +36,7 @@ and add pinata upload time and download time and wetiness time and all the metri
 and crypte a users time ( for patient and doctor and health department ) and request share time and share time and 
 revoke time and access time so i want to messuer every think 
 So give a secript to handel all of this !
+
+---------------- other banchmark ------------------------
+i need a script that encrypt(EHR) avec AES-256 patient encrypt the key of AES with TBRE 
+befor he will choose an access policy to his EHR which  contains Attributes DNF selon votre chapitre  ) la plotique has banchmark with  attribute for exemple ( cardiolgue m working-at-cheguvaram attending-physisienm recharchre m ATTR)
